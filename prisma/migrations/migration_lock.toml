@@ -1,0 +1,3 @@
+# Prisma migration lock — provider for migrations under this directory.
+# See https://pris.ly/d/migration-lock
+provider = "sqlite"

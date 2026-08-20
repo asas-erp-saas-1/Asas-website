@@ -1,0 +1,24 @@
+# ASAS Production Go-Live Checklist
+
+- [ ] GitHub repository contains no `.env`, secrets, local DB, or generated credentials.
+- [ ] Supabase project created.
+- [ ] Supabase `media` Storage bucket created and public-read if public media is intended.
+- [ ] `DATABASE_URL` points to Supabase pooler.
+- [ ] `DIRECT_URL` points to Supabase direct PostgreSQL connection.
+- [ ] `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` configured.
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` configured only as a server-side Vercel secret.
+- [ ] `NEXT_PUBLIC_SITE_URL` configured to the final HTTPS domain.
+- [ ] `bun run db:migrate:deploy:postgres` completed successfully.
+- [ ] Existing SQLite data migrated with `bun run db:migrate:data` if required.
+- [ ] Production admin created with `bun run db:seed:postgres`.
+- [ ] `ADMIN_SESSION_DRIVER=db` configured.
+- [ ] Vercel deployment succeeds.
+- [ ] Public home/projects/apartments pages verified.
+- [ ] Admin login/logout verified.
+- [ ] Project/apartment CRUD verified.
+- [ ] Image upload/delete verified against Supabase Storage.
+- [ ] Lead submission verified.
+- [ ] Sitemap/robots/canonical URLs verified.
+- [ ] Mobile navigation and forms verified.
+- [ ] Supabase backups/retention reviewed.
+- [ ] Temporary bootstrap password removed from Vercel environment after first admin creation.

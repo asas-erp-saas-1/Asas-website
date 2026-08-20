@@ -1,0 +1,873 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* ASAS Brand Colors */
+  --color-forest: var(--forest);
+  --color-forest-light: var(--forest-light);
+  --color-forest-dark: var(--forest-dark);
+  --color-ivory: var(--ivory);
+  --color-charcoal: var(--charcoal);
+  --color-sand: var(--sand);
+  --color-gold: var(--gold);
+}
+
+:root {
+  color-scheme: light dark;
+  --radius: 0.625rem;
+
+  /* ASAS Brand Tokens */
+  --forest: oklch(0.37 0.09 155);
+  --forest-light: oklch(0.52 0.1 155);
+  --forest-dark: oklch(0.25 0.07 155);
+  --ivory: oklch(0.98 0.005 90);
+  --charcoal: oklch(0.17 0.01 60);
+  --sand: oklch(0.92 0.008 80);
+  --gold: oklch(0.75 0.15 85);
+
+  /* Semantic Colors */
+  --background: oklch(0.98 0.005 90);
+  --foreground: oklch(0.17 0.01 60);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.17 0.01 60);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.17 0.01 60);
+  --primary: oklch(0.37 0.09 155);
+  --primary-foreground: oklch(0.98 0.005 90);
+  --secondary: oklch(0.95 0.006 80);
+  --secondary-foreground: oklch(0.17 0.01 60);
+  --muted: oklch(0.95 0.006 80);
+  --muted-foreground: oklch(0.50 0.01 60);
+  --accent: oklch(0.92 0.008 80);
+  --accent-foreground: oklch(0.17 0.01 60);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.90 0.006 80);
+  --input: oklch(0.90 0.006 80);
+  --ring: oklch(0.37 0.09 155);
+  --chart-1: oklch(0.37 0.09 155);
+  --chart-2: oklch(0.75 0.15 85);
+  --chart-3: oklch(0.55 0.06 155);
+  --chart-4: oklch(0.65 0.12 85);
+  --chart-5: oklch(0.45 0.08 155);
+  --sidebar: oklch(0.98 0.005 90);
+  --sidebar-foreground: oklch(0.17 0.01 60);
+  --sidebar-primary: oklch(0.37 0.09 155);
+  --sidebar-primary-foreground: oklch(0.98 0.005 90);
+  --sidebar-accent: oklch(0.95 0.006 80);
+  --sidebar-accent-foreground: oklch(0.17 0.01 60);
+  --sidebar-border: oklch(0.90 0.006 80);
+  --sidebar-ring: oklch(0.37 0.09 155);
+}
+
+.dark {
+  --forest: oklch(0.45 0.1 155);
+  --forest-light: oklch(0.55 0.1 155);
+  --forest-dark: oklch(0.30 0.08 155);
+  --ivory: oklch(0.15 0.005 60);
+  --charcoal: oklch(0.95 0.005 90);
+  --sand: oklch(0.25 0.008 60);
+  --gold: oklch(0.75 0.15 85);
+
+  --background: oklch(0.15 0.005 60);
+  --foreground: oklch(0.95 0.005 90);
+  --card: oklch(0.18 0.01 60);
+  --card-foreground: oklch(0.95 0.005 90);
+  --popover: oklch(0.18 0.01 60);
+  --popover-foreground: oklch(0.95 0.005 90);
+  --primary: oklch(0.45 0.1 155);
+  --primary-foreground: oklch(0.98 0.005 90);
+  --secondary: oklch(0.22 0.008 60);
+  --secondary-foreground: oklch(0.95 0.005 90);
+  --muted: oklch(0.22 0.008 60);
+  --muted-foreground: oklch(0.65 0.01 60);
+  --accent: oklch(0.25 0.008 60);
+  --accent-foreground: oklch(0.95 0.005 90);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(0.28 0.01 60);
+  --input: oklch(0.28 0.01 60);
+  --ring: oklch(0.45 0.1 155);
+  --chart-1: oklch(0.45 0.1 155);
+  --chart-2: oklch(0.75 0.15 85);
+  --chart-3: oklch(0.55 0.06 155);
+  --chart-4: oklch(0.65 0.12 85);
+  --chart-5: oklch(0.45 0.08 155);
+  --sidebar: oklch(0.18 0.01 60);
+  --sidebar-foreground: oklch(0.95 0.005 90);
+  --sidebar-primary: oklch(0.45 0.1 155);
+  --sidebar-primary-foreground: oklch(0.98 0.005 90);
+  --sidebar-accent: oklch(0.22 0.008 60);
+  --sidebar-accent-foreground: oklch(0.95 0.005 90);
+  --sidebar-border: oklch(0.28 0.01 60);
+  --sidebar-ring: oklch(0.45 0.1 155);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Custom scrollbar */
+@layer base {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: oklch(0.70 0.01 60);
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.50 0.01 60);
+  }
+
+  /* Horizontal variant for carousels / recently-viewed rows */
+  .custom-scrollbar-x {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.70 0.01 60) transparent;
+  }
+  .custom-scrollbar-x::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+  .custom-scrollbar-x::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar-x::-webkit-scrollbar-thumb {
+    background: oklch(0.70 0.01 60);
+    border-radius: 3px;
+  }
+  .custom-scrollbar-x::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.50 0.01 60);
+  }
+}
+
+/* Floor plan viewer */
+.floor-plan-container {
+  cursor: grab;
+  overflow: hidden;
+  touch-action: none;
+}
+.floor-plan-container:active {
+  cursor: grabbing;
+}
+
+/* Status badges */
+.status-available {
+  background-color: oklch(0.55 0.15 145);
+  color: white;
+}
+.status-reserved {
+  background-color: oklch(0.75 0.15 85);
+  color: oklch(0.25 0.05 85);
+}
+.status-sold {
+  background-color: oklch(0.55 0.01 60);
+  color: white;
+}
+.status-coming-soon {
+  background-color: oklch(0.65 0.12 250);
+  color: white;
+}
+
+/* WhatsApp pulse animation */
+@keyframes whatsapp-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.55 0.2 145 / 40%); }
+  50% { box-shadow: 0 0 0 8px oklch(0.55 0.2 145 / 0%); }
+}
+.whatsapp-pulse {
+  animation: whatsapp-pulse 2s infinite;
+}
+
+/* Hero dot grid overlay animation */
+@keyframes grid-shift {
+  0% { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
+}
+.hero-dot-grid {
+  background-image: radial-gradient(circle, oklch(1 0 0 / 6%) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: grid-shift 20s linear infinite;
+}
+html.dark .hero-dot-grid {
+  background-image: radial-gradient(circle, oklch(1 0 0 / 10%) 1px, transparent 1px);
+}
+
+/* Floating animation for scroll indicator */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: float 2.5s ease-in-out infinite;
+}
+
+/* Status badge pulse */
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.animate-status-pulse {
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+/* Ripple effect for RippleButton */
+@keyframes ripple-expand {
+  0% {
+    transform: scale(0);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+.ripple-circle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: ripple-expand 0.6s ease-out forwards;
+}
+
+/* Shimmer loading effect for skeletons */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, oklch(0.92 0.006 80) 25%, oklch(0.96 0.003 80) 50%, oklch(0.92 0.006 80) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* Subtle glow for forest-green CTAs */
+.forest-glow {
+  box-shadow: 0 0 20px oklch(0.37 0.09 155 / 15%), 0 0 40px oklch(0.37 0.09 155 / 8%);
+}
+.forest-glow:hover {
+  box-shadow: 0 0 30px oklch(0.37 0.09 155 / 25%), 0 0 60px oklch(0.37 0.09 155 / 12%);
+}
+
+/* Smooth gradient text for hero sections */
+.gradient-text-forest {
+  background: linear-gradient(135deg, oklch(0.37 0.09 155), oklch(0.52 0.1 155), oklch(0.75 0.15 85));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Card hover glow effect */
+.card-glow {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.card-glow:hover {
+  box-shadow: 0 8px 30px oklch(0.37 0.09 155 / 8%), 0 2px 8px oklch(0.17 0.01 60 / 6%);
+}
+
+/* Stagger fade animation for lists */
+@keyframes stagger-fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.stagger-item {
+  animation: stagger-fade-in 0.5s ease-out both;
+}
+
+/* Enhanced focus ring for accessibility */
+:focus-visible {
+  outline: 2px solid var(--ring, var(--forest));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Selection color */
+::selection {
+  background-color: oklch(0.37 0.09 155 / 20%);
+  color: var(--foreground);
+}
+
+/* Smooth scroll behavior (already in @layer base, this is for specificity) */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Empty state illustration */
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float-soft {
+  animation: float-soft 3s ease-in-out infinite;
+}
+
+/* Gradient border utility */
+.gradient-border {
+  position: relative;
+  background: var(--background);
+}
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, oklch(0.37 0.09 155 / 40%), oklch(0.75 0.15 85 / 30%), oklch(0.37 0.09 155 / 20%));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Skeleton text shimmer */
+@keyframes text-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-text {
+  background: linear-gradient(90deg, oklch(0.92 0.006 80 / 60%) 25%, oklch(0.96 0.003 80 / 80%) 50%, oklch(0.92 0.006 80 / 60%) 75%);
+  background-size: 200% 100%;
+  animation: text-shimmer 1.8s ease-in-out infinite;
+  border-radius: 6px;
+  color: transparent;
+  user-select: none;
+}
+
+/* Spotlight effect for hero cards */
+@keyframes spotlight-sweep {
+  0% { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
+}
+.spotlight-card {
+  position: relative;
+  overflow: hidden;
+}
+.spotlight-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent 40%, oklch(0.75 0.15 85 / 8%) 50%, transparent 60%);
+  background-size: 200% 100%;
+  animation: spotlight-sweep 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Better scrollbars — scoped to html and custom containers */
+html, .custom-scrollbar, .main-content {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.37 0.09 155 / 30%) transparent;
+}
+html::-webkit-scrollbar, .custom-scrollbar::-webkit-scrollbar, .main-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+html::-webkit-scrollbar-track, .custom-scrollbar::-webkit-scrollbar-track, .main-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb, .custom-scrollbar::-webkit-scrollbar-thumb, .main-content::-webkit-scrollbar-thumb {
+  background-color: oklch(0.37 0.09 155 / 25%);
+  border-radius: 8px;
+}
+html::-webkit-scrollbar-thumb:hover, .custom-scrollbar::-webkit-scrollbar-thumb:hover, .main-content::-webkit-scrollbar-thumb:hover {
+  background-color: oklch(0.37 0.09 155 / 45%);
+}
+
+/* Hover lift utility */
+.hover-lift {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Subtle pulse for badges */
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.37 0.09 155 / 30%); }
+  50% { box-shadow: 0 0 0 4px oklch(0.37 0.09 155 / 0%); }
+}
+.badge-pulse {
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+/* Hide scrollbar but allow scrolling */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Marching ants animation for floor plan placeholder */
+@keyframes marching-ants {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -24; }
+}
+.marching-ants-border {
+  border: 2px dashed oklch(0.37 0.09 155 / 25%);
+  animation: marching-ants-dash 1.2s linear infinite;
+}
+@keyframes marching-ants-dash {
+  0% { border-color: oklch(0.37 0.09 155 / 25%); }
+  50% { border-color: oklch(0.37 0.09 155 / 40%); }
+  100% { border-color: oklch(0.37 0.09 155 / 25%); }
+}
+
+/* Shimmer for premium skeleton loaders */
+@keyframes shimmer-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.shimmer-premium {
+  position: relative;
+  overflow: hidden;
+  background: oklch(0.92 0.006 80);
+}
+.shimmer-premium::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, oklch(0.96 0.003 80 / 60%), transparent);
+  animation: shimmer-slide 1.8s ease-in-out infinite;
+}
+
+/* Shimmer animation for premium buttons/badges (distinct from .shimmer) */
+@keyframes shimmer-btn {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.btn-shimmer {
+  background-size: 200% 100%;
+  animation: shimmer-btn 3s ease-in-out infinite;
+}
+
+/* Gentle floating animation */
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.float-gentle {
+  animation: float-gentle 3s ease-in-out infinite;
+}
+
+/* Pulse ring for status badges */
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 oklch(0.37 0.09 155 / 40%); }
+  70% { box-shadow: 0 0 0 6px oklch(0.37 0.09 155 / 0%); }
+  100% { box-shadow: 0 0 0 0 oklch(0.37 0.09 155 / 0%); }
+}
+.pulse-ring {
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+/* Shimmer animation for apartment type badge */
+@keyframes shimmer-badge {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-badge {
+  background-size: 200% 100%;
+  background-image: linear-gradient(
+    90deg,
+    oklch(0.37 0.09 155) 0%,
+    oklch(0.37 0.09 155) 35%,
+    oklch(0.52 0.1 155) 50%,
+    oklch(0.37 0.09 155) 65%,
+    oklch(0.37 0.09 155) 100%
+  );
+  animation: shimmer-badge 4s ease-in-out infinite;
+}
+
+/* Apartment card border-left pulse on hover */
+@keyframes border-l-pulse {
+  0%, 100% { border-left-color: oklch(0.37 0.09 155); }
+  50% { border-left-color: oklch(0.52 0.1 155); }
+}
+.apartment-border-pulse:hover {
+  animation: border-l-pulse 1.5s ease-in-out infinite;
+}
+
+/* Print-friendly */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white !important; color: black !important; }
+  a { text-decoration: none !important; color: black !important; }
+  .shadow-lg, .shadow-md, .shadow-sm { box-shadow: none !important; }
+}
+
+/* ============================================
+   PREMIUM CSS EFFECTS & MICRO-INTERACTIONS
+   ============================================ */
+
+/* Magnetic button effect - subtle pull towards cursor */
+.magnetic-btn {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Glassmorphism card with forest-green tint */
+.glass-card {
+  background: oklch(1 0 0 / 70%);
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid oklch(1 0 0 / 25%);
+  box-shadow: 0 8px 32px oklch(0 0 0 / 8%);
+}
+.dark .glass-card {
+  background: oklch(0.18 0.01 60 / 70%);
+  border: 1px solid oklch(1 0 0 / 10%);
+}
+
+/* Text reveal from bottom */
+@keyframes text-reveal {
+  from { 
+    opacity: 0;
+    transform: translateY(100%);
+    clip-path: inset(0 0 100% 0);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+.text-reveal {
+  animation: text-reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Stagger children entrance */
+.stagger-children > * {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: stagger-child 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 320ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 400ms; }
+
+@keyframes stagger-child {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Subtle noise texture for premium feel */
+.noise-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Animated gradient border */
+@keyframes gradient-border-spin {
+  0% { --gradient-angle: 0deg; }
+  100% { --gradient-angle: 360deg; }
+}
+.gradient-border-animated {
+  position: relative;
+  border-radius: inherit;
+}
+.gradient-border-animated::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--gradient-angle, 0deg),
+    oklch(0.37 0.09 155),
+    oklch(0.75 0.15 85),
+    oklch(0.37 0.09 155)
+  );
+  animation: gradient-border-spin 4s linear infinite;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.gradient-border-animated:hover::before {
+  opacity: 1;
+}
+
+/* Smooth underline link effect */
+.hover-underline {
+  position: relative;
+  text-decoration: none;
+}
+.hover-underline::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: oklch(0.37 0.09 155);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hover-underline:hover::after {
+  width: 100%;
+}
+
+/* Premium hover scale with shadow */
+.hover-scale-shadow {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hover-scale-shadow:hover {
+  transform: scale(1.02);
+  box-shadow: 0 20px 40px oklch(0 0 0 / 12%), 
+              0 8px 16px oklch(0.37 0.09 155 / 8%);
+}
+
+/* Tabular numbers for prices and counters */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Register custom property for animated gradient border */
+@property --gradient-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* Page transition fade */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: page-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ============================================
+   2026 MODERN UI EFFECTS
+   ============================================ */
+
+/* Smooth spring-like transition utility */
+.spring-bounce {
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Icon hover pop effect */
+.icon-pop {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.icon-pop:hover {
+  transform: scale(1.15) rotate(-3deg);
+}
+
+/* Subtle text gradient animation */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animated-gradient-text {
+  background-size: 200% auto;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* Frosted glass panel */
+.frosted-panel {
+  background: oklch(1 0 0 / 60%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid oklch(1 0 0 / 15%);
+  box-shadow: 0 8px 32px oklch(0 0 0 / 6%), inset 0 1px 0 oklch(1 0 0 / 40%);
+}
+.dark .frosted-panel {
+  background: oklch(0.18 0.01 60 / 60%);
+  border: 1px solid oklch(1 0 0 / 8%);
+}
+
+/* Smooth border color transition for interactive elements */
+.smooth-border {
+  transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Badge shimmer effect for premium items */
+@keyframes badge-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.badge-shimmer {
+  background: linear-gradient(90deg, 
+    oklch(0.37 0.09 155) 0%, 
+    oklch(0.52 0.1 155) 25%, 
+    oklch(0.75 0.15 85) 50%, 
+    oklch(0.52 0.1 155) 75%, 
+    oklch(0.37 0.09 155) 100%
+  );
+  background-size: 200% auto;
+  animation: badge-shimmer 4s linear infinite;
+}
+
+/* Morphing blob background for hero sections */
+@keyframes morph-blob {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+  50% { border-radius: 50% 60% 30% 60% / 30% 40% 70% 60%; }
+  75% { border-radius: 60% 30% 60% 40% / 70% 50% 40% 60%; }
+}
+.morph-blob {
+  animation: morph-blob 8s ease-in-out infinite;
+}
+
+/* Scroll indicator dot animation */
+@keyframes scroll-dot {
+  0%, 100% { opacity: 0.3; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(6px); }
+}
+.scroll-dot-1 { animation: scroll-dot 1.5s ease-in-out infinite; }
+.scroll-dot-2 { animation: scroll-dot 1.5s ease-in-out 0.2s infinite; }
+.scroll-dot-3 { animation: scroll-dot 1.5s ease-in-out 0.4s infinite; }
+
+/* Micro-interaction: button press depth */
+.btn-press {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-press:active {
+  transform: scale(0.97) translateY(1px);
+  box-shadow: none;
+}
+
+/* Micro-interaction: hover glow for forest-themed elements */
+.forest-hover-glow {
+  transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+.forest-hover-glow:hover {
+  box-shadow: 0 0 0 3px oklch(0.37 0.09 155 / 15%),
+              0 0 20px oklch(0.37 0.09 155 / 10%);
+}
+
+/* Smooth focus ring for form fields */
+.focus-ring-forest:focus-within {
+  outline: none;
+  border-color: oklch(0.37 0.09 155);
+  box-shadow: 0 0 0 3px oklch(0.37 0.09 155 / 15%),
+              0 0 12px oklch(0.37 0.09 155 / 8%);
+}
+
+/* Entrance animation variants */
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-down-fade {
+  from { opacity: 0; transform: translateY(-24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scale-fade {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-slide-up { animation: slide-up-fade 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-slide-down { animation: slide-down-fade 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-scale-fade { animation: scale-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Smooth skeleton loading with gradient sweep */
+@keyframes skeleton-sweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-sweep {
+  background: linear-gradient(90deg, 
+    oklch(0.92 0.006 80) 25%, 
+    oklch(0.96 0.003 80) 37%, 
+    oklch(0.92 0.006 80) 63%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.4s ease infinite;
+}
+
+/* Elegant link underline animation */
+.elegant-link {
+  position: relative;
+  text-decoration: none;
+  background-image: linear-gradient(oklch(0.37 0.09 155), oklch(0.37 0.09 155));
+  background-size: 0% 2px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.elegant-link:hover {
+  background-size: 100% 2px;
+}
+
+/* Subtle parallax-ready container */
+.parallax-container {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+/* ============================================
+   ACCESSIBILITY: Reduced motion preferences
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
