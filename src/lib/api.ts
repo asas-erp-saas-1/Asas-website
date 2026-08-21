@@ -2,8 +2,9 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
-import type { Apartment, SiteStats } from '@/lib/types';
+import type { Apartment, Project, SiteStats } from '@/lib/types';
 import type { PublicApartmentDetail, PublicProjectCard, PublicProjectDetail } from '@/lib/catalog-contracts';
+import { publicCardToLegacyProject } from '@/lib/catalog-legacy-adapter';
 
 const API_BASE = '/api';
 
@@ -22,9 +23,14 @@ interface ApartmentsApiResponse {
   pagination: { page: number; limit: number; total: number; totalPages: number };
 }
 
-/** @deprecated Use usePublicProjectCards in new code. Kept as a naming compatibility alias only. */
-export function useProjects(): UseQueryResult<PublicProjectCard[], Error> {
-  return usePublicProjectCards();
+/** @deprecated Transitional compatibility name. New public catalog code should use usePublicProjectCards. */
+export function useProjects(): UseQueryResult<Project[], Error> {
+  return useQuery({
+    queryKey: ['catalog', 'project-cards'],
+    queryFn: async () => (await getJson<PublicProjectCard[]>(`${API_BASE}/catalog/projects`)).map(publicCardToLegacyProject),
+    staleTime: 60_000,
+    retry: 2,
+  });
 }
 
 export function usePublicProjectCards(): UseQueryResult<PublicProjectCard[], Error> {
@@ -40,34 +46,15 @@ export function useApartmentsByIds(ids: string[]) {
   const normalizedIds = [...new Set(ids)].sort();
   const qs = new URLSearchParams();
   normalizedIds.forEach((id) => qs.append('id', id));
-  return useQuery({
-    queryKey: ['apartments', 'by-ids', normalizedIds],
-    queryFn: async () => (await getJson<ApartmentsApiResponse>(`${API_BASE}/apartments?${qs.toString()}`)).data,
-    enabled: normalizedIds.length > 0,
-    staleTime: 30_000,
-  });
+  return useQuery({ queryKey: ['apartments', 'by-ids', normalizedIds], queryFn: async () => (await getJson<ApartmentsApiResponse>(`${API_BASE}/apartments?${qs.toString()}`)).data, enabled: normalizedIds.length > 0, staleTime: 30_000 });
 }
 
 export function useProject(slug: string, initialData?: PublicProjectDetail): UseQueryResult<PublicProjectDetail, Error> {
-  return useQuery({
-    queryKey: ['catalog', 'project', slug],
-    queryFn: () => getJson<PublicProjectDetail>(`${API_BASE}/projects/${encodeURIComponent(slug)}`),
-    enabled: !!slug,
-    initialData,
-    staleTime: 60_000,
-    retry: 2,
-  });
+  return useQuery({ queryKey: ['catalog', 'project', slug], queryFn: () => getJson<PublicProjectDetail>(`${API_BASE}/projects/${encodeURIComponent(slug)}`), enabled: !!slug, initialData, staleTime: 60_000, retry: 2 });
 }
 
 export function useApartment(slug: string, initialData?: PublicApartmentDetail): UseQueryResult<PublicApartmentDetail, Error> {
-  return useQuery({
-    queryKey: ['catalog', 'apartment', slug],
-    queryFn: () => getJson<PublicApartmentDetail>(`${API_BASE}/apartments/${encodeURIComponent(slug)}`),
-    enabled: !!slug,
-    initialData,
-    staleTime: 60_000,
-    retry: 2,
-  });
+  return useQuery({ queryKey: ['catalog', 'apartment', slug], queryFn: () => getJson<PublicApartmentDetail>(`${API_BASE}/apartments/${encodeURIComponent(slug)}`), enabled: !!slug, initialData, staleTime: 60_000, retry: 2 });
 }
 
 export async function submitLead(data: Record<string, unknown>) {
@@ -82,18 +69,10 @@ export function useApartmentSearch(params: Record<string, string | number | unde
   const searchParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) if (value !== undefined && value !== '') searchParams.set(key, String(value));
   const qs = searchParams.toString();
-  return useQuery({
-    queryKey: ['apartments', 'search', qs],
-    queryFn: async () => (await getJson<ApartmentsApiResponse>(`${API_BASE}/apartments${qs ? `?${qs}` : ''}`)).data,
-    enabled: Object.values(params).some((v) => v !== undefined && v !== ''),
-    staleTime: 30_000,
-  });
+  return useQuery({ queryKey: ['apartments', 'search', qs], queryFn: async () => (await getJson<ApartmentsApiResponse>(`${API_BASE}/apartments${qs ? `?${qs}` : ''}`)).data, enabled: Object.values(params).some((v) => v !== undefined && v !== ''), staleTime: 30_000 });
 }
 
 export function useNewsletterSubscribe() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (email: string) => getJson(`${API_BASE}/newsletter/subscribe`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) }),
-    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['stats'] }); },
-  });
+  return useMutation({ mutationFn: (email: string) => getJson(`${API_BASE}/newsletter/subscribe`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) }), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['stats'] }); } });
 }
