@@ -114,6 +114,7 @@ export interface PublicApartmentDetail {
   images?: PublicApartmentImage[];
 }
 
+/** Lightweight, list-only public contract. Never contains apartment rows. */
 export interface PublicProjectCard {
   id: string;
   slug: string;
@@ -129,6 +130,9 @@ export interface PublicProjectCard {
   priceOnRequest: boolean;
   minSurface?: number;
   maxSurface?: number;
+  deliveryYear?: number;
+  deliveryQuarter?: string;
+  apartmentTypes: string;
   hasParking: boolean;
   hasElevator: boolean;
   hasGarden: boolean;
@@ -137,6 +141,7 @@ export interface PublicProjectCard {
   image?: { id: string; url: string; alt?: string; type: string };
   apartmentCount: number;
   availableApartmentCount: number;
+  reservedApartmentCount: number;
 }
 
 export interface PublicProjectDetail {
