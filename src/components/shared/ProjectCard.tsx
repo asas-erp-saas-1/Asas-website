@@ -99,13 +99,15 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:border-forest/30 hover:shadow-xl">
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         <img
           src={imageUrl}
-          alt={project.name}
+          alt={`${project.name} — ${project.district}, ${project.city}`}
           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
           loading="lazy"
           decoding="async"
+          width={800}
+          height={600}
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" aria-hidden="true" />
@@ -127,7 +129,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 z-10 p-4">
-          <h3 className="text-lg font-semibold leading-tight text-white">{project.name}</h3>
+          <button
+            type="button"
+            onClick={goToProject}
+            className="text-left text-lg font-semibold leading-tight text-white underline-offset-4 hover:underline focus-visible:rounded-sm"
+          >
+            {project.name}
+          </button>
           <div className="mt-1 flex items-center gap-1 text-sm text-white/80">
             <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
             <span>{project.district}, {project.city}</span>
@@ -137,7 +145,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         {types.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5" aria-label="Types de logements">
             {types.slice(0, 3).map((type) => <span key={type} className="inline-flex rounded-full bg-forest/10 px-2 py-0.5 text-xs font-semibold text-forest">{type}</span>)}
             {types.length > 3 && <span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">+{types.length - 3}</span>}
           </div>
