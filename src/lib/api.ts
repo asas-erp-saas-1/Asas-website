@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { Apartment, Project, SiteStats } from '@/lib/types';
+import type { PublicProjectCard } from '@/lib/catalog-contracts';
 
 const API_BASE = '/api';
 
@@ -25,6 +26,16 @@ interface ApartmentsApiResponse {
 
 export function useProjects(): UseQueryResult<Project[], Error> {
   return useQuery({ queryKey: ['projects'], queryFn: () => getJson<Project[]>(`${API_BASE}/projects`), staleTime: 30_000, retry: 2 });
+}
+
+/** Lean catalog query for listing surfaces. Does not replace the legacy detail contract. */
+export function usePublicProjectCards(): UseQueryResult<PublicProjectCard[], Error> {
+  return useQuery({
+    queryKey: ['catalog', 'project-cards'],
+    queryFn: () => getJson<PublicProjectCard[]>(`${API_BASE}/catalog/projects`),
+    staleTime: 60_000,
+    retry: 2,
+  });
 }
 
 export function useApartmentsByIds(ids: string[]) {
