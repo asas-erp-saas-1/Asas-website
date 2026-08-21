@@ -4,6 +4,11 @@ import { withSecurityHeaders } from '@/lib/with-security-headers';
 import { verifyAdminAuth, sessionHasRole } from '@/lib/admin-auth';
 import { logAudit } from '@/lib/audit';
 
+// Admin API routes are runtime-only. Never execute database reads during
+// `next build`; DATABASE_URL is a runtime secret configured in Vercel.
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 /**
  * GET /api/admin/apartments/[slug]
  * Get single apartment with images and building
@@ -85,22 +90,15 @@ export async function PUT(
       'status', 'price', 'priceOnRequest', 'paymentPlan', 'paymentPlanAr',
       'rooms', 'description', 'descriptionAr', 'features', 'featuresAr',
       'published', 'buildingId', 'order',
-      // SEO metadata
       'seoTitle', 'seoDescription', 'seoKeywords', 'canonicalUrl', 'ogImage', 'robotsIndex',
     ];
 
     for (const field of allowedFields) {
-      if (body[field] !== undefined) {
-        updateData[field] = body[field];
-      }
+      if (body[field] !== undefined) updateData[field] = body[field];
     }
 
-    const apartment = await db.apartment.update({
-      where: { slug },
-      data: updateData,
-    });
+    const apartment = await db.apartment.update({ where: { slug }, data: updateData });
 
-    // Audit log — focus on price + status changes (business-critical)
     const keyFields = ['price', 'status', 'published', 'surface'];
     const before: Record<string, unknown> = {};
     const after: Record<string, unknown> = {};
@@ -135,41 +133,26 @@ export async function PUT(
   }
 }
 
-/**
- * DELETE /api/admin/apartments/[slug]
- * Archive apartment
- */
+/** DELETE /api/admin/apartments/[slug] */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const session = await verifyAdminAuth(request);
-  if (!session) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  }
+  if (!session) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   if (!sessionHasRole(session, ['ADMIN'])) {
     return withSecurityHeaders(NextResponse.json(
-      { error: 'Privilèges insuffisants. Réservé aux administrateurs.' },
-      { status: 403 }
+      { error: 'Privilèges insuffisants. Réservé aux administrateurs.' }, { status: 403 }
     ));
   }
   try {
     const { slug } = await params;
-
     const existing = await db.apartment.findUnique({ where: { slug } });
-    if (!existing) {
-      return withSecurityHeaders(NextResponse.json(
-        { error: 'Apartment not found' },
-        { status: 404 }
-      ));
-    }
-
+    if (!existing) return withSecurityHeaders(NextResponse.json({ error: 'Apartment not found' }, { status: 404 }));
     const apartment = await db.apartment.update({
       where: { slug },
       data: { archived: true, published: false },
     });
-
-    // Audit log
     await logAudit({
       request, session,
       action: 'ARCHIVE_APARTMENT',
@@ -179,13 +162,9 @@ export async function DELETE(
       before: { typeName: existing.typeName, slug: existing.slug, published: existing.published, archived: existing.archived },
       after: { typeName: apartment.typeName, slug: apartment.slug, published: apartment.published, archived: apartment.archived },
     });
-
     return withSecurityHeaders(NextResponse.json({ data: apartment }));
   } catch (error) {
     console.error('[API /admin/apartments/[slug]] DELETE error:', error instanceof Error ? error.message : error);
-    return withSecurityHeaders(NextResponse.json(
-      { error: 'Failed to archive apartment' },
-      { status: 500 }
-    ));
+    return withSecurityHeaders(NextResponse.json({ error: 'Failed to archive apartment' }, { status: 500 }));
   }
 }
