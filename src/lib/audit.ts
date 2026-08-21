@@ -1,24 +1,11 @@
 /**
  * Audit log helper — records admin mutations to the AuditLog table.
  *
- * Usage pattern (in API routes):
- *
- *   import { logAudit } from '@/lib/audit';
- *   await logAudit({
- *     request,
- *     session,
- *     action: 'UPDATE_PROJECT',
- *     entityType: 'Project',
- *     entityId: project.id,
- *     entitySlug: project.slug,
- *     before: oldProject,
- *     after: updatedProject,
- *   });
- *
  * Logs are best-effort: failures are caught + logged, but do not block
  * the original operation. This ensures audit logging never breaks
  * the actual user action.
  */
+import { Prisma } from '@/generated/prisma-postgres';
 import { db } from './db';
 import type { AdminSession } from './admin-auth';
 
@@ -33,9 +20,6 @@ export interface AuditEntry {
   after?: unknown;
 }
 
-/**
- * Insert an audit log entry. Best-effort — never throws.
- */
 export async function logAudit(entry: AuditEntry): Promise<void> {
   try {
     const ipAddress = entry.request?.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
@@ -50,8 +34,8 @@ export async function logAudit(entry: AuditEntry): Promise<void> {
         entityType: entry.entityType ?? null,
         entityId: entry.entityId ?? null,
         entitySlug: entry.entitySlug ?? null,
-        before: entry.before !== undefined ? safeStringify(entry.before) : null,
-        after: entry.after !== undefined ? safeStringify(entry.after) : null,
+        before: entry.before !== undefined ? safeJson(entry.before) : Prisma.DbNull,
+        after: entry.after !== undefined ? safeJson(entry.after) : Prisma.DbNull,
         ipAddress,
         userAgent,
       },
@@ -61,13 +45,17 @@ export async function logAudit(entry: AuditEntry): Promise<void> {
   }
 }
 
-function safeStringify(value: unknown): string {
+function safeJson(value: unknown): Prisma.InputJsonValue | typeof Prisma.JsonNull {
   try {
-    // Avoid BigInt issues + circular references
-    return JSON.stringify(value, (_k, v) =>
-      typeof v === 'bigint' ? v.toString() : v
-    , 0).slice(0, 8000); // Cap at 8KB per entry
+    const serialized = JSON.stringify(value, (_k, v) =>
+      typeof v === 'bigint' ? v.toString() : v,
+    );
+    if (serialized === undefined || serialized === 'null') return Prisma.JsonNull;
+    if (serialized.length > 8000) {
+      return `[truncated audit payload] ${serialized.slice(0, 7950)}`;
+    }
+    return JSON.parse(serialized) as Prisma.InputJsonValue;
   } catch {
-    return '[unserializable]';
+    return Prisma.JsonNull;
   }
 }
