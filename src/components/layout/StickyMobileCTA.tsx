@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { MessageCircle, Phone } from 'lucide-react';
-import { ASAS, getPhoneUrl, getWhatsAppUrl } from '@/lib/constants';
+import { getPhoneUrl, getWhatsAppUrl } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { useRouter } from '@/lib/router';
 import { useComparison } from '@/lib/favorites';
@@ -13,45 +13,40 @@ export function StickyMobileCTA() {
   const compareCount = useComparison(s => s.compareList.length);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setVisible(window.scrollY > 300);
-    };
+    const handleScroll = () => setVisible(window.scrollY > 300);
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Hide the sticky CTA when the CompareBar is showing (2+ items in comparison)
   if (!visible || compareCount >= 2) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-background/95 backdrop-blur border-t border-border px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-      <div className="flex items-center gap-2">
-        {/* WhatsApp */}
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/95 px-3 py-2 shadow-[0_-6px_20px_rgba(0,0,0,0.06)] backdrop-blur supports-[backdrop-filter]:bg-background/80 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden">
+      <div className="mx-auto flex max-w-lg items-center gap-2">
         <a
           href={getWhatsAppUrl('Bonjour, je souhaite des informations sur vos projets.')}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 flex items-center justify-center gap-1.5 h-10 rounded-md text-sm font-medium text-white transition-colors"
-          style={{ backgroundColor: '#25D366' }}
+          aria-label="Contacter ASAS sur WhatsApp"
+          className="flex h-10 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-md bg-[#25D366] px-2 text-sm font-semibold text-white transition-[filter,transform] duration-150 hover:brightness-95 active:translate-y-px"
         >
-          <MessageCircle className="size-4" />
-          <span>WhatsApp</span>
+          <MessageCircle aria-hidden="true" className="size-4 shrink-0" />
+          <span className="truncate">WhatsApp</span>
         </a>
 
-        {/* Appeler */}
         <a
           href={getPhoneUrl()}
-          className="flex-1 flex items-center justify-center gap-1.5 h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium transition-colors hover:bg-primary/90"
+          aria-label="Appeler ASAS"
+          className="flex h-10 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-2 text-sm font-semibold text-primary-foreground transition-[background-color,transform] duration-150 hover:bg-primary/90 active:translate-y-px"
         >
-          <Phone className="size-4" />
-          <span>Appeler</span>
+          <Phone aria-hidden="true" className="size-4 shrink-0" />
+          <span className="truncate">Appeler</span>
         </a>
 
-        {/* Demander les infos */}
         <Button
           size="sm"
-          className="flex-1 h-10 text-xs bg-forest hover:bg-forest-dark text-white border-forest hover:border-forest-dark"
+          className="h-10 min-w-0 flex-1 truncate px-2 text-xs font-semibold"
           onClick={() => navigate({ page: 'contact' })}
         >
           Demander les infos
