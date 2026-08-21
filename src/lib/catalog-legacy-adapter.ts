@@ -19,9 +19,9 @@ export function legacyProjectToPublicCard(project: Project): PublicProjectCard {
     hasElevator: project.hasElevator, hasGarden: project.hasGarden, hasPool: project.hasPool,
     featured: project.featured,
     image: hero ? { id: hero.id, url: hero.url, alt: hero.alt, type: hero.type } : undefined,
-    apartmentCount: apartments.length,
-    availableApartmentCount: apartments.filter((a) => a.status === 'AVAILABLE' || a.status === 'COMING_SOON').length,
-    reservedApartmentCount: apartments.filter((a) => a.status === 'RESERVED').length,
+    apartmentCount: project.apartmentCount ?? apartments.length,
+    availableApartmentCount: project.availableApartmentCount ?? apartments.filter((a) => a.status === 'AVAILABLE' || a.status === 'COMING_SOON').length,
+    reservedApartmentCount: project.reservedApartmentCount ?? apartments.filter((a) => a.status === 'RESERVED').length,
   };
 }
 
@@ -43,5 +43,8 @@ export function publicCardToLegacyProject(card: PublicProjectCard): Project {
     startingPrice: card.startingPrice, priceOnRequest: card.priceOnRequest,
     published: true, archived: false, featured: card.featured, order: 0,
     images: image, apartments: [], buildings: [], amenities: [],
+    apartmentCount: card.apartmentCount,
+    availableApartmentCount: card.availableApartmentCount,
+    reservedApartmentCount: card.reservedApartmentCount,
   };
 }
