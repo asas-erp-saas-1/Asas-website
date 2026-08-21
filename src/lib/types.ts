@@ -1,7 +1,6 @@
 // Domain Types for ASAS Real Estate Platform
 
 // ─── Structured Image Types ────────────────────────────────────────
-
 export interface ProjectImage {
   id: string;
   projectId: string;
@@ -10,7 +9,7 @@ export interface ProjectImage {
   altAr?: string;
   caption?: string;
   captionAr?: string;
-  type: string; // hero, gallery, exterior, interior, amenity, document, architecture
+  type: string;
   order: number;
   width?: number;
   height?: number;
@@ -24,13 +23,11 @@ export interface ApartmentImage {
   altAr?: string;
   caption?: string;
   captionAr?: string;
-  type: string; // hero, gallery, floor-plan, 3d-plan, interior, exterior, view, document
+  type: string;
   order: number;
   width?: number;
   height?: number;
 }
-
-// ─── Building ──────────────────────────────────────────────────────
 
 export interface Building {
   id: string;
@@ -44,8 +41,6 @@ export interface Building {
   order: number;
   apartments?: Apartment[];
 }
-
-// ─── Project ───────────────────────────────────────────────────────
 
 export interface Project {
   id: string;
@@ -89,9 +84,12 @@ export interface Project {
   amenities?: ProjectAmenity[];
   images?: ProjectImage[];
   developer?: Developer;
-}
 
-// ─── Apartment ─────────────────────────────────────────────────────
+  /** Public catalog counters carried by the lightweight list DTO adapter. */
+  apartmentCount?: number;
+  availableApartmentCount?: number;
+  reservedApartmentCount?: number;
+}
 
 export interface Apartment {
   id: string;
@@ -134,8 +132,6 @@ export interface Apartment {
   images?: ApartmentImage[];
 }
 
-// ─── ProjectAmenity ────────────────────────────────────────────────
-
 export interface ProjectAmenity {
   id: string;
   projectId: string;
@@ -145,8 +141,6 @@ export interface ProjectAmenity {
   description?: string;
   descriptionAr?: string;
 }
-
-// ─── Developer ─────────────────────────────────────────────────────
 
 export interface Developer {
   id: string;
@@ -161,7 +155,6 @@ export interface Developer {
 }
 
 // ─── Lead ──────────────────────────────────────────────────────────
-
 export interface Lead {
   id?: string;
   name: string;
@@ -180,44 +173,4 @@ export interface Lead {
   utmMedium?: string;
   utmCampaign?: string;
   utmContent?: string;
-  utmTerm?: string;
-  gclid?: string;
-  fbclid?: string;
-  referrer?: string;
-  source?: string;
-  status?: string;
-}
-
-// ─── Room ──────────────────────────────────────────────────────────
-
-export interface Room {
-  name: string;
-  nameAr?: string;
-  surface: number;
-}
-
-// ─── Navigation types ──────────────────────────────────────────────
-
-export interface NavRoute {
-  path: string;
-  label: string;
-  labelAr?: string;
-  children?: NavRoute[];
-}
-
-// ─── Router state ──────────────────────────────────────────────────
-
-export interface RouterState {
-  currentPath: string;
-  params: Record<string, string>;
-}
-
-// ─── Stats ─────────────────────────────────────────────────────────
-
-export interface SiteStats {
-  projectsCount: number;
-  apartmentsCount: number;
-  availableCount: number;
-  citiesCount: number;
-  districtsCount: number;
 }
