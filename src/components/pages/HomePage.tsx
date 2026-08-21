@@ -15,45 +15,52 @@ import {
   Home,
   ChevronRight,
   Sparkles,
+  Search,
+  Users,
+  Landmark,
 } from 'lucide-react';
 import type { Project } from '@/lib/types';
 
-/* ────────────────────────────────────────────────────────────
-   HomePage — Luxury Real Estate
-   Conversion funnel: Hero → Inventory → Projects → Trust → CTA
-   ──────────────────────────────────────────────────────────── */
-
+/**
+ * Homepage information architecture:
+ * 1. Intent-first hero
+ * 2. Live inventory proof
+ * 3. Curated projects
+ * 4. Buyer journey
+ * 5. Trust
+ * 6. Developer pathway
+ * 7. Low-friction contact
+ *
+ * No marketing metrics or property facts are fabricated here; inventory values
+ * are derived exclusively from the API response.
+ */
 export default function HomePage() {
   const router = useRouter();
   const { data: projects, isLoading } = useProjects();
-
   const featuredProjects = projects?.filter((p: Project) => p.featured) ?? [];
 
-  /* ── Derived inventory data ── */
   const inventory = useMemo(() => {
-    if (!projects || projects.length === 0) {
+    if (!projects?.length) {
       return { totalApartments: 0, availableCount: 0, districts: [] as string[], minPrice: 0 };
     }
+
     let totalApartments = 0;
     let availableCount = 0;
     let minPrice = Infinity;
     const districtSet = new Set<string>();
 
-    for (const p of projects) {
-      districtSet.add(p.district);
-      const apts = p.apartments ?? [];
-      totalApartments += apts.length;
-      for (const a of apts) {
-        if (a.status === 'AVAILABLE' || a.status === 'COMING_SOON') {
-          availableCount++;
-        }
-        if (a.price && a.price > 0 && a.price < minPrice) {
-          minPrice = a.price;
-        }
+    for (const project of projects) {
+      districtSet.add(project.district);
+      const apartments = project.apartments ?? [];
+      totalApartments += apartments.length;
+
+      for (const apartment of apartments) {
+        if (apartment.status === 'AVAILABLE' || apartment.status === 'COMING_SOON') availableCount++;
+        if (apartment.price && apartment.price > 0) minPrice = Math.min(minPrice, apartment.price);
       }
-      // Also check project startingPrice
-      if (p.startingPrice && p.startingPrice > 0 && p.startingPrice < minPrice) {
-        minPrice = p.startingPrice;
+
+      if (project.startingPrice && project.startingPrice > 0) {
+        minPrice = Math.min(minPrice, project.startingPrice);
       }
     }
 
@@ -65,257 +72,197 @@ export default function HomePage() {
     };
   }, [projects]);
 
-  /* Projects to show in featured section */
   const displayProjects = featuredProjects.length > 0
     ? featuredProjects.slice(0, 3)
     : projects?.slice(0, 3) ?? [];
 
   return (
     <main>
-      {/* ═══════════════ HERO ═══════════════ */}
-      <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-charcoal">
-        {/* Background image with dark overlay */}
-        <div className="absolute inset-0">
+      {/* HERO — intent before inventory */}
+      <section className="relative isolate min-h-[min(760px,88vh)] overflow-hidden bg-charcoal">
+        <div className="absolute inset-0" aria-hidden="true">
           <img
             src="/images/brand/hero.jpg"
-            alt="Immobilier neuf à Alger"
-            className="w-full h-full object-cover opacity-40"
+            alt=""
+            className="h-full w-full object-cover object-center opacity-45"
+            fetchPriority="high"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-charcoal/80 via-charcoal/50 to-charcoal/70" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,24,21,.94)_0%,rgba(20,24,21,.72)_48%,rgba(20,24,21,.42)_100%)]" />
+          <div className="absolute inset-0 hero-dot-grid opacity-30" />
         </div>
 
-        {/* Subtle side accent line */}
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-forest via-gold to-forest/30" aria-hidden />
-
-        <div className="relative z-10 w-full max-w-6xl mx-auto px-6 py-20">
-          <div className="max-w-2xl">
-            {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-white/70 mb-8">
-              <div className="w-1.5 h-1.5 rounded-full bg-gold" />
+        <div className="relative z-10 mx-auto flex min-h-[min(760px,88vh)] w-full max-w-7xl items-center px-5 py-20 sm:px-8 lg:px-10">
+          <div className="max-w-3xl">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur-md">
+              <span className="h-1.5 w-1.5 rounded-full bg-gold" aria-hidden="true" />
               {ASAS.fullName}
             </div>
 
-            {/* Headline */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-[1.1] mb-6">
-              L&rsquo;immobilier neuf
-              <br />
-              <span className="text-sand">à Alger</span>, commercialisé
-              <br />
-              avec excellence
+            <h1 className="max-w-3xl text-4xl font-semibold leading-[1.03] tracking-[-0.03em] text-white sm:text-5xl md:text-6xl lg:text-[4.5rem]">
+              Trouvez le bon projet immobilier,
+              <span className="block text-sand">avec une information claire.</span>
             </h1>
 
-            {/* Subheadline */}
-            <p className="text-lg md:text-xl text-white/60 leading-relaxed mb-10 max-w-lg">
-              Découvrez nos programmes immobiliers neufs dans les meilleurs quartiers d&rsquo;Alger. Appartements disponibles, prix clairs, livraison garantie.
+            <p className="mt-6 max-w-2xl text-base leading-7 text-white/68 sm:text-lg">
+              Explorez les programmes commercialisés par ASAS, comparez les disponibilités et les caractéristiques, puis choisissez la prochaine étape qui vous convient.
             </p>
 
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Button
                 size="lg"
-                className="bg-forest hover:bg-forest-dark text-white text-base px-8 py-6 h-auto rounded-lg font-semibold shadow-lg shadow-forest/20"
+                className="h-12 rounded-lg bg-forest px-6 text-white shadow-xl shadow-black/20 hover:bg-forest-dark"
                 onClick={() => router.goProjects()}
               >
-                Voir les appartements
-                <ArrowRight className="h-5 w-5 ml-1" />
+                <Search className="mr-2 h-4 w-4" />
+                Explorer les projets
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-
               <a
-                href={getWhatsAppUrl('Bonjour, je cherche un appartement neuf à Alger. Pouvez-vous m\'aider ?')}
+                href={getWhatsAppUrl('Bonjour, je souhaite être accompagné(e) pour trouver un projet immobilier.')}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm px-8 py-6 h-auto text-base font-semibold text-white hover:bg-white/10 transition-colors"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/8 px-6 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/14"
               >
-                <MessageCircle className="h-5 w-5 text-green-400" />
-                WhatsApp
+                <MessageCircle className="h-4 w-4 text-green-400" />
+                Être accompagné
               </a>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ═══════════════ QUICK INVENTORY ═══════════════ */}
-      <section className="bg-forest py-0">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/10">
-            {/* Available apartments */}
-            <div className="py-6 md:py-8 px-4 md:px-6 text-center">
-              <p className="text-3xl md:text-4xl font-bold text-white tabular-nums">
-                {isLoading ? '—' : inventory.availableCount}
-              </p>
-              <p className="text-sm text-white/60 mt-1">Appartements disponibles</p>
-            </div>
-
-            {/* Starting price */}
-            <div className="py-6 md:py-8 px-4 md:px-6 text-center">
-              <p className="text-3xl md:text-4xl font-bold text-white">
-                {isLoading ? '—' : inventory.minPrice > 0 ? `À partir de` : '—'}
-              </p>
-              <p className="text-sm text-white/60 mt-1">
-                {isLoading ? '' : inventory.minPrice > 0 ? formatPrice(inventory.minPrice) : 'Prix sur demande'}
-              </p>
-            </div>
-
-            {/* Projects */}
-            <div className="py-6 md:py-8 px-4 md:px-6 text-center">
-              <p className="text-3xl md:text-4xl font-bold text-white tabular-nums">
-                {isLoading ? '—' : projects?.length ?? 0}
-              </p>
-              <p className="text-sm text-white/60 mt-1">Projets en commercialisation</p>
-            </div>
-
-            {/* Districts */}
-            <div className="py-6 md:py-8 px-4 md:px-6 text-center">
-              <p className="text-3xl md:text-4xl font-bold text-white tabular-nums">
-                {isLoading ? '—' : inventory.districts.length}
-              </p>
-              <p className="text-sm text-white/60 mt-1">Quartiers d&rsquo;Alger</p>
+            {/* Audience routing — avoids forcing every visitor through the same funnel */}
+            <div className="mt-12 grid max-w-2xl grid-cols-1 gap-2 sm:grid-cols-3">
+              <button onClick={() => router.goProjects()} className="group rounded-xl border border-white/10 bg-black/15 p-4 text-left backdrop-blur-md transition hover:border-white/20 hover:bg-white/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
+                <Home className="mb-3 h-4 w-4 text-sand" />
+                <span className="block text-sm font-semibold text-white">Acheter</span>
+                <span className="mt-1 block text-xs leading-5 text-white/50">Voir les projets et disponibilités</span>
+              </button>
+              <button onClick={() => router.goProjects()} className="group rounded-xl border border-white/10 bg-black/15 p-4 text-left backdrop-blur-md transition hover:border-white/20 hover:bg-white/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
+                <Landmark className="mb-3 h-4 w-4 text-sand" />
+                <span className="block text-sm font-semibold text-white">Investir</span>
+                <span className="mt-1 block text-xs leading-5 text-white/50">Comparer les programmes disponibles</span>
+              </button>
+              <button onClick={() => router.goForDevelopers()} className="group rounded-xl border border-white/10 bg-black/15 p-4 text-left backdrop-blur-md transition hover:border-white/20 hover:bg-white/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
+                <Users className="mb-3 h-4 w-4 text-sand" />
+                <span className="block text-sm font-semibold text-white">Promouvoir</span>
+                <span className="mt-1 block text-xs leading-5 text-white/50">Parler à ASAS de votre programme</span>
+              </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ═══════════════ FEATURED PROJECTS ═══════════════ */}
-      <section className="py-16 md:py-24 px-6 bg-background">
-        <div className="max-w-6xl mx-auto">
-          {/* Section header */}
-          <div className="flex items-end justify-between mb-10">
+      {/* LIVE INVENTORY — only API-derived facts */}
+      <section aria-label="Inventaire actuel" className="border-b border-white/10 bg-forest">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-white/10 md:grid-cols-4">
+          <div className="px-5 py-6 text-center sm:py-8">
+            <p className="text-2xl font-semibold tabular-nums text-white sm:text-3xl">{isLoading ? '—' : inventory.availableCount}</p>
+            <p className="mt-1 text-xs text-white/55 sm:text-sm">Disponibilités</p>
+          </div>
+          <div className="px-5 py-6 text-center sm:py-8">
+            <p className="text-2xl font-semibold text-white sm:text-3xl">{isLoading ? '—' : inventory.minPrice > 0 ? 'À partir de' : '—'}</p>
+            <p className="mt-1 text-xs text-white/55 sm:text-sm">{isLoading ? '' : inventory.minPrice > 0 ? formatPrice(inventory.minPrice) : 'Prix sur demande'}</p>
+          </div>
+          <div className="px-5 py-6 text-center sm:py-8">
+            <p className="text-2xl font-semibold tabular-nums text-white sm:text-3xl">{isLoading ? '—' : projects?.length ?? 0}</p>
+            <p className="mt-1 text-xs text-white/55 sm:text-sm">Programmes</p>
+          </div>
+          <div className="px-5 py-6 text-center sm:py-8">
+            <p className="text-2xl font-semibold tabular-nums text-white sm:text-3xl">{isLoading ? '—' : inventory.districts.length}</p>
+            <p className="mt-1 text-xs text-white/55 sm:text-sm">Zones représentées</p>
+          </div>
+        </div>
+      </section>
+
+      {/* PROJECTS */}
+      <section className="bg-background px-5 py-16 sm:px-8 md:py-24" aria-labelledby="projects-heading">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-9 flex items-end justify-between gap-6">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.15em] text-forest mb-2">Nos programmes</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-                Projets en commercialisation
-              </h2>
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-forest">Sélection actuelle</p>
+              <h2 id="projects-heading" className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">Programmes immobiliers</h2>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Accédez aux informations disponibles sur chaque programme et explorez les unités selon vos critères.</p>
             </div>
-            <button
-              onClick={() => router.goProjects()}
-              className="hidden sm:inline-flex items-center gap-1.5 text-forest hover:text-forest-dark font-semibold text-sm transition-colors group"
-            >
-              Voir tous les projets
-              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            <button onClick={() => router.goProjects()} className="hidden items-center gap-1.5 pb-1 text-sm font-semibold text-forest transition hover:text-forest-dark sm:inline-flex">
+              Tous les projets <ChevronRight className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Project cards grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {isLoading ? (
-              <>
-                <ProjectCardSkeleton />
-                <ProjectCardSkeleton />
-                <ProjectCardSkeleton />
-              </>
-            ) : (
-              displayProjects.map((project: Project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))
-            )}
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {isLoading ? <><ProjectCardSkeleton /><ProjectCardSkeleton /><ProjectCardSkeleton /></> : displayProjects.map((project: Project) => <ProjectCard key={project.id} project={project} />)}
           </div>
 
-          {/* Mobile CTA */}
           <div className="mt-8 text-center sm:hidden">
             <Button variant="outline" onClick={() => router.goProjects()} className="border-forest text-forest hover:bg-forest hover:text-white">
-              Voir tous les projets
-              <ArrowRight className="h-4 w-4 ml-1" />
+              Voir tous les projets <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </div>
         </div>
       </section>
 
-      {/* ═══════════════ HOW IT WORKS ═══════════════ */}
-      <section className="py-16 md:py-24 px-6 bg-ivory">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-sm font-semibold uppercase tracking-[0.15em] text-forest mb-2">Simple & transparent</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-              Comment ça marche ?
-            </h2>
+      {/* BUYER JOURNEY */}
+      <section className="border-y border-border bg-ivory px-5 py-16 sm:px-8 md:py-24" aria-labelledby="journey-heading">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-forest">Parcours</p>
+            <h2 id="journey-heading" className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">Du premier regard à la visite</h2>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">Chaque étape doit répondre à une question concrète, sans multiplier les obstacles.</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             {[
-              { num: '01', icon: Home, title: 'Découvrir', desc: 'Parcourez nos projets neufs et trouvez votre futur appartement.' },
-              { num: '02', icon: Sparkles, title: 'Comparer', desc: 'Comparez surfaces, prix et disponibilités pour faire le meilleur choix.' },
-              { num: '03', icon: Building2, title: 'Visiter', desc: 'Planifiez une visite sur site avec notre équipe.' },
-              { num: '04', icon: MessageCircle, title: 'Réserver', desc: 'Réservez votre appartement et concrétisez votre projet.' },
+              { num: '01', icon: Search, title: 'Explorer', desc: 'Filtrez les programmes selon vos critères.' },
+              { num: '02', icon: Sparkles, title: 'Comparer', desc: 'Examinez prix, surfaces, types et disponibilités.' },
+              { num: '03', icon: Building2, title: 'Approfondir', desc: 'Consultez la fiche du programme et ses unités.' },
+              { num: '04', icon: MessageCircle, title: 'Échanger', desc: 'Demandez une information ou une visite.' },
             ].map((step) => (
-              <div key={step.num} className="text-center">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-forest/10 flex items-center justify-center">
+              <div key={step.num} className="rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                <div className="mb-5 flex items-center justify-between">
+                  <span className="text-xs font-bold tracking-[0.18em] text-forest/45">{step.num}</span>
                   <step.icon className="h-5 w-5 text-forest" />
                 </div>
-                <span className="text-xs font-bold text-forest/40 tracking-widest">{step.num}</span>
-                <h3 className="text-lg font-semibold text-foreground mt-1 mb-2">{step.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
+                <h3 className="text-base font-semibold text-foreground">{step.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══════════════ TRUST / WHY ASAS ═══════════════ */}
       <PremiumTrustSection />
 
-      {/* ═══════════════ FOR DEVELOPERS ═══════════════ */}
-      <section className="py-16 md:py-20 px-6 bg-charcoal relative overflow-hidden">
-        {/* Subtle accent */}
-        <div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-forest/50 via-gold/30 to-forest/10" aria-hidden />
-
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Vous êtes promoteur immobilier ?
-          </h2>
-          <p className="text-lg text-sand/70 mb-8 max-w-2xl mx-auto leading-relaxed">
-            ASAS vous offre un système de commercialisation complet pour vendre vos projets plus vite : marketing digital, génération de leads, équipe de vente dédiée.
-          </p>
-          <Button
-            size="lg"
-            variant="outline"
-            className="border-white/30 text-white hover:bg-white/10 text-base px-8 py-5 h-auto rounded-lg"
-            onClick={() => router.goForDevelopers()}
-          >
-            Parler de votre projet
-            <ArrowRight className="h-5 w-5 ml-1" />
-          </Button>
+      {/* DEVELOPERS */}
+      <section className="relative overflow-hidden bg-charcoal px-5 py-16 sm:px-8 md:py-20" aria-labelledby="developer-heading">
+        <div className="absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-forest/60 via-gold/40 to-forest/10" aria-hidden="true" />
+        <div className="relative z-10 mx-auto max-w-5xl">
+          <div className="grid gap-10 md:grid-cols-[1.2fr_.8fr] md:items-center">
+            <div>
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-gold">Pour les promoteurs</p>
+              <h2 id="developer-heading" className="max-w-2xl text-3xl font-semibold tracking-tight text-white md:text-4xl">Votre programme mérite un parcours commercial aussi structuré que son produit.</h2>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-white/58">Découvrez comment ASAS présente les programmes, organise l’acquisition et facilite le passage de l’intérêt à la prise de contact.</p>
+            </div>
+            <div className="md:text-right">
+              <Button size="lg" variant="outline" className="h-12 border-white/20 bg-white/5 px-6 text-white hover:bg-white/10" onClick={() => router.goForDevelopers()}>
+                Découvrir l’offre promoteur <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ═══════════════ FINAL CTA ═══════════════ */}
-      <section className="py-16 md:py-24 px-6 bg-background">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Prêt à trouver votre appartement ?
-          </h2>
-          <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-            Contactez-nous pour recevoir les informations, planifier une visite, ou réserver votre futur logement.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {/* Browse projects */}
-            <Button
-              size="lg"
-              className="bg-forest hover:bg-forest-dark text-white text-base px-8 py-6 h-auto rounded-lg font-semibold"
-              onClick={() => router.goProjects()}
-            >
-              Voir les appartements
-              <ArrowRight className="h-5 w-5 ml-1" />
+      {/* FINAL CONTACT */}
+      <section className="bg-background px-5 py-16 sm:px-8 md:py-24" aria-labelledby="contact-heading">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-forest">Prochaine étape</p>
+          <h2 id="contact-heading" className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">Une question sur un projet ?</h2>
+          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-muted-foreground">Choisissez le canal qui vous convient pour demander une information, organiser une visite ou être orienté vers le bon programme.</p>
+          <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button size="lg" className="h-12 bg-forest px-6 text-white hover:bg-forest-dark" onClick={() => router.goProjects()}>
+              Voir les projets <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-
-            {/* WhatsApp */}
-            <a
-              href={getWhatsAppUrl('Bonjour, je suis intéressé(e) par un appartement neuf. Pouvez-vous m\'aider ?')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-base px-8 py-6 h-auto font-semibold transition-colors shadow-lg shadow-green-600/20"
-            >
-              <MessageCircle className="h-5 w-5" />
-              WhatsApp
+            <a href={getWhatsAppUrl('Bonjour, je souhaite obtenir des informations sur les projets ASAS.')} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-green-600 px-6 text-sm font-semibold text-white transition hover:bg-green-700">
+              <MessageCircle className="h-4 w-4" /> WhatsApp
             </a>
-
-            {/* Phone */}
-            <a
-              href={`tel:${ASAS.phoneRaw}`}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-base px-8 py-6 h-auto font-semibold transition-colors"
-            >
-              <Phone className="h-5 w-5" />
-              {ASAS.phone}
+            <a href={`tel:${ASAS.phoneRaw}`} className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-border bg-card px-6 text-sm font-semibold text-foreground transition hover:bg-muted">
+              <Phone className="h-4 w-4" /> {ASAS.phone}
             </a>
           </div>
         </div>
