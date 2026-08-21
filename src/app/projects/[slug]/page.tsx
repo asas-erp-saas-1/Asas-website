@@ -31,14 +31,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProjectRoute({ params }: Props) {
   const { slug } = await params;
-  const project = await getPublicProject(slug);
-
-  if (!project) return <ProjectDetailPage projectSlug={decodeURIComponent(slug)} />;
-
-  return (
-    <ProjectDetailPage
-      projectSlug={decodeURIComponent(slug)}
-      initialProject={project}
-    />
-  );
+  return <ProjectDetailPage projectSlug={decodeURIComponent(slug)} />;
 }
