@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { Apartment, Project, SiteStats } from '@/lib/types';
-import type { PublicProjectCard } from '@/lib/catalog-contracts';
+import type { PublicApartmentDetail, PublicProjectCard, PublicProjectDetail } from '@/lib/catalog-contracts';
 
 const API_BASE = '/api';
 
@@ -28,7 +28,6 @@ export function useProjects(): UseQueryResult<Project[], Error> {
   return useQuery({ queryKey: ['projects'], queryFn: () => getJson<Project[]>(`${API_BASE}/projects`), staleTime: 30_000, retry: 2 });
 }
 
-/** Lean catalog query for listing surfaces. Does not replace the legacy detail contract. */
 export function usePublicProjectCards(): UseQueryResult<PublicProjectCard[], Error> {
   return useQuery({
     queryKey: ['catalog', 'project-cards'],
@@ -50,12 +49,26 @@ export function useApartmentsByIds(ids: string[]) {
   });
 }
 
-export function useProject(slug: string): UseQueryResult<Project, Error> {
-  return useQuery({ queryKey: ['project', slug], queryFn: () => getJson<Project>(`${API_BASE}/projects/${encodeURIComponent(slug)}`), enabled: !!slug, staleTime: 30_000, retry: 2 });
+/** Public project detail uses an explicit DTO, not the Prisma/domain model. */
+export function useProject(slug: string): UseQueryResult<PublicProjectDetail, Error> {
+  return useQuery({
+    queryKey: ['catalog', 'project', slug],
+    queryFn: () => getJson<PublicProjectDetail>(`${API_BASE}/projects/${encodeURIComponent(slug)}`),
+    enabled: !!slug,
+    staleTime: 30_000,
+    retry: 2,
+  });
 }
 
-export function useApartment(slug: string): UseQueryResult<Apartment, Error> {
-  return useQuery({ queryKey: ['apartment', slug], queryFn: () => getJson<Apartment>(`${API_BASE}/apartments/${encodeURIComponent(slug)}`), enabled: !!slug, staleTime: 30_000, retry: 2 });
+/** Public apartment detail uses an explicit DTO, not the Prisma/domain model. */
+export function useApartment(slug: string): UseQueryResult<PublicApartmentDetail, Error> {
+  return useQuery({
+    queryKey: ['catalog', 'apartment', slug],
+    queryFn: () => getJson<PublicApartmentDetail>(`${API_BASE}/apartments/${encodeURIComponent(slug)}`),
+    enabled: !!slug,
+    staleTime: 30_000,
+    retry: 2,
+  });
 }
 
 export async function submitLead(data: Record<string, unknown>) {
