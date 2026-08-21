@@ -20,9 +20,6 @@ export interface AuditEntry {
   after?: unknown;
 }
 
-/**
- * Insert an audit log entry. Best-effort — never throws.
- */
 export async function logAudit(entry: AuditEntry): Promise<void> {
   try {
     const ipAddress = entry.request?.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
@@ -37,8 +34,7 @@ export async function logAudit(entry: AuditEntry): Promise<void> {
         entityType: entry.entityType ?? null,
         entityId: entry.entityId ?? null,
         entitySlug: entry.entitySlug ?? null,
-        // Prisma's nullable JSON fields require an explicit DbNull sentinel
-        // for SQL NULL; JavaScript null is not accepted by generated Prisma types.
+        // Nullable Prisma JSON fields use DbNull for a SQL NULL value.
         before: entry.before !== undefined ? safeJson(entry.before) : Prisma.DbNull,
         after: entry.after !== undefined ? safeJson(entry.after) : Prisma.DbNull,
         ipAddress,
@@ -55,8 +51,16 @@ function safeJson(value: unknown): Prisma.InputJsonValue | typeof Prisma.JsonNul
     const serialized = JSON.stringify(value, (_k, v) =>
       typeof v === 'bigint' ? v.toString() : v,
     );
-    if (serialized === undefined) return Prisma.JsonNull;
-    return JSON.parse(serialized.slice(0, 8000)) as Prisma.InputJsonValue;
+
+    if (serialized === undefined || serialized === 'null') return Prisma.JsonNull;
+
+    // Keep the value valid JSON. Never slice a serialized JSON document,
+    // because doing so can create malformed JSON and fail at runtime.
+    if (serialized.length > 8000) {
+      return `[truncated audit payload] ${serialized.slice(0, 7950)}`;
+    }
+
+    return JSON.parse(serialized) as Prisma.InputJsonValue;
   } catch {
     return Prisma.JsonNull;
   }
