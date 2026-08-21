@@ -24,8 +24,9 @@ interface ApartmentsApiResponse {
   pagination: { page: number; limit: number; total: number; totalPages: number };
 }
 
+/** @deprecated Use usePublicProjectCards. Kept only for unmigrated internal consumers. */
 export function useProjects(): UseQueryResult<Project[], Error> {
-  return useQuery({ queryKey: ['projects'], queryFn: () => getJson<Project[]>(`${API_BASE}/projects`), staleTime: 30_000, retry: 2 });
+  return useQuery({ queryKey: ['projects', 'legacy'], queryFn: () => getJson<Project[]>(`${API_BASE}/projects`), staleTime: 30_000, retry: 2 });
 }
 
 export function usePublicProjectCards(): UseQueryResult<PublicProjectCard[], Error> {
@@ -49,11 +50,6 @@ export function useApartmentsByIds(ids: string[]) {
   });
 }
 
-/**
- * Public project detail uses an explicit DTO, not the Prisma/domain model.
- * When a server-rendered page already has the project, React Query hydrates
- * from that value and avoids an unnecessary client round-trip on first load.
- */
 export function useProject(
   slug: string,
   initialData?: PublicProjectDetail,
@@ -68,7 +64,6 @@ export function useProject(
   });
 }
 
-/** Public apartment detail uses an explicit DTO, not the Prisma/domain model. */
 export function useApartment(
   slug: string,
   initialData?: PublicApartmentDetail,
