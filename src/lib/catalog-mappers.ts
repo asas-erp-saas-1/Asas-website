@@ -4,6 +4,7 @@ import type {
   PublicApartmentImage,
   PublicBuilding,
   PublicDeveloper,
+  PublicProjectCard,
   PublicProjectDetail,
   PublicProjectImage,
 } from '@/lib/catalog-contracts';
@@ -55,6 +56,39 @@ function toPublicDeveloper(value: unknown): PublicDeveloper {
 function toPublicApartmentProjectSummary(value: unknown) {
   const project = requireRecord(value, 'apartment project summary');
   return { id: String(project.id), slug: String(project.slug), name: String(project.name), city: String(project.city), district: String(project.district), hasElevator: Boolean(project.hasElevator), hasSecurity: Boolean(project.hasSecurity) };
+}
+
+export function toPublicProjectCard(value: unknown, counts: { available: number; reserved: number }): PublicProjectCard {
+  const project = requireRecord(value, 'project card');
+  const image = Array.isArray(project.images) && project.images[0] ? requireRecord(project.images[0], 'project card image') : undefined;
+  return {
+    id: String(project.id),
+    slug: String(project.slug),
+    name: String(project.name),
+    tagline: optionalString(project.tagline),
+    city: String(project.city),
+    district: String(project.district),
+    projectType: String(project.projectType),
+    status: String(project.status),
+    latitude: typeof project.latitude === 'number' ? project.latitude : undefined,
+    longitude: typeof project.longitude === 'number' ? project.longitude : undefined,
+    startingPrice: typeof project.startingPrice === 'number' ? project.startingPrice : undefined,
+    priceOnRequest: Boolean(project.priceOnRequest),
+    minSurface: typeof project.minSurface === 'number' ? project.minSurface : undefined,
+    maxSurface: typeof project.maxSurface === 'number' ? project.maxSurface : undefined,
+    deliveryYear: typeof project.deliveryYear === 'number' ? project.deliveryYear : undefined,
+    deliveryQuarter: optionalString(project.deliveryQuarter),
+    apartmentTypes: jsonString(project.apartmentTypes),
+    hasParking: Boolean(project.hasParking),
+    hasElevator: Boolean(project.hasElevator),
+    hasGarden: Boolean(project.hasGarden),
+    hasPool: Boolean(project.hasPool),
+    featured: Boolean(project.featured),
+    image: image ? { id: String(image.id), url: String(image.url), alt: optionalString(image.alt), type: String(image.type ?? 'gallery') } : undefined,
+    apartmentCount: Number(project._count && isRecord(project._count) && project._count.apartments != null ? project._count.apartments : 0),
+    availableApartmentCount: counts.available,
+    reservedApartmentCount: counts.reserved,
+  };
 }
 
 export function toPublicApartmentDetail(value: unknown): PublicApartmentDetail {
