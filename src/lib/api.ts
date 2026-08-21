@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { Apartment, Project, SiteStats } from '@/lib/types';
 import type { PublicApartmentDetail, PublicProjectCard, PublicProjectDetail } from '@/lib/catalog-contracts';
+import { publicCardToLegacyProject } from '@/lib/catalog-legacy-adapter';
 
 const API_BASE = '/api';
 
@@ -24,9 +25,17 @@ interface ApartmentsApiResponse {
   pagination: { page: number; limit: number; total: number; totalPages: number };
 }
 
-/** @deprecated Use usePublicProjectCards. Kept only for unmigrated internal consumers. */
+/** @deprecated Transitional compatibility name. The data source is the public catalog endpoint. */
 export function useProjects(): UseQueryResult<Project[], Error> {
-  return useQuery({ queryKey: ['projects', 'legacy'], queryFn: () => getJson<Project[]>(`${API_BASE}/projects`), staleTime: 30_000, retry: 2 });
+  return useQuery({
+    queryKey: ['catalog', 'project-cards'],
+    queryFn: async () => {
+      const cards = await getJson<PublicProjectCard[]>(`${API_BASE}/catalog/projects`);
+      return cards.map(publicCardToLegacyProject);
+    },
+    staleTime: 60_000,
+    retry: 2,
+  });
 }
 
 export function usePublicProjectCards(): UseQueryResult<PublicProjectCard[], Error> {
@@ -50,10 +59,7 @@ export function useApartmentsByIds(ids: string[]) {
   });
 }
 
-export function useProject(
-  slug: string,
-  initialData?: PublicProjectDetail,
-): UseQueryResult<PublicProjectDetail, Error> {
+export function useProject(slug: string, initialData?: PublicProjectDetail): UseQueryResult<PublicProjectDetail, Error> {
   return useQuery({
     queryKey: ['catalog', 'project', slug],
     queryFn: () => getJson<PublicProjectDetail>(`${API_BASE}/projects/${encodeURIComponent(slug)}`),
@@ -64,10 +70,7 @@ export function useProject(
   });
 }
 
-export function useApartment(
-  slug: string,
-  initialData?: PublicApartmentDetail,
-): UseQueryResult<PublicApartmentDetail, Error> {
+export function useApartment(slug: string, initialData?: PublicApartmentDetail): UseQueryResult<PublicApartmentDetail, Error> {
   return useQuery({
     queryKey: ['catalog', 'apartment', slug],
     queryFn: () => getJson<PublicApartmentDetail>(`${API_BASE}/apartments/${encodeURIComponent(slug)}`),
