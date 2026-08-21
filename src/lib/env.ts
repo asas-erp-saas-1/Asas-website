@@ -8,12 +8,21 @@ function getTier(): EnvTier {
   return 'development';
 }
 
+/** Next.js evaluates server modules while producing the build output. Runtime
+ * secrets must not be required merely to import a route during `next build`.
+ */
+function isBuildPhase(): boolean {
+  return process.env.NEXT_PHASE === 'phase-production-build';
+}
+
 function required(name: string, value: string | undefined, tier: EnvTier): string {
   if (value && value.trim()) return value.trim();
-  if (tier === 'production') {
+  if (tier === 'production' && !isBuildPhase()) {
     throw new Error(`[env] Missing required environment variable: ${name}. Set it in Vercel project settings → Environment Variables.`);
   }
-  console.warn(`[env] WARNING: ${name} is not set — using dev placeholder.`);
+  if (!isBuildPhase()) {
+    console.warn(`[env] WARNING: ${name} is not set — using dev placeholder.`);
+  }
   return '';
 }
 
@@ -34,9 +43,10 @@ function firstSet(...values: Array<string | undefined>): string | undefined {
 function buildEnv() {
   const tier = getTier();
 
-  // Vercel's Supabase integration can expose the PostgreSQL connection under
-  // POSTGRES_PRISMA_URL / POSTGRES_URL rather than DATABASE_URL. Prefer the
-  // Prisma/pooler URL and keep DATABASE_URL as the backwards-compatible name.
+  // Supabase/Vercel integrations may expose the PostgreSQL connection as
+  // POSTGRES_PRISMA_URL or POSTGRES_URL. DATABASE_URL remains the canonical
+  // name used by Prisma. VITE_* aliases are accepted for the public Supabase
+  // values because they were already configured manually by the project owner.
   const DATABASE_URL = required(
     'DATABASE_URL',
     firstSet(
@@ -53,15 +63,18 @@ function buildEnv() {
 
   const NEXT_PUBLIC_SITE_URL = required(
     'NEXT_PUBLIC_SITE_URL',
-    process.env.NEXT_PUBLIC_SITE_URL,
+    firstSet(process.env.NEXT_PUBLIC_SITE_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL && `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`),
     tier,
   ) || 'http://localhost:3000';
 
-  const NEXT_PUBLIC_SUPABASE_URL = optional(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const NEXT_PUBLIC_SUPABASE_URL = optional(
+    firstSet(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.VITE_SUPABASE_URL),
+  );
   const NEXT_PUBLIC_SUPABASE_ANON_KEY = optional(
     firstSet(
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      process.env.VITE_SUPABASE_ANON_KEY,
     ),
   );
 
@@ -86,6 +99,7 @@ function buildEnv() {
     SUPABASE_STORAGE_CONFIGURED,
     ADMIN_SESSION_TTL_MS,
     isProduction: tierIsProduction,
+    isBuildPhase: isBuildPhase(),
     isVercel: Boolean(process.env.VERCEL),
     tier,
   };
