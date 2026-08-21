@@ -49,24 +49,36 @@ export function useApartmentsByIds(ids: string[]) {
   });
 }
 
-/** Public project detail uses an explicit DTO, not the Prisma/domain model. */
-export function useProject(slug: string): UseQueryResult<PublicProjectDetail, Error> {
+/**
+ * Public project detail uses an explicit DTO, not the Prisma/domain model.
+ * When a server-rendered page already has the project, React Query hydrates
+ * from that value and avoids an unnecessary client round-trip on first load.
+ */
+export function useProject(
+  slug: string,
+  initialData?: PublicProjectDetail,
+): UseQueryResult<PublicProjectDetail, Error> {
   return useQuery({
     queryKey: ['catalog', 'project', slug],
     queryFn: () => getJson<PublicProjectDetail>(`${API_BASE}/projects/${encodeURIComponent(slug)}`),
     enabled: !!slug,
-    staleTime: 30_000,
+    initialData,
+    staleTime: 60_000,
     retry: 2,
   });
 }
 
 /** Public apartment detail uses an explicit DTO, not the Prisma/domain model. */
-export function useApartment(slug: string): UseQueryResult<PublicApartmentDetail, Error> {
+export function useApartment(
+  slug: string,
+  initialData?: PublicApartmentDetail,
+): UseQueryResult<PublicApartmentDetail, Error> {
   return useQuery({
     queryKey: ['catalog', 'apartment', slug],
     queryFn: () => getJson<PublicApartmentDetail>(`${API_BASE}/apartments/${encodeURIComponent(slug)}`),
     enabled: !!slug,
-    staleTime: 30_000,
+    initialData,
+    staleTime: 60_000,
     retry: 2,
   });
 }
