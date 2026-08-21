@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Ruler, Calendar, ArrowRight, CheckCircle2, Clock, XCircle, Heart } from 'lucide-react';
 import type { PublicProjectCard } from '@/lib/catalog-contracts';
 import type { Project } from '@/lib/types';
+import { legacyProjectToPublicCard } from '@/lib/catalog-legacy-adapter';
 
 export function ProjectCardSkeleton() {
   return (
@@ -21,41 +22,8 @@ export function ProjectCardSkeleton() {
 
 interface ProjectCardProps { project: PublicProjectCard | Project; }
 
-type LegacyProject = Project & { apartments?: NonNullable<Project['apartments']>; };
-
 function toPublicCard(project: PublicProjectCard | Project): PublicProjectCard {
-  if (!('apartments' in project)) return project;
-  const legacy = project as LegacyProject;
-  const apartments = legacy.apartments ?? [];
-  const hero = legacy.images?.find((image) => image.type === 'hero') ?? legacy.images?.find((image) => image.type === 'gallery') ?? legacy.images?.[0];
-  return {
-    id: legacy.id,
-    slug: legacy.slug,
-    name: legacy.name,
-    tagline: legacy.tagline,
-    city: legacy.city,
-    district: legacy.district,
-    projectType: legacy.projectType,
-    status: legacy.status,
-    latitude: legacy.latitude,
-    longitude: legacy.longitude,
-    startingPrice: legacy.startingPrice,
-    priceOnRequest: legacy.priceOnRequest,
-    minSurface: legacy.minSurface,
-    maxSurface: legacy.maxSurface,
-    deliveryYear: legacy.deliveryYear,
-    deliveryQuarter: legacy.deliveryQuarter,
-    apartmentTypes: legacy.apartmentTypes,
-    hasParking: legacy.hasParking,
-    hasElevator: legacy.hasElevator,
-    hasGarden: legacy.hasGarden,
-    hasPool: legacy.hasPool,
-    featured: legacy.featured,
-    image: hero ? { id: hero.id, url: hero.url, alt: hero.alt, type: hero.type } : undefined,
-    apartmentCount: apartments.length,
-    availableApartmentCount: apartments.filter((apartment) => apartment.status === 'AVAILABLE' || apartment.status === 'COMING_SOON').length,
-    reservedApartmentCount: apartments.filter((apartment) => apartment.status === 'RESERVED').length,
-  };
+  return 'apartments' in project ? legacyProjectToPublicCard(project) : project;
 }
 
 function apartmentTypeList(apartmentTypes: string): string[] {
