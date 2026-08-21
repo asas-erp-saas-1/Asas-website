@@ -4,13 +4,19 @@
   "buildCommand": "prisma generate --schema=prisma/schema.postgres.prisma && next build",
   "installCommand": "bun install",
   "devCommand": "next dev -p 3000",
-  "regions": [
-    "cdg1"
-  ],
-  "github": {
-    "silent": true
-  },
-  "env": {
-    "NEXT_RUNTIME": "nodejs"
-  }
+  "regions": ["cdg1"],
+  "github": { "silent": true },
+  "env": { "NEXT_RUNTIME": "nodejs" },
+  "rewrites": [
+    { "source": "/projects/:path*", "destination": "/" },
+    { "source": "/services", "destination": "/" },
+    { "source": "/about", "destination": "/" },
+    { "source": "/for-developers", "destination": "/" },
+    { "source": "/contact", "destination": "/" },
+    { "source": "/insights", "destination": "/" },
+    { "source": "/privacy", "destination": "/" },
+    { "source": "/terms", "destination": "/" },
+    { "source": "/admin", "destination": "/" },
+    { "source": "/lp/:path*", "destination": "/" }
+  ]
 }
