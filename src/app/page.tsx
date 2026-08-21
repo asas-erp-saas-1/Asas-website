@@ -1,22 +1,10 @@
 'use client';
 
-import { useRouter, type AppRoute } from '@/lib/router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Navbar } from '@/components/shared/Navbar';
-import { Footer } from '@/components/shared/Footer';
-import { StickyMobileCTA } from '@/components/layout/StickyMobileCTA';
-import { ScrollProgress } from '@/components/shared/ScrollProgress';
-import { BackToTop } from '@/components/shared/BackToTop';
-import { CompareBar } from '@/components/shared/CompareBar';
-import { CompareModal } from '@/components/shared/CompareModal';
-import { ToastContainer } from '@/components/shared/ToastContainer';
-import { SearchCommandPalette } from '@/components/shared/SearchCommandPalette';
-import { StoreHydration } from '@/components/shared/StoreHydration';
+import { useRouter, type AppRoute } from '@/lib/router';
+import { SiteShell } from '@/components/layout/SiteShell';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
-import { CookieConsent } from '@/components/shared/CookieConsent';
-import { ContactFloatingWidget } from '@/components/shared/ContactFloatingWidget';
 
 const HomePage = lazy(() => import('@/components/pages/HomePage'));
 const ProjectsPage = lazy(() => import('@/components/pages/ProjectsPage'));
@@ -35,7 +23,7 @@ const NotFoundPage = lazy(() => import('@/components/pages/NotFoundPage'));
 
 function PageLoader() { return <div className="min-h-[60vh] flex items-center justify-center bg-ivory"><div className="flex flex-col items-center gap-4"><div className="w-10 h-10 border-3 border-forest border-t-transparent rounded-full animate-spin" /><p className="text-sm text-muted-foreground">Chargement...</p></div></div>; }
 function routeKey(route: AppRoute) { return `${route.page}-${route.projectSlug ?? ''}-${route.apartmentSlug ?? ''}-${route.campaignSlug ?? ''}`; }
-function Router() { const { route } = useRouter(); return <Suspense fallback={<PageLoader />}>
+function LegacyRouter() { const { route } = useRouter(); return <Suspense fallback={<PageLoader />}>
   {route.page === 'home' && <HomePage />}{route.page === 'projects' && <ProjectsPage />}
   {route.page === 'project' && route.projectSlug && <ProjectDetailPage projectSlug={route.projectSlug} />}
   {route.page === 'apartment' && route.projectSlug && route.apartmentSlug && <ApartmentDetailPage projectSlug={route.projectSlug} apartmentSlug={route.apartmentSlug} />}
@@ -45,13 +33,9 @@ function Router() { const { route } = useRouter(); return <Suspense fallback={<P
 </Suspense>; }
 
 export default function Home() {
-  const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { staleTime: 60_000, refetchOnWindowFocus: false } } }));
+  const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { staleTime: 60_000, refetchOnWindowFocus: false, retry: 2 } } }));
   const route = useRouter(s => s.route);
   const syncFromLocation = useRouter(s => s.syncFromLocation);
   useEffect(() => { syncFromLocation(); }, [syncFromLocation]);
-  return <QueryClientProvider client={queryClient}><StoreHydration /><div className="min-h-screen flex flex-col bg-background">
-    <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-forest focus:text-white focus:px-4 focus:py-2 focus:rounded-md focus:text-sm focus:font-medium">Aller au contenu principal</a>
-    <Navbar /><ScrollProgress /><BackToTop /><div id="main-content" className="flex-1"><ErrorBoundary><AnimatePresence mode="wait"><motion.div key={routeKey(route)} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2, ease: 'easeOut' }}><Router /></motion.div></AnimatePresence></ErrorBoundary></div>
-    <Footer /><StickyMobileCTA /><ContactFloatingWidget /><CompareBar /><CompareModal /><ToastContainer /><SearchCommandPalette />
-  </div><CookieConsent /></QueryClientProvider>;
+  return <QueryClientProvider client={queryClient}><SiteShell><ErrorBoundary><LegacyRouter /></ErrorBoundary></SiteShell></QueryClientProvider>;
 }
