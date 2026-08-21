@@ -63,6 +63,16 @@ export interface PublicDeveloper {
   website?: string;
 }
 
+export interface PublicApartmentProjectSummary {
+  id: string;
+  slug: string;
+  name: string;
+  city: string;
+  district: string;
+  hasElevator: boolean;
+  hasSecurity: boolean;
+}
+
 export interface PublicApartmentDetail {
   id: string;
   slug: string;
@@ -99,6 +109,7 @@ export interface PublicApartmentDetail {
   published: boolean;
   archived: boolean;
   order: number;
+  project?: PublicApartmentProjectSummary;
   building?: PublicBuilding;
   images?: PublicApartmentImage[];
 }
