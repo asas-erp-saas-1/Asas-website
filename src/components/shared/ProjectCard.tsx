@@ -67,12 +67,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
     }
   };
 
-  const getHeroImage = (images?: ProjectImage[]): string => {
+  const getHeroImage = (images?: ProjectImage[]): string | null => {
     const hero = images?.find((img) => img.type === 'hero');
     if (hero) return hero.url;
     const gallery = images?.find((img) => img.type === 'gallery');
     if (gallery) return gallery.url;
-    return images?.[0]?.url ?? '/images/brand/hero.jpg';
+    return images?.[0]?.url ?? null;
   };
 
   const imageUrl = getHeroImage(project.images);
@@ -84,7 +84,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
   };
 
   const startingPrice = project.startingPrice ?? 0;
-  const availableCount = project.apartments?.filter((a) => a.status === 'AVAILABLE' || a.status === 'COMING_SOON').length ?? 0;
+  const availableCount = project.apartments?.filter((a) => a.status === 'AVAILABLE').length ?? 0;
   const totalApartments = project.apartments?.length ?? 0;
   const types = apartmentTypeList();
 
@@ -99,15 +99,21 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:border-forest/30 hover:shadow-xl">
-      <div className="relative aspect-[4/3] overflow-hidden">
-        <img
-          src={imageUrl}
-          alt={project.name}
-          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
-          loading="lazy"
-          decoding="async"
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        />
+      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={project.name}
+            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
+            loading="lazy"
+            decoding="async"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground" aria-label={`Image non disponible pour ${project.name}`}>
+            Image non disponible
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" aria-hidden="true" />
 
         <button
@@ -115,14 +121,14 @@ export function ProjectCard({ project }: ProjectCardProps) {
           onClick={handleToggleFavorite}
           aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
           aria-pressed={isFav}
-          className="absolute left-3 top-3 z-20 inline-flex size-9 items-center justify-center rounded-full border border-white/30 bg-black/20 text-white backdrop-blur-md transition hover:scale-105 hover:bg-black/35 focus-visible:ring-2 focus-visible:ring-white"
+          className="absolute left-3 top-3 z-20 inline-flex size-9 items-center justify-center rounded-full border border-white/30 bg-black/20 text-white backdrop-blur-md transition-[background-color,transform] duration-150 hover:scale-105 hover:bg-black/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
           <Heart className={`size-4 transition-colors ${isFav ? 'fill-red-500 text-red-500' : 'text-white/90'}`} />
         </button>
 
         <div className="absolute right-0 top-0 z-10">
           <div className={`${bgClass} inline-flex items-center gap-1 rounded-bl-xl px-2.5 py-1.5 text-xs font-semibold text-white backdrop-blur-sm`}>
-            <StatusIcon className="size-3" /> {statusLabel}
+            <StatusIcon className="size-3" aria-hidden="true" /> {statusLabel}
           </div>
         </div>
 
@@ -159,7 +165,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         </div>
 
         <Button variant="default" size="sm" className="mt-0 h-10 w-full bg-forest text-white hover:bg-forest-dark" onClick={goToProject}>
-          Voir le projet <ArrowRight className="ml-1 size-4" />
+          Voir le projet <ArrowRight className="ml-1 size-4" aria-hidden="true" />
         </Button>
       </div>
     </article>
