@@ -2,9 +2,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
-import type { Apartment, Project, SiteStats } from '@/lib/types';
+import type { Apartment, SiteStats } from '@/lib/types';
 import type { PublicApartmentDetail, PublicProjectCard, PublicProjectDetail } from '@/lib/catalog-contracts';
-import { publicCardToLegacyProject } from '@/lib/catalog-legacy-adapter';
 
 const API_BASE = '/api';
 
@@ -12,9 +11,7 @@ async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { ...init, cache: 'no-store' });
   const body = await res.json().catch(() => null);
   if (!res.ok) {
-    const message = body && typeof body === 'object' && 'error' in body
-      ? String((body as { error: unknown }).error)
-      : `Request failed (${res.status})`;
+    const message = body && typeof body === 'object' && 'error' in body ? String((body as { error: unknown }).error) : `Request failed (${res.status})`;
     throw new Error(message);
   }
   return body as T;
@@ -25,17 +22,9 @@ interface ApartmentsApiResponse {
   pagination: { page: number; limit: number; total: number; totalPages: number };
 }
 
-/** @deprecated Transitional compatibility name. The data source is the public catalog endpoint. */
-export function useProjects(): UseQueryResult<Project[], Error> {
-  return useQuery({
-    queryKey: ['catalog', 'project-cards'],
-    queryFn: async () => {
-      const cards = await getJson<PublicProjectCard[]>(`${API_BASE}/catalog/projects`);
-      return cards.map(publicCardToLegacyProject);
-    },
-    staleTime: 60_000,
-    retry: 2,
-  });
+/** @deprecated Use usePublicProjectCards in new code. Kept as a naming compatibility alias only. */
+export function useProjects(): UseQueryResult<PublicProjectCard[], Error> {
+  return usePublicProjectCards();
 }
 
 export function usePublicProjectCards(): UseQueryResult<PublicProjectCard[], Error> {
@@ -50,7 +39,7 @@ export function usePublicProjectCards(): UseQueryResult<PublicProjectCard[], Err
 export function useApartmentsByIds(ids: string[]) {
   const normalizedIds = [...new Set(ids)].sort();
   const qs = new URLSearchParams();
-  normalizedIds.forEach(id => qs.append('id', id));
+  normalizedIds.forEach((id) => qs.append('id', id));
   return useQuery({
     queryKey: ['apartments', 'by-ids', normalizedIds],
     queryFn: async () => (await getJson<ApartmentsApiResponse>(`${API_BASE}/apartments?${qs.toString()}`)).data,
@@ -96,7 +85,7 @@ export function useApartmentSearch(params: Record<string, string | number | unde
   return useQuery({
     queryKey: ['apartments', 'search', qs],
     queryFn: async () => (await getJson<ApartmentsApiResponse>(`${API_BASE}/apartments${qs ? `?${qs}` : ''}`)).data,
-    enabled: Object.values(params).some(v => v !== undefined && v !== ''),
+    enabled: Object.values(params).some((v) => v !== undefined && v !== ''),
     staleTime: 30_000,
   });
 }
