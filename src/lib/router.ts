@@ -55,11 +55,17 @@ function routeToPath(route: AppRoute): string {
   }
 }
 
+const CANONICAL_CATALOG_PAGES = new Set<AppRoute['page']>(['home', 'projects', 'project', 'apartment']);
+
 export const useRouter = create<RouterStore>((set, get) => ({
   route: { page: 'home' }, hydrated: false,
   navigate: (route) => {
     if (typeof window !== 'undefined') {
       const path = routeToPath(route);
+      if (CANONICAL_CATALOG_PAGES.has(route.page) && window.location.pathname !== path) {
+        window.location.assign(path);
+        return;
+      }
       window.history.pushState({}, '', path);
       window.dispatchEvent(new PopStateEvent('popstate'));
       window.scrollTo({ top: 0, behavior: 'smooth' });
