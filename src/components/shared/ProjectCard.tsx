@@ -8,8 +8,6 @@ import { AvailabilityBadge } from '@/components/shared/AvailabilityBadge';
 import { Button } from '@/components/ui/button';
 import { MapPin, Ruler, Calendar, ArrowRight, CheckCircle2, Clock, XCircle, Heart } from 'lucide-react';
 import type { PublicProjectCard } from '@/lib/catalog-contracts';
-import type { Project } from '@/lib/types';
-import { legacyProjectToPublicCard } from '@/lib/catalog-legacy-adapter';
 
 export function ProjectCardSkeleton() {
   return (
@@ -20,23 +18,18 @@ export function ProjectCardSkeleton() {
   );
 }
 
-interface ProjectCardProps { project: PublicProjectCard | Project; }
-
-function toPublicCard(project: PublicProjectCard | Project): PublicProjectCard {
-  return 'apartments' in project ? legacyProjectToPublicCard(project) : project;
-}
+interface ProjectCardProps { project: PublicProjectCard; }
 
 function apartmentTypeList(apartmentTypes: string): string[] {
   if (!apartmentTypes) return [];
   try {
     const parsed: unknown = JSON.parse(apartmentTypes);
     if (Array.isArray(parsed)) return parsed.filter((value): value is string => typeof value === 'string' && value.length > 0);
-  } catch { /* legacy comma-separated format */ }
+  } catch { /* legacy comma-separated storage is still supported at the contract boundary */ }
   return apartmentTypes.split(',').map((type) => type.trim()).filter(Boolean);
 }
 
-export function ProjectCard({ project: source }: ProjectCardProps) {
-  const project = toPublicCard(source);
+export function ProjectCard({ project }: ProjectCardProps) {
   const router = useRouter();
   const { isFavorite, toggleFavorite } = useFavorites();
   const isFav = isFavorite(project.id);
