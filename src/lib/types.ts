@@ -84,8 +84,6 @@ export interface Project {
   amenities?: ProjectAmenity[];
   images?: ProjectImage[];
   developer?: Developer;
-
-  /** Public catalog counters carried by the lightweight list DTO adapter. */
   apartmentCount?: number;
   availableApartmentCount?: number;
   reservedApartmentCount?: number;
