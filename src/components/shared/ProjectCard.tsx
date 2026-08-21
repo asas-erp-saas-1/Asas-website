@@ -67,12 +67,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
     }
   };
 
-  const getHeroImage = (images?: ProjectImage[]): string => {
+  const getHeroImage = (images?: ProjectImage[]): string | null => {
     const hero = images?.find((img) => img.type === 'hero');
     if (hero) return hero.url;
     const gallery = images?.find((img) => img.type === 'gallery');
     if (gallery) return gallery.url;
-    return images?.[0]?.url ?? '/images/brand/hero.jpg';
+    return images?.[0]?.url ?? null;
   };
 
   const imageUrl = getHeroImage(project.images);
@@ -84,7 +84,8 @@ export function ProjectCard({ project }: ProjectCardProps) {
   };
 
   const startingPrice = project.startingPrice ?? 0;
-  const availableCount = project.apartments?.filter((a) => a.status === 'AVAILABLE' || a.status === 'COMING_SOON').length ?? 0;
+  const availableCount = project.apartments?.filter((a) => a.status === 'AVAILABLE').length ?? 0;
+  const reservedCount = project.apartments?.filter((a) => a.status === 'RESERVED').length ?? 0;
   const totalApartments = project.apartments?.length ?? 0;
   const types = apartmentTypeList();
 
@@ -100,16 +101,22 @@ export function ProjectCard({ project }: ProjectCardProps) {
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:border-forest/30 hover:shadow-xl">
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-        <img
-          src={imageUrl}
-          alt={`${project.name} — ${project.district}, ${project.city}`}
-          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
-          loading="lazy"
-          decoding="async"
-          width={800}
-          height={600}
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        />
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={`${project.name} — ${project.district}, ${project.city}`}
+            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
+            loading="lazy"
+            decoding="async"
+            width={800}
+            height={600}
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center bg-muted px-4 text-center" role="img" aria-label={`Image du projet ${project.name} non disponible`}>
+            <span className="text-sm text-muted-foreground">Image non disponible</span>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" aria-hidden="true" />
 
         <button
@@ -156,7 +163,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           {deliveryInfo() && <div className="flex items-center gap-1.5"><Calendar className="size-3.5 text-forest/60" aria-hidden="true" /><span>{deliveryInfo()}</span></div>}
         </div>
 
-        {totalApartments > 0 && <AvailabilityBadge available={availableCount} reserved={project.apartments?.filter((a) => a.status === 'RESERVED').length ?? 0} total={totalApartments} />}
+        {totalApartments > 0 && <AvailabilityBadge available={availableCount} reserved={reservedCount} total={totalApartments} />}
 
         <div className="mt-auto border-t border-border/60 pt-3">
           {project.priceOnRequest || !project.startingPrice ? (
