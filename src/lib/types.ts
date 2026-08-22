@@ -3,7 +3,8 @@
 // ─── Structured Image Types ────────────────────────────────────────
 export interface ProjectImage {
   id: string;
-  projectId: string;
+  /** Present on persisted/admin records; omitted by the public catalog projection. */
+  projectId?: string;
   url: string;
   alt?: string;
   altAr?: string;
@@ -80,14 +81,33 @@ export interface Project {
   archived: boolean;
   featured: boolean;
   order: number;
+  createdAt: string;
+  updatedAt: string;
+  developer?: Developer;
   buildings?: Building[];
   apartments?: Apartment[];
-  amenities?: ProjectAmenity[];
   images?: ProjectImage[];
-  developer?: Developer;
-  apartmentCount?: number;
-  availableApartmentCount?: number;
-  reservedApartmentCount?: number;
+  amenities?: Amenity[];
+}
+
+export interface Developer {
+  id: string;
+  slug: string;
+  name: string;
+  nameAr?: string;
+  description?: string;
+  descriptionAr?: string;
+  logo?: string;
+  website?: string;
+}
+
+export interface Amenity {
+  id: string;
+  name: string;
+  nameAr?: string;
+  icon?: string;
+  description?: string;
+  descriptionAr?: string;
 }
 
 export interface Apartment {
@@ -118,58 +138,24 @@ export interface Apartment {
   priceOnRequest: boolean;
   paymentPlan?: string;
   paymentPlanAr?: string;
-  rooms?: string;
+  rooms: string;
   description?: string;
   descriptionAr?: string;
-  features?: string;
-  featuresAr?: string;
+  features: string;
+  featuresAr: string;
   published: boolean;
   archived: boolean;
   order: number;
-  building?: Building;
+  createdAt: string;
+  updatedAt: string;
   project?: Project;
+  building?: Building;
   images?: ApartmentImage[];
 }
 
-export interface ProjectAmenity {
-  id: string;
-  projectId: string;
-  name: string;
-  nameAr?: string;
-  icon?: string;
-  description?: string;
-  descriptionAr?: string;
-}
-
-export interface Developer {
-  id: string;
-  slug: string;
-  name: string;
-  nameAr?: string;
-  description?: string;
-  descriptionAr?: string;
-  logo?: string;
-  website?: string;
-  projects?: Project[];
-}
-
-// ─── Lead ──────────────────────────────────────────────────────────
-export interface Lead {
-  id?: string;
-  name: string;
-  phone: string;
-  email?: string;
-  preferredContact?: string;
-  intent: string;
-  message?: string;
-  projectId?: string;
-  projectName?: string;
-  apartmentId?: string;
-  apartmentName?: string;
-  pageUrl?: string;
-  landingPage?: string;
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
-  utmContent?: string;
+export interface SiteStats {
+  projects: number;
+  apartments: number;
+  availableApartments: number;
+  soldApartments: number;
 }
