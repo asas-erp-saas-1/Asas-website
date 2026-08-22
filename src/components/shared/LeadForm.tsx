@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LEAD_INTENT_LABELS, getWhatsAppUrl, getPhoneUrl, ASAS } from '@/lib/constants';
+import { LEAD_INTENT_LABELS, getWhatsAppUrl, getPhoneUrl } from '@/lib/constants';
 import { CheckCircle, Loader2, AlertCircle, MessageCircle, Phone, User, Mail, CircleDollarSign, FileText, CalendarCheck, BookmarkCheck, PhoneCall as PhoneCallIcon, Info } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
 import type { Lead } from '@/lib/lead-contracts';
@@ -55,6 +55,6 @@ export function LeadForm({ projectId, projectName, apartmentId, apartmentName, i
     <div className="space-y-1.5"><label htmlFor="lead-message" className="text-sm font-medium">Message</label><Textarea id="lead-message" placeholder="Votre demande..." rows={compact?3:4} {...register('message')}/></div>
     <Button type="submit" disabled={status==='loading'} className="w-full bg-forest hover:bg-forest-dark text-white">{status==='loading'?<><Loader2 className="size-4 animate-spin mr-2"/>Envoi...</>:'Envoyer ma demande'}</Button>
     {status==='error'&&<p className="text-xs text-destructive"><AlertCircle className="size-3 inline mr-1"/>Une erreur est survenue. Veuillez réessayer.</p>}
-    {(showWhatsApp||showPhone)&&<div className="flex gap-2">{showWhatsApp&&<a href={getWhatsAppUrl(`Bonjour, je souhaite des informations sur ${projectName??'un bien ASAS'}.`)} target="_blank" rel="noreferrer" className="flex-1"><Button type="button" variant="outline" className="w-full"><MessageCircle className="size-4 mr-2"/>WhatsApp</Button></a>}{showPhone&&<a href={getPhoneUrl(ASAS.phone)} className="flex-1"><Button type="button" variant="outline" className="w-full"><Phone className="size-4 mr-2"/>Appeler</Button></a>}</div>}
+    {(showWhatsApp||showPhone)&&<div className="flex gap-2">{showWhatsApp&&<a href={getWhatsAppUrl(`Bonjour, je souhaite des informations sur ${projectName??'un bien ASAS'}.`)} target="_blank" rel="noreferrer" className="flex-1"><Button type="button" variant="outline" className="w-full"><MessageCircle className="size-4 mr-2"/>WhatsApp</Button></a>}{showPhone&&<a href={getPhoneUrl()} className="flex-1"><Button type="button" variant="outline" className="w-full"><Phone className="size-4 mr-2"/>Appeler</Button></a>}</div>}
   </form>;
 }
