@@ -159,3 +159,9 @@ export interface SiteStats {
   availableApartments: number;
   soldApartments: number;
 }
+
+/**
+ * Backward-compatible export for legacy form consumers.
+ * Canonical transport contract lives in ./lead-contracts.ts.
+ */
+export type { Lead } from './lead-contracts';
