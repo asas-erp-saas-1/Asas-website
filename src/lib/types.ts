@@ -17,7 +17,8 @@ export interface ProjectImage {
 
 export interface ApartmentImage {
   id: string;
-  apartmentId: string;
+  /** Present on persisted/admin records; omitted by the public catalog projection. */
+  apartmentId?: string;
   url: string;
   alt?: string;
   altAr?: string;
