@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import ProjectsPage from '@/components/pages/ProjectsPage';
+import PublicProjectsCatalogPage from '@/components/pages/PublicProjectsCatalogPage';
 
 export const metadata: Metadata = {
   title: 'Projets immobiliers | ASAS',
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function ProjectsRoute() {
-  return <ProjectsPage />;
+  return <PublicProjectsCatalogPage />;
 }
