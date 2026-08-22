@@ -2,8 +2,9 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
-import type { Apartment, SiteStats } from '@/lib/types';
+import type { Apartment, Project, SiteStats } from '@/lib/types';
 import type { PublicApartmentDetail, PublicProjectCard, PublicProjectDetail } from '@/lib/catalog-contracts';
+import { publicCardToLegacyProject } from '@/lib/catalog-legacy-adapter';
 
 const API_BASE = '/api';
 
@@ -20,6 +21,16 @@ async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
 interface ApartmentsApiResponse {
   data: Apartment[];
   pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+/** Transitional compatibility hook. New public catalog components must use usePublicProjectCards. */
+export function useProjects(): UseQueryResult<Project[], Error> {
+  return useQuery({
+    queryKey: ['catalog', 'project-cards'],
+    queryFn: async () => (await getJson<PublicProjectCard[]>(`${API_BASE}/catalog/projects`)).map(publicCardToLegacyProject),
+    staleTime: 60_000,
+    retry: 2,
+  });
 }
 
 /** Canonical public project-list query. */
