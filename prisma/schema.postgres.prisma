@@ -19,33 +19,34 @@ model Project {
   taglineAr String? @map("tagline_ar")
   description String? @db.Text
   descriptionAr String? @map("description_ar") @db.Text
-  city String
+  city String?
   cityAr String? @map("city_ar")
-  district String
+  district String?
   districtAr String? @map("district_ar")
   address String?
   addressAr String? @map("address_ar")
   latitude Float?
   longitude Float?
-  projectType String @default("RESIDENTIAL") @map("project_type")
-  status String @default("AVAILABLE")
+  projectType String? @default("RESIDENTIAL") @map("project_type")
+  status String @default("active")
   featured Boolean @default(false)
-  startingPrice Int? @map("starting_price")
+  startingPrice Decimal? @map("starting_price")
   deliveryDate DateTime? @map("delivery_date") @db.Date
   heroMediaId String? @map("hero_media_id") @db.Uuid
   heroImage String? @map("hero_image")
-  apartmentTypes Json @default("[]") @map("apartment_types")
+  images String?
+  apartmentTypes Json? @default("[]") @map("apartment_types")
   minSurface Int? @map("min_surface")
   maxSurface Int? @map("max_surface")
   deliveryYear Int? @map("delivery_year")
   deliveryQuarter String? @map("delivery_quarter")
-  hasParking Boolean @default(false) @map("has_parking")
-  hasElevator Boolean @default(false) @map("has_elevator")
-  hasGarden Boolean @default(false) @map("has_garden")
-  hasPool Boolean @default(false) @map("has_pool")
-  hasSecurity Boolean @default(false) @map("has_security")
-  hasClim Boolean @default(false) @map("has_clim")
-  priceOnRequest Boolean @default(false) @map("price_on_request")
+  hasParking Boolean? @default(false) @map("has_parking")
+  hasElevator Boolean? @default(false) @map("has_elevator")
+  hasGarden Boolean? @default(false) @map("has_garden")
+  hasPool Boolean? @default(false) @map("has_pool")
+  hasSecurity Boolean? @default(false) @map("has_security")
+  hasClim Boolean? @default(false) @map("has_clim")
+  priceOnRequest Boolean? @default(false) @map("price_on_request")
   developerId String? @map("developer_id") @db.Uuid
   published Boolean @default(true)
   archived Boolean @default(false)
@@ -55,7 +56,7 @@ model Project {
   canonicalUrl String? @map("canonical_url")
   ogImage String? @map("og_image")
   robotsIndex Boolean @default(true) @map("robots_index")
-  order Int @default(0) @map("display_order")
+  order Int? @default(0) @map("display_order")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -63,7 +64,7 @@ model Project {
   buildings Building[]
   apartments Apartment[]
   amenities ProjectAmenity[]
-  images ProjectImage[]
+  imagesRelation ProjectImage[] @relation("ProjectImages")
   videos Video[]
 
   @@index([published])
@@ -93,34 +94,38 @@ model Building {
 model Apartment {
   id String @id @default(uuid()) @db.Uuid
   projectId String @map("project_id") @db.Uuid
-  slug String @unique
-  apartmentNumber String? @map("apartment_number")
+  slug String
+  apartmentNumber String @map("apartment_number")
   unitNumber String? @map("unit_number")
-  apartmentType String @default("F3") @map("apartment_type")
+  type String?
+  apartmentType String? @default("F3") @map("apartment_type")
   typeName String @map("type_name")
   typeNameAr String? @map("type_name_ar")
-  surface Int
+  surface Decimal?
   floor Int?
   totalFloors Int? @map("total_floors")
   orientation String?
-  bedrooms Int
+  bedrooms Int?
   bathrooms Int?
+  parking Boolean @default(false)
+  balcony Boolean @default(false)
   balconies Int?
   balconySurface Int? @map("balcony_surface")
-  hasParking Boolean @default(false) @map("has_parking")
+  hasParking Boolean? @default(false) @map("has_parking")
   parkingSpots Int? @map("parking_spots")
   hasTerrace Boolean @default(false) @map("has_terrace")
   terraceSurface Int? @map("terrace_surface")
   hasGarden Boolean @default(false) @map("has_garden")
   gardenSurface Int? @map("garden_surface")
-  status String @default("AVAILABLE")
-  price Int?
-  priceOnRequest Boolean @default(false) @map("price_on_request")
+  status String @default("available")
+  price Decimal?
+  priceOnRequest Boolean? @default(false) @map("price_on_request")
   paymentPlan String? @map("payment_plan")
   paymentPlanAr String? @map("payment_plan_ar")
   floorPlanImage String? @map("floor_plan_image")
   furnishedPlanImage String? @map("furnished_plan_image")
   renderImage String? @map("render_image")
+  images String?
   rooms Json?
   description String? @db.Text
   descriptionAr String? @map("description_ar") @db.Text
@@ -134,20 +139,22 @@ model Apartment {
   canonicalUrl String? @map("canonical_url")
   ogImage String? @map("og_image")
   robotsIndex Boolean @default(true) @map("robots_index")
-  order Int @default(0) @map("display_order")
+  order Int? @default(0) @map("display_order")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   buildingId String? @map("building_id") @db.Uuid
   building Building? @relation(fields: [buildingId], references: [id], onDelete: SetNull)
-  images ApartmentImage[]
+  imagesRelation ApartmentImage[] @relation("ApartmentImages")
   videos Video[]
 
   @@index([projectId])
   @@index([buildingId])
   @@index([status])
   @@index([published])
+  @@unique([projectId, apartmentNumber])
+  @@unique([projectId, slug])
   @@map("apartments")
 }
 
@@ -165,7 +172,7 @@ model ProjectImage {
   height Int?
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project Project @relation("ProjectImages", fields: [projectId], references: [id], onDelete: Cascade)
   @@index([projectId])
   @@index([type])
   @@map("project_images")
@@ -185,7 +192,7 @@ model ApartmentImage {
   height Int?
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  apartment Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  apartment Apartment @relation("ApartmentImages", fields: [apartmentId], references: [id], onDelete: Cascade)
   @@index([apartmentId])
   @@index([type])
   @@map("apartment_images")
@@ -224,7 +231,7 @@ model ProjectAmenity {
 model Lead {
   id String @id @default(uuid()) @db.Uuid
   name String
-  phone String
+  phone String?
   email String?
   preferredContact String? @map("preferred_contact")
   intent String?
@@ -244,14 +251,18 @@ model Lead {
   fbclid String?
   referrer String?
   source String?
-  status String @default("NEW")
+  status String @default("new")
   assignedTo String? @map("assigned_to")
   followUpDate DateTime? @map("follow_up_date")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  apartment Apartment? @relation(fields: [apartmentId], references: [id], onDelete: SetNull)
   notes LeadNote[]
   @@index([status])
   @@index([createdAt])
+  @@index([projectId])
+  @@index([apartmentId])
   @@map("leads")
 }
 
@@ -260,7 +271,7 @@ model SiteContent {
   key String @unique
   value String @db.Text
   valueAr String? @map("value_ar") @db.Text
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
   @@map("site_content")
 }
 
@@ -277,7 +288,7 @@ model NewsletterSubscription {
   confirmedAt DateTime? @map("confirmed_at")
   unsubscribedAt DateTime? @map("unsubscribed_at")
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
   @@index([status])
   @@index([createdAt])
   @@map("newsletter_subscriptions")
@@ -291,7 +302,7 @@ model AdminUser {
   role String @default("ADMIN")
   active Boolean @default(true)
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
   sessions AdminSession[]
   @@map("admin_users")
 }
@@ -323,7 +334,7 @@ model Video {
   description String? @db.Text
   type String @default("GALLERY")
   featured Boolean @default(false)
-  order Int @default(0)
+  order Int @default(0) @map("display_order")
   published Boolean @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -372,7 +383,7 @@ model LoginRateLimit {
   count Int @default(0)
   windowStart DateTime @map("window_start")
   lockedUntil DateTime? @map("locked_until")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
   @@index([lockedUntil])
   @@index([updatedAt])
   @@map("login_rate_limits")
