@@ -9,16 +9,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Bed, Bath, Layers, Compass, ArrowRight, Flower2, TreePine } from 'lucide-react';
-import type { Apartment, ApartmentImage } from '@/lib/types';
+import type { PublicApartmentCard } from '@/lib/catalog-contracts';
 
-type ApartmentCardData = Pick<Apartment,
+type ApartmentCardData = Pick<PublicApartmentCard,
   | 'id' | 'slug' | 'status' | 'typeName' | 'floor' | 'totalFloors' | 'surface' | 'orientation'
   | 'bedrooms' | 'bathrooms' | 'balconies' | 'balconySurface' | 'hasParking'
   | 'parkingSpots' | 'hasTerrace' | 'terraceSurface' | 'hasGarden' | 'gardenSurface'
   | 'price' | 'priceOnRequest'
 > & {
-  building?: Pick<NonNullable<Apartment['building']>, 'code'>;
-  images?: ApartmentImage[];
+  building?: Pick<NonNullable<PublicApartmentCard['building']>, 'code'>;
 };
 
 interface ApartmentCardProps { apartment: ApartmentCardData; projectSlug: string; }
