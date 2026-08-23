@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { toPublicApartmentCard } from '@/lib/catalog-mappers';
+import type { PublicApartmentCard } from '@/lib/catalog-contracts';
 import { withPublicCache } from '@/lib/with-security-headers';
 
-/** Public apartment catalogue/search endpoint. */
+/** Public apartment catalogue/search endpoint. Returns a lean public DTO, never a Prisma/domain record. */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
@@ -24,7 +26,6 @@ export async function GET(request: NextRequest) {
     if (type) where.apartmentType = type;
     if (status) where.status = status;
     if (bedrooms) where.bedrooms = parseInt(bedrooms, 10);
-
     if (minPrice || maxPrice) {
       const price: { gte?: number; lte?: number } = {};
       if (minPrice) price.gte = parseInt(minPrice, 10);
@@ -55,14 +56,14 @@ export async function GET(request: NextRequest) {
         take: limit,
         include: {
           building: true,
-          images: { orderBy: { order: 'asc' } },
-          project: { select: { id: true, slug: true, name: true, nameAr: true, city: true, cityAr: true, district: true, districtAr: true, startingPrice: true, priceOnRequest: true } },
+          project: { select: { id: true, slug: true, name: true, city: true, district: true, hasElevator: true, hasSecurity: true } },
         },
       }),
       db.apartment.count({ where }),
     ]);
 
-    return withPublicCache(NextResponse.json({ data: apartments, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }));
+    const data: PublicApartmentCard[] = apartments.map(toPublicApartmentCard);
+    return withPublicCache(NextResponse.json({ data, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }));
   } catch (error) {
     console.error('[API /apartments] Error:', error instanceof Error ? error.message : error);
     return withPublicCache(NextResponse.json({ error: 'Failed to fetch apartments' }, { status: 500 }));
