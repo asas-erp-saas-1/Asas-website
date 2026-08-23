@@ -1,8 +1,9 @@
 /**
  * Public catalog contracts.
  *
- * Deliberately independent from Prisma/domain types. Internal fields must
- * never become public API fields merely because the database model grows.
+ * These are transport contracts, deliberately independent from Prisma/domain
+ * persistence models. Internal fields must never become public API fields
+ * merely because the database model grows.
  */
 
 export interface PublicProjectImage { id: string; url: string; alt?: string; altAr?: string; caption?: string; captionAr?: string; type: string; order: number; width?: number; height?: number; }
@@ -18,7 +19,6 @@ export interface PublicBuilding {
   floors: number;
   hasElevator: boolean;
   order: number;
-  /** Published apartment count for this building; no apartment rows are exposed here. */
   apartmentCount: number;
   /** @deprecated Compatibility only. Public responses intentionally never populate apartment rows. */
   apartments?: never[];
@@ -27,6 +27,37 @@ export interface PublicBuilding {
 export interface PublicAmenity { id: string; name: string; nameAr?: string; icon?: string; description?: string; descriptionAr?: string; }
 export interface PublicDeveloper { id: string; slug: string; name: string; nameAr?: string; description?: string; descriptionAr?: string; logo?: string; website?: string; }
 export interface PublicApartmentProjectSummary { id: string; slug: string; name: string; city: string; district: string; hasElevator: boolean; hasSecurity: boolean; }
+
+export interface PublicApartmentCard {
+  id: string;
+  slug: string;
+  projectId: string;
+  buildingId?: string;
+  unitNumber?: string;
+  apartmentType: string;
+  typeName: string;
+  typeNameAr?: string;
+  surface: number;
+  floor?: number;
+  totalFloors?: number;
+  orientation?: string;
+  bedrooms: number;
+  bathrooms?: number;
+  balconies?: number;
+  balconySurface?: number;
+  hasParking: boolean;
+  parkingSpots?: number;
+  hasTerrace: boolean;
+  terraceSurface?: number;
+  hasGarden: boolean;
+  gardenSurface?: number;
+  status: string;
+  price?: number;
+  priceOnRequest: boolean;
+  project?: PublicApartmentProjectSummary;
+  building?: Pick<PublicBuilding, 'id' | 'slug' | 'name' | 'code'>;
+}
+
 export interface PublicApartmentDetail {
   id: string; slug: string; projectId: string; buildingId?: string; unitNumber?: string; apartmentType: string; typeName: string; typeNameAr?: string; surface: number; floor?: number; totalFloors?: number; orientation?: string; bedrooms: number; bathrooms?: number; balconies?: number; balconySurface?: number; hasParking: boolean; parkingSpots?: number; hasTerrace: boolean; terraceSurface?: number; hasGarden: boolean; gardenSurface?: number; status: string; price?: number; priceOnRequest: boolean; paymentPlan?: string; paymentPlanAr?: string; rooms: string; description?: string; descriptionAr?: string; features: string; featuresAr: string; published: boolean; archived: boolean; order: number; project?: PublicApartmentProjectSummary; building?: PublicBuilding; images?: PublicApartmentImage[];
 }
