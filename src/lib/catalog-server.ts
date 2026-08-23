@@ -1,61 +1,21 @@
 import 'server-only';
 
 import { db } from '@/lib/db';
-import type {
-  PublicApartmentDetail,
-  PublicProjectCard,
-  PublicProjectDetail,
-} from '@/lib/catalog-contracts';
-import {
-  toPublicApartmentDetail,
-  toPublicProjectCard,
-  toPublicProjectDetail,
-} from '@/lib/catalog-mappers';
+import type { PublicApartmentDetail, PublicProjectCard, PublicProjectDetail } from '@/lib/catalog-contracts';
+import { toPublicApartmentDetail, toPublicProjectCard, toPublicProjectDetail } from '@/lib/catalog-mappers';
 
-/**
- * Server-only public catalog access.
- *
- * Publication rules live here so Server Components and API routes consume the
- * same source of truth. Prisma/domain objects are mapped before crossing the
- * server boundary.
- */
 export async function getPublicProjectCards(): Promise<PublicProjectCard[]> {
   const projects = await db.project.findMany({
     where: { published: true, archived: false },
     orderBy: [{ featured: 'desc' }, { order: 'asc' }, { name: 'asc' }],
     select: {
-      id: true,
-      slug: true,
-      name: true,
-      tagline: true,
-      city: true,
-      district: true,
-      projectType: true,
-      status: true,
-      latitude: true,
-      longitude: true,
-      startingPrice: true,
-      priceOnRequest: true,
-      minSurface: true,
-      maxSurface: true,
-      deliveryYear: true,
-      deliveryQuarter: true,
-      apartmentTypes: true,
-      hasParking: true,
-      hasElevator: true,
-      hasGarden: true,
-      hasPool: true,
-      featured: true,
-      images: {
-        orderBy: { order: 'asc' },
-        take: 1,
-        select: { id: true, url: true, alt: true, type: true },
-      },
-      _count: {
-        select: {
-          apartments: { where: { published: true, archived: false } },
-        },
-      },
+      id: true, slug: true, name: true, tagline: true, city: true, district: true,
+      projectType: true, status: true, latitude: true, longitude: true,
+      startingPrice: true, priceOnRequest: true, minSurface: true, maxSurface: true,
+      deliveryYear: true, deliveryQuarter: true, apartmentTypes: true,
+      hasParking: true, hasElevator: true, hasGarden: true, hasPool: true, featured: true,
+      imagesRelation: { orderBy: { order: 'asc' }, take: 1, select: { id: true, url: true, alt: true, type: true } },
+      _count: { select: { apartments: { where: { published: true, archived: false } } } },
     },
   });
 
@@ -68,14 +28,15 @@ export async function getPublicProjectCards(): Promise<PublicProjectCard[]> {
   const counts = new Map<string, { available: number; reserved: number }>();
   for (const row of availableByProject) {
     const current = counts.get(row.projectId) ?? { available: 0, reserved: 0 };
-    if (row.status === 'AVAILABLE' || row.status === 'COMING_SOON') current.available += row._count._all;
-    if (row.status === 'RESERVED') current.reserved += row._count._all;
+    if (['available', 'AVAILABLE', 'COMING_SOON'].includes(row.status)) current.available += row._count._all;
+    if (['reserved', 'RESERVED'].includes(row.status)) current.reserved += row._count._all;
     counts.set(row.projectId, current);
   }
 
-  return projects.map((project) =>
-    toPublicProjectCard(project, counts.get(project.id) ?? { available: 0, reserved: 0 }),
-  );
+  return projects.map((project) => toPublicProjectCard(
+    { ...project, images: project.imagesRelation },
+    counts.get(project.id) ?? { available: 0, reserved: 0 },
+  ));
 }
 
 export async function getPublicProject(slug: string): Promise<PublicProjectDetail | null> {
@@ -86,48 +47,30 @@ export async function getPublicProject(slug: string): Promise<PublicProjectDetai
       apartments: {
         where: { published: true, archived: false },
         orderBy: { order: 'asc' },
-        include: { images: { orderBy: { order: 'asc' } }, building: true },
+        include: { imagesRelation: { orderBy: { order: 'asc' } }, building: true },
       },
-      images: { orderBy: { order: 'asc' } },
+      imagesRelation: { orderBy: { order: 'asc' } },
       amenities: { orderBy: { name: 'asc' } },
       developer: true,
     },
   });
-
   if (!project || !project.published || project.archived) return null;
-  return toPublicProjectDetail(project);
+  return toPublicProjectDetail({
+    ...project,
+    images: project.imagesRelation,
+    apartments: project.apartments.map((apartment) => ({ ...apartment, images: apartment.imagesRelation })),
+  });
 }
 
 export async function getPublicApartment(slug: string): Promise<PublicApartmentDetail | null> {
   const apartment = await db.apartment.findUnique({
     where: { slug },
     include: {
-      project: {
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-          city: true,
-          district: true,
-          hasElevator: true,
-          hasSecurity: true,
-          published: true,
-          archived: true,
-        },
-      },
+      project: { select: { id: true, slug: true, name: true, city: true, district: true, hasElevator: true, hasSecurity: true, published: true, archived: true } },
       building: true,
-      images: { orderBy: { order: 'asc' } },
+      imagesRelation: { orderBy: { order: 'asc' } },
     },
   });
-
-  if (
-    !apartment ||
-    !apartment.published ||
-    apartment.archived ||
-    !apartment.project ||
-    !apartment.project.published ||
-    apartment.project.archived
-  ) return null;
-
-  return toPublicApartmentDetail(apartment);
+  if (!apartment || !apartment.published || apartment.archived || !apartment.project || !apartment.project.published || apartment.project.archived) return null;
+  return toPublicApartmentDetail({ ...apartment, images: apartment.imagesRelation });
 }
