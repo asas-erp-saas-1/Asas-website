@@ -1,157 +1,122 @@
 # ASAS Real Estate Platform
 
-> **Production packaging:** PostgreSQL/Supabase is the production runtime. Prisma now generates separate PostgreSQL and SQLite clients so the existing SQLite content can be migrated safely without changing the production client.
+> **Verified production architecture (2026-08-24):** Next.js 16 + TypeScript + Prisma 6.19.2 + PostgreSQL on Supabase + Vercel.
+>
+> This repository is currently a **premium real-estate public website + Admin CMS**. It is being engineered with ERP-grade data integrity, security, auditability and operational discipline, but it is **not yet a full ERP/accounting/construction system**. Do not treat future ERP capabilities as implemented features.
 
-Production-grade real-estate CMS + public website on Next.js 16 + Prisma + PostgreSQL (Supabase).
-Includes DB-backed admin sessions, Supabase Storage abstraction, honeypot-protected lead
-capture, structured logging, and a 24-action audit log.
+## Current engineering status
 
-> **Status:** Phase 2 release-ready. Deployed via Vercel + Supabase.
-> Full runbook: [`docs/PRODUCTION_RUNBOOK.md`](docs/PRODUCTION_RUNBOOK.md).
+- **Phase 1 — deployment/type-contract stabilization:** closed for the original production blocker.
+- **Phase 2 — Database Engineering & Schema Contract:** active.
+- **Production database:** existing Supabase PostgreSQL is the source of truth until the schema contract is fully reconciled.
+- **Prisma Migrate baseline:** **not yet applied to production**. Do not run `prisma db push`, reset production, or apply the old `prisma/migrations/postgres/0001_init` migration blindly.
+- **Current Vercel deployment:** the latest commit is being validated in production CI/CD; check Vercel before declaring a release green.
+- **Live database:** 20 public tables were observed during the current audit; ownership is being classified before migration baselining.
 
----
+The authoritative current state is maintained in [`docs/ENGINEERING_SOURCE_OF_TRUTH.md`](docs/ENGINEERING_SOURCE_OF_TRUTH.md) and [`docs/PHASE2_SCHEMA_CONTRACT.md`](docs/PHASE2_SCHEMA_CONTRACT.md).
 
 ## Stack
 
-| Layer      | Technology                                                    |
-| ---------- | ------------------------------------------------------------- |
-| Framework  | Next.js 16 (App Router, Turbopack)                            |
-| Language   | TypeScript 5 (strict, `ignoreBuildErrors: false`)            |
-| Styling    | Tailwind CSS 4 + shadcn/ui (New York) + Radix UI              |
-| Database   | Prisma 6.19 — SQLite (dev), PostgreSQL/Supabase (production)  |
-| Auth       | DB-backed bcrypt + httpOnly cookie (8h TTL, `AdminSession` table) |
-| RBAC       | ADMIN / EDITOR / VIEWER — enforced per route via `sessionHasRole` |
-| State      | Zustand (client), TanStack Query v5 (server)                  |
-| Validation | Zod 4 on every mutation                                       |
-| Storage    | `src/lib/storage.ts` — Supabase Storage (prod) / local fs (dev) |
-| Logging    | `src/lib/logger.ts` — NDJSON in prod, color in dev, PII-redact |
-| CI         | `.github/workflows/ci.yml` — lint + typecheck + build          |
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 App Router + Turbopack |
+| Language | TypeScript 5, strict build/type checking |
+| UI | Tailwind CSS 4 + shadcn/ui + Radix UI |
+| Database | PostgreSQL on Supabase (production) |
+| ORM | Prisma 6.19.2 |
+| Auth | DB-backed bcrypt + httpOnly cookie sessions |
+| RBAC | ADMIN / EDITOR / VIEWER, enforced server-side |
+| State | Zustand + TanStack Query v5 |
+| Validation | Zod |
+| Storage | Supabase Storage in production; local development fallback where explicitly supported |
+| Deployment | Vercel |
 
----
+## Database rules — non-negotiable
 
-## Quick start (development)
+1. Production Supabase PostgreSQL is the current database source of truth.
+2. Never run `prisma db push` against production.
+3. Never run `prisma migrate reset` against production.
+4. Never apply the historical `0001_init` migration blindly; it does not represent the current live database.
+5. Before the first production Prisma baseline, reconcile tables, columns, types, nullability, defaults, relations, constraints, indexes and RLS.
+6. After baseline, all future schema changes must be committed migration files and deployed through a controlled migration pipeline.
+7. Do not weaken the database contract merely to silence TypeScript; fix the application boundary instead.
+8. Stable database IDs are identities. Public slugs are routing identifiers and may be scoped by parent entity.
+9. Any destructive production migration requires an explicit backup/rollback plan and pre-production verification.
+
+## Development commands
 
 ```bash
 bun install
-bun run db:generate   # generate both PostgreSQL + SQLite clients
-bun run db:push        # apply SQLite schema (dev only — never use in prod)
-bun run db:seed        # idempotent seed (4 projects, 28 apartments, admin user)
-bun run dev            # http://localhost:3000
+bun run db:generate
+bun run typecheck
+bun run lint
+bun run build
 ```
 
-If `ADMIN_BOOTSTRAP_PASSWORD` is unset, the seed prints a random 24-char password **once**.
-Save it; it is never persisted or shown again. See [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md).
+The repository's current `package.json` does not define a production-safe `db:push` command. Do not invent one.
 
----
+## Production verification
 
-## Phase 2 changes (highlights)
+Every release candidate must pass:
 
-- **DB-backed admin sessions** — `AdminSession` table; in-memory Map only in dev. Selected by
-  `ADMIN_SESSION_DRIVER` (`db` in prod, `memory` in dev). Multi-instance safe on Vercel. See
-  [`docs/SECURITY.md`](docs/SECURITY.md) §1.2.
-- **Storage abstraction** — `src/lib/storage.ts` auto-detects Supabase Storage when
-  `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are set, and falls back to local
-  filesystem under `/public/uploads` only in dev. In production without Supabase, `saveBlob`
-  throws with a clear 503-style message instead of EROFS on Vercel's read-only filesystem.
-- **Migrations, not `db push`** — production uses `prisma migrate deploy` against committed
-  baselines under `prisma/migrations/postgres/0001_init/`. See [`docs/DATABASE.md`](docs/DATABASE.md).
-- **CI** — `.github/workflows/ci.yml` runs lint + typecheck + build on every PR. Migrations are
-  never run from CI (operator-driven only). See the file header for rationale.
-- **Honeypot on lead + newsletter** — hidden `website` field; bot fill = fake 201 success + log.
-- **Cache strategy** — public read endpoints use `withPublicCache()` (`s-maxage=60,
-  stale-while-revalidate=300`); admin/mutation routes use `withSecurityHeaders()` (`no-store`).
-  See `src/lib/with-security-headers.ts`.
-- **Structured logger** — `src/lib/logger.ts`. NDJSON in prod, color in dev. PII redaction
-  (phone/email → first 4 chars + bullets). Secret keys (`password`, `token`, `cookie`,
-  `databaseUrl`, `serviceRoleKey`) are redacted to `[REDACTED]`. `withLogging()` HOF wraps routes.
-- **New env vars** — `ADMIN_SESSION_DRIVER`, `ADMIN_BOOTSTRAP_PASSWORD`, `SEED_REFUSE_NON_EMPTY`.
-  Full reference: [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md).
+1. Prisma generation
+2. TypeScript typecheck
+3. Next.js production build
+4. Vercel deployment status
+5. Runtime error inspection
+6. Public catalog smoke tests
+7. Admin authentication/RBAC smoke tests
+8. Database contract verification
 
----
+## Repository structure
 
-## Production deployment (short version)
-
-1. Create a Supabase project; copy pooled (`DATABASE_URL`) + direct (`DIRECT_URL`) URLs.
-2. Create a `media` bucket in Supabase Storage (public read).
-3. Apply the production schema:
-   ```bash
-   DATABASE_URL=postgresql://...pooler...:6543/postgres \
-   DIRECT_URL=postgresql://...direct...:5432/postgres \
-   bunx prisma migrate deploy --schema=prisma/schema.postgres.prisma
-   ```
-4. Migrate data from SQLite (idempotent, preserves IDs):
-   ```bash
-   DATABASE_URL=postgresql://...pooler...:6543/postgres \
-   bun run scripts/migrate-to-postgres.ts
-   ```
-5. Bootstrap the production admin user (one-time; does not seed demo content):
-   ```bash
-   ADMIN_EMAIL='admin@example.com' \
-   ADMIN_NAME='ASAS Admin' \
-   ADMIN_BOOTSTRAP_PASSWORD='choose-a-strong-password-16chars-min' \
-   bun run db:seed:postgres
-   ```
-6. Push to GitHub → import into Vercel → set env vars (see `.env.example`) → Deploy.
-
-Full procedure + rollback + troubleshooting: [`docs/PRODUCTION_RUNBOOK.md`](docs/PRODUCTION_RUNBOOK.md).
-
----
-
-## Project structure
-
-```
+```text
 prisma/
-  schema.prisma              # SQLite dev schema (15 models incl. AdminSession)
-  schema.postgres.prisma     # PostgreSQL production schema (native Json/Text)
-  migrations/postgres/0001_init/   # committed baseline migration
-  seed.ts                     # idempotent; reads ADMIN_BOOTSTRAP_PASSWORD
+  schema.postgres.prisma        # current PostgreSQL application contract
+  migrations/                   # migration history; baseline is being rebuilt safely
 src/
-  app/api/                    # 30+ route handlers (public + admin)
-  components/{pages,shared,ui}/
-  lib/
-    admin-auth.ts             # bcrypt + DB sessions + RBAC helpers
-    audit.ts                  # logAudit() — best-effort, 8KB cap
-    storage.ts                # saveBlob/deleteBlob — Supabase or local fs
-    env.ts                    # validated env accessor; throws on missing prod vars
-    logger.ts                 # structured NDJSON logger with PII redaction
-    with-security-headers.ts  # withSecurityHeaders / withPublicCache
-    db.ts                     # Prisma client singleton
-scripts/migrate-to-postgres.ts # SQLite → PostgreSQL, idempotent, preserves IDs
-.github/workflows/ci.yml      # PR/push: lint + typecheck + build
-vercel.json                   # build/install/region config
-.env.example                  # all env vars with classification
-docs/                         # see Documentation section below
+  app/                          # Next.js App Router + API routes
+  components/                   # public/admin UI
+  lib/                          # database, auth, storage, logging, security
+scripts/                        # operational scripts
+.github/workflows/              # CI
+vercel.json                     # Vercel configuration
+docs/                           # engineering specifications and runbooks
 ```
 
----
+## Source-of-truth hierarchy
+
+When documents disagree, use this order:
+
+1. **Live Supabase PostgreSQL schema/data** for current production reality.
+2. **Current source code on `main`** for implemented application behavior.
+3. **Current Prisma PostgreSQL schema** for the intended ORM contract under reconciliation.
+4. **Current engineering baseline documents** for decisions and migration strategy.
+5. Older audit/phase documents are historical evidence only and must not override verified current state.
 
 ## Documentation
 
-| Document                                            | Purpose                                                |
-| --------------------------------------------------- | ------------------------------------------------------ |
-| [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)        | Every env var, classification, defaults, tier per var  |
-| [`docs/SECURITY.md`](docs/SECURITY.md)              | Auth, RBAC, rate limits, honeypot, audit, headers, risks |
-| [`docs/DATABASE.md`](docs/DATABASE.md)              | Models, indexes, migrations, connection pooling, JSON  |
-| [`docs/PRODUCTION_RUNBOOK.md`](docs/PRODUCTION_RUNBOOK.md) | Pre-deploy checklist, deploy/migrate/rollback/backup, on-call |
-| `docs/ARCHITECTURE.md`                              | System architecture                                    |
-| `docs/ADMIN_GUIDE.md`                               | Admin CMS user guide                                   |
-| `docs/PHASE_2_DECISIONS.md`                         | Decision log for Phase 2 changes                       |
+- [`docs/ENGINEERING_SOURCE_OF_TRUTH.md`](docs/ENGINEERING_SOURCE_OF_TRUTH.md) — current architecture, scope, verified facts, decisions and next gates.
+- [`docs/PHASE2_SCHEMA_CONTRACT.md`](docs/PHASE2_SCHEMA_CONTRACT.md) — Prisma ↔ Supabase reconciliation and migration safety.
+- [`docs/PHASE2_TABLE_OWNERSHIP.md`](docs/PHASE2_TABLE_OWNERSHIP.md) — live table ownership classification.
+- [`docs/DATABASE_INDEX_STRATEGY.md`](docs/DATABASE_INDEX_STRATEGY.md) — reconciled PostgreSQL index strategy.
+- [`docs/PRODUCTION_RUNBOOK.md`](docs/PRODUCTION_RUNBOOK.md) — production operational procedures; verify against the source-of-truth before executing.
 
----
+Historical documents remain in Git for auditability. If a historical document conflicts with the current source of truth, it must be treated as superseded rather than as an instruction.
 
 ## Testing
 
 ```bash
-bun run lint            # ESLint — must be 0 errors
-bun run typecheck       # tsc --noEmit — must be 0 errors
-bun run build           # next build — must succeed (CI gate)
+bun run lint
+bun run typecheck
+bun run build
 ```
 
-CI runs all three on every PR (`.github/workflows/ci.yml`). A unit-test suite for
-pure business logic (status transitions, magic-bytes verification, slug generation)
-is planned but not yet present.
+A passing build is necessary but not sufficient for production readiness. Database, security, RLS and runtime smoke tests are separate release gates.
 
----
+## Scope boundary
+
+The current product is a real-estate sales/marketing website and Admin CMS. Future ERP-grade modules may include reservations, contracts, finance, inventory workflows, commissions and deeper CRM operations, but those are **future scope unless present in the verified source and database contract**.
 
 ## License
 
