@@ -10,7 +10,6 @@ const RATE_WINDOW_MS = 60_000;
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
-  // Evict expired entries periodically
   if (rateLimiter.size > 500) {
     for (const [key, val] of rateLimiter) {
       if (val.resetAt <= now) rateLimiter.delete(key);
@@ -26,7 +25,6 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-/* ─── Zod schema for LLM response validation ─── */
 const searchFiltersSchema = z.object({
   apartmentType: z.array(z.string()).nullable().optional(),
   district: z.array(z.string()).nullable().optional(),
@@ -49,38 +47,19 @@ interface SearchFilters {
   explanation?: string;
 }
 
-/**
- * Normalize common French variants of districts to the canonical
- * spelling used in the database.
- */
 function normalizeDistrict(value: string): string {
   const v = value.trim().toLowerCase();
   const map: Record<string, string> = {
-    'cheraga': 'Chéraga',
-    'chéraga': 'Chéraga',
-    'dar el beida': 'Dar El Beïda',
-    'dar-el-beida': 'Dar El Beïda',
-    'dar el beïda': 'Dar El Beïda',
-    'bordj el bahri': 'Bordj El Bahri',
-    'hussein dey': 'Hussein Dey',
-    'bordj el kiffan': 'Bordj El Kiffan',
-    'bordj el kifan': 'Bordj El Kiffan',
-    'bab el oued': 'Bab El Oued',
-    'el biar': 'El Biar',
-    'bir mourad rais': 'Bir Mourad Raïs',
-    'bir mourad raïs': 'Bir Mourad Raïs',
-    'draria': 'Draria',
-    'birkhadem': 'Birkhadem',
-    'mohammadia': 'Mohammadia',
-    'oued smar': 'Oued Smar',
-    'reghaia': 'Reghaia',
-    'réghaia': 'Reghaia',
-    'rouiba': 'Rouiba',
-    'ain taya': 'Ain Taya',
-    'aïn taya': 'Ain Taya',
-    'el harrach': 'El Harrach',
-    'kouba': 'Kouba',
-    'bachdjerrah': 'Bachdjerrah',
+    cheraga: 'Chéraga', chéraga: 'Chéraga',
+    'dar el beida': 'Dar El Beïda', 'dar-el-beida': 'Dar El Beïda', 'dar el beïda': 'Dar El Beïda',
+    'bordj el bahri': 'Bordj El Bahri', 'hussein dey': 'Hussein Dey',
+    'bordj el kiffan': 'Bordj El Kiffan', 'bordj el kifan': 'Bordj El Kiffan',
+    'bab el oued': 'Bab El Oued', 'el biar': 'El Biar',
+    'bir mourad rais': 'Bir Mourad Raïs', 'bir mourad raïs': 'Bir Mourad Raïs',
+    draria: 'Draria', birkhadem: 'Birkhadem', mohammadia: 'Mohammadia',
+    'oued smar': 'Oued Smar', reghaia: 'Reghaia', 'réghaia': 'Reghaia', rouiba: 'Rouiba',
+    'ain taya': 'Ain Taya', 'aïn taya': 'Ain Taya', 'el harrach': 'El Harrach',
+    kouba: 'Kouba', bachdjerrah: 'Bachdjerrah',
   };
   return map[v] || value.trim();
 }
@@ -97,18 +76,12 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({} as { query?: string }));
     const query = body?.query;
-
     if (!query || typeof query !== 'string' || query.trim().length === 0) {
-      return withSecurityHeaders(NextResponse.json(
-        { error: 'Query is required' },
-        { status: 400 }
-      ));
+      return withSecurityHeaders(NextResponse.json({ error: 'Query is required' }, { status: 400 }));
     }
 
-    // Use z-ai-web-dev-sdk to parse the natural language query (server-side only)
     const ZAI = (await import('z-ai-web-dev-sdk')).default;
     const zai = await ZAI.create();
-
     const systemPrompt = `Tu es un assistant qui aide à rechercher des appartements en Algérie.
 Analyse la requête de l'utilisateur en français et extrais les critères de recherche.
 Réponds UNIQUEMENT avec un objet JSON valide, sans texte supplémentaire, sans markdown, sans backticks.
@@ -137,7 +110,6 @@ Règles importantes:
 - Pour un district mentionné, renvoie toujours le tableau avec l'orthographe canonique exacte`;
 
     let filters: SearchFilters = {};
-
     try {
       const completion = await zai.chat.completions.create({
         messages: [
@@ -147,7 +119,6 @@ Règles importantes:
         temperature: 0.1,
         thinking: { type: 'disabled' },
       });
-
       const content = completion.choices[0]?.message?.content || '{}';
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       const rawParsed = JSON.parse(jsonMatch ? jsonMatch[0] : content);
@@ -155,69 +126,40 @@ Règles importantes:
       filters = validated.success ? validated.data : {};
     } catch (aiError) {
       console.error('[AI /ai-search] LLM parsing failed:', aiError);
-      filters = {
-        explanation:
-          "Nous n'avons pas pu analyser votre demande avec l'IA. Voici tous les appartements disponibles.",
-      };
+      filters = { explanation: "Nous n'avons pas pu analyser votre demande avec l'IA. Voici tous les appartements disponibles." };
     }
 
     let normalizedDistrict: string[] | null = null;
     if (Array.isArray(filters.district) && filters.district.length > 0) {
-      normalizedDistrict = filters.district
-        .map((d) => normalizeDistrict(String(d)))
-        .filter(Boolean);
+      normalizedDistrict = filters.district.map((d) => normalizeDistrict(String(d))).filter(Boolean);
       if (normalizedDistrict.length === 0) normalizedDistrict = null;
     }
 
     const conditions: Record<string, unknown>[] = [];
+    if (Array.isArray(filters.apartmentType) && filters.apartmentType.length > 0) conditions.push({ apartmentType: { in: filters.apartmentType } });
+    if (typeof filters.minBedrooms === 'number' && !Number.isNaN(filters.minBedrooms)) conditions.push({ bedrooms: { gte: filters.minBedrooms } });
+    if (typeof filters.maxPrice === 'number' && !Number.isNaN(filters.maxPrice)) conditions.push({ price: { lte: filters.maxPrice } });
+    if (typeof filters.minSurface === 'number' && !Number.isNaN(filters.minSurface)) conditions.push({ surface: { gte: filters.minSurface } });
+    if (filters.parking === true) conditions.push({ hasParking: true });
+    if (filters.balcony === true) conditions.push({ balconies: { gte: 1 } });
 
-    if (Array.isArray(filters.apartmentType) && filters.apartmentType.length > 0) {
-      conditions.push({ apartmentType: { in: filters.apartmentType } });
-    }
-    if (typeof filters.minBedrooms === 'number' && !Number.isNaN(filters.minBedrooms)) {
-      conditions.push({ bedrooms: { gte: filters.minBedrooms } });
-    }
-    if (typeof filters.maxPrice === 'number' && !Number.isNaN(filters.maxPrice)) {
-      conditions.push({ price: { lte: filters.maxPrice } });
-    }
-    if (typeof filters.minSurface === 'number' && !Number.isNaN(filters.minSurface)) {
-      conditions.push({ surface: { gte: filters.minSurface } });
-    }
-    if (filters.parking === true) {
-      conditions.push({ hasParking: true });
-    }
-    if (filters.balcony === true) {
-      conditions.push({ balconies: { gte: 1 } });
-    }
-
-    // Public AI search must only expose inventory that is both published and available.
+    // Public AI search exposes only published, non-archived inventory from published projects.
+    // Both uppercase canonical values and legacy lowercase production values are accepted.
     conditions.push({
-      status: { in: ['AVAILABLE', 'RESERVED'] },
+      status: { in: ['AVAILABLE', 'available', 'RESERVED', 'reserved'] },
       published: true,
       archived: false,
       project: {
         published: true,
         archived: false,
-        ...(normalizedDistrict && normalizedDistrict.length > 0
-          ? { district: { in: normalizedDistrict } }
-          : {}),
+        ...(normalizedDistrict && normalizedDistrict.length > 0 ? { district: { in: normalizedDistrict } } : {}),
       },
     });
 
     const apartments = await db.apartment.findMany({
-      where: {
-        AND: conditions,
-      },
+      where: { AND: conditions },
       include: {
-        project: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            district: true,
-            city: true,
-          },
-        },
+        project: { select: { id: true, name: true, slug: true, district: true, city: true } },
       },
       orderBy: { price: 'asc' },
       take: 20,
@@ -231,9 +173,6 @@ Règles importantes:
     }));
   } catch (error) {
     console.error('[API /ai-search] Error:', error);
-    return withSecurityHeaders(NextResponse.json(
-      { error: 'Erreur lors de la recherche. Veuillez réessayer.' },
-      { status: 500 }
-    ));
+    return withSecurityHeaders(NextResponse.json({ error: 'Erreur lors de la recherche. Veuillez réessayer.' }, { status: 500 }));
   }
 }
