@@ -30,10 +30,10 @@ export async function GET(
           orderBy: { order: 'asc' },
           include: {
             building: { select: { id: true, name: true, code: true } },
-            images: { orderBy: { order: 'asc' } },
+            imagesRelation: { orderBy: { order: 'asc' } },
           },
         },
-        images: { orderBy: { order: 'asc' } },
+        imagesRelation: { orderBy: { order: 'asc' } },
         amenities: { orderBy: { name: 'asc' } },
         developer: true,
       },
@@ -80,7 +80,6 @@ export async function PUT(
       ));
     }
 
-    // Validate status if provided
     const validProjectStatuses = ['AVAILABLE', 'COMING_SOON', 'SOLD_OUT', 'DRAFT'];
     if (body.status && !validProjectStatuses.includes(body.status)) {
       return withSecurityHeaders(NextResponse.json(
@@ -98,7 +97,6 @@ export async function PUT(
       'hasParking', 'hasElevator', 'hasGarden', 'hasPool', 'hasSecurity', 'hasClim',
       'startingPrice', 'priceOnRequest', 'developerId',
       'published', 'featured', 'order',
-      // SEO metadata
       'seoTitle', 'seoDescription', 'seoKeywords', 'canonicalUrl', 'ogImage', 'robotsIndex',
     ];
 
@@ -109,11 +107,10 @@ export async function PUT(
     }
 
     const project = await db.project.update({
-      where: { slug },
+      where: { id: existing.id },
       data: updateData,
     });
 
-    // Audit log — capture before/after for diff (focus on key business fields)
     const keyFields = ['name', 'status', 'published', 'featured', 'startingPrice', 'priceOnRequest'];
     const before: Record<string, unknown> = {};
     const after: Record<string, unknown> = {};
@@ -123,7 +120,6 @@ export async function PUT(
         after[f] = (project as Record<string, unknown>)[f];
       }
     }
-    // Special-case: detect price change on project's startingPrice
     const priceChanged = body.startingPrice !== undefined && body.startingPrice !== existing.startingPrice;
     await logAudit({
       request, session,
@@ -157,7 +153,6 @@ export async function DELETE(
   if (!session) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   }
-  // DELETE = ADMIN only (archive). EDITOR and VIEWER cannot delete.
   if (!sessionHasRole(session, ['ADMIN'])) {
     return withSecurityHeaders(NextResponse.json(
       { error: 'Privilèges insuffisants. Réservé aux administrateurs.' },
@@ -176,11 +171,10 @@ export async function DELETE(
     }
 
     const project = await db.project.update({
-      where: { slug },
+      where: { id: existing.id },
       data: { archived: true, published: false },
     });
 
-    // Audit log
     await logAudit({
       request, session,
       action: 'ARCHIVE_PROJECT',
