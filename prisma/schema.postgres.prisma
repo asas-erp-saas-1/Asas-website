@@ -11,7 +11,7 @@ datasource db {
 }
 
 model Project {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name String
   slug String @unique
   nameAr String? @map("name_ar")
@@ -73,7 +73,7 @@ model Project {
 }
 
 model Building {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   slug String @unique
   projectId String @map("project_id") @db.Uuid
   name String
@@ -91,14 +91,14 @@ model Building {
 }
 
 model Apartment {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId String @map("project_id") @db.Uuid
   slug String
   apartmentNumber String @map("apartment_number")
   unitNumber String? @map("unit_number")
   type String?
-  apartmentType String? @default("F3") @map("apartment_type")
-  typeName String @map("type_name")
+  apartmentType String? @map("apartment_type")
+  typeName String? @map("type_name")
   typeNameAr String? @map("type_name_ar")
   surface Decimal?
   floor Int?
@@ -157,7 +157,7 @@ model Apartment {
 }
 
 model ProjectImage {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId String @map("project_id") @db.Uuid
   url String
   alt String?
@@ -177,7 +177,7 @@ model ProjectImage {
 }
 
 model ApartmentImage {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   apartmentId String @map("apartment_id") @db.Uuid
   url String
   alt String?
@@ -197,7 +197,7 @@ model ApartmentImage {
 }
 
 model Developer {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   slug String @unique
   name String
   nameAr String? @map("name_ar")
@@ -212,7 +212,7 @@ model Developer {
 }
 
 model ProjectAmenity {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId String @map("project_id") @db.Uuid
   name String
   nameAr String? @map("name_ar")
@@ -227,7 +227,7 @@ model ProjectAmenity {
 }
 
 model Lead {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name String
   phone String?
   email String?
@@ -265,7 +265,7 @@ model Lead {
 }
 
 model SiteContent {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   key String @unique
   value String @db.Text
   valueAr String? @map("value_ar") @db.Text
@@ -274,7 +274,7 @@ model SiteContent {
 }
 
 model NewsletterSubscription {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email String @unique
   source String?
   locale String?
@@ -293,7 +293,7 @@ model NewsletterSubscription {
 }
 
 model AdminUser {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email String @unique
   name String
   passwordHash String @map("password_hash")
@@ -306,7 +306,7 @@ model AdminUser {
 }
 
 model AdminSession {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   token String @unique
   userId String @map("user_id") @db.Uuid
   email String
@@ -322,7 +322,7 @@ model AdminSession {
 }
 
 model Video {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId String? @map("project_id") @db.Uuid
   apartmentId String? @map("apartment_id") @db.Uuid
   url String?
@@ -344,7 +344,7 @@ model Video {
 }
 
 model LeadNote {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   leadId String @map("lead_id") @db.Uuid
   authorEmail String? @map("author_email")
   body String @db.Text
@@ -356,7 +356,7 @@ model LeadNote {
 }
 
 model AuditLog {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   actorEmail String? @map("actor_email")
   actorRole String? @map("actor_role")
   action String
@@ -376,7 +376,7 @@ model AuditLog {
 }
 
 model LoginRateLimit {
-  id String @id @default(uuid()) @db.Uuid
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   key String @unique
   count Int @default(0)
   windowStart DateTime @map("window_start")
