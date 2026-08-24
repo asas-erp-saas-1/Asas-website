@@ -3,6 +3,7 @@
 # CI validates the production PostgreSQL/Prisma application path without
 # connecting to production data. Database migrations are never executed
 # automatically.
+# Phase 2G: force a fresh PR CI event after manifest/lockfile reconciliation.
 
 name: CI
 
