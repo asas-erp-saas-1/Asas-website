@@ -1,8 +1,8 @@
 # ASAS Real Estate — Continuous Integration
 #
-# CI is intentionally aligned with the production PostgreSQL/Prisma schema.
-# It validates the exact application path used by Vercel without connecting
-# to production data. Database migrations are never executed automatically.
+# CI validates the production PostgreSQL/Prisma application path without
+# connecting to production data. Database migrations are never executed
+# automatically.
 
 name: CI
 
@@ -26,10 +26,9 @@ jobs:
     timeout-minutes: 15
 
     env:
-      # Prisma only needs a syntactically valid PostgreSQL URL for generate.
-      # Never point CI at the production Supabase database.
       DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:5432/asas_ci"
       DIRECT_URL: "postgresql://postgres:postgres@127.0.0.1:5432/asas_ci"
+      SHADOW_DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:5432/asas_ci_shadow"
       NEXT_PUBLIC_SITE_URL: "http://localhost:3000"
 
     steps:
@@ -54,6 +53,24 @@ jobs:
 
       - name: Generate Prisma client (production schema)
         run: bun run db:generate
+
+      - name: Generate Prisma baseline candidate
+        run: |
+          mkdir -p docs
+          bunx prisma migrate diff \
+            --from-empty \
+            --to-schema prisma/schema.postgres.prisma \
+            --script > docs/PHASE2_BASELINE_CANDIDATE.sql
+
+      - name: Verify baseline candidate is non-empty
+        run: test -s docs/PHASE2_BASELINE_CANDIDATE.sql
+
+      - name: Upload Prisma baseline candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-prisma-baseline-candidate
+          path: docs/PHASE2_BASELINE_CANDIDATE.sql
+          if-no-files-found: error
 
       - name: Typecheck
         run: bun run typecheck
