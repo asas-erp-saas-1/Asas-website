@@ -1,216 +1,128 @@
-# POSTGRESQL_ARCHITECTURE.md — ASAS Target Database Schema
+# POSTGRESQL_ARCHITECTURE.md — Current Production Contract
 
-> **Phase 3 Step 3 — PostgreSQL Schema Design**
-> Target schema for PostgreSQL/Supabase migration. SQLite schema remains the dev source until migration is approved.
+> **Status: CURRENT — verified against live Supabase PostgreSQL on 2026-08-24.**
+>
+> This document no longer describes a future SQLite → PostgreSQL migration. Production is already PostgreSQL. Future hardening changes must be introduced through reviewed migrations after the Phase 2 baseline.
 
-## 1. ID Strategy
+## 1. Production database
 
-**Current**: String (cuid) — 24-char alphanumeric
-**Target**: String (cuid) — same. Keep cuid for simplicity + uniqueness across instances.
+- PostgreSQL on Supabase.
+- Prisma 6.19.2.
+- Production UUID primary keys use PostgreSQL `gen_random_uuid()` defaults.
+- Commercial numeric values such as apartment/project prices and surfaces use PostgreSQL `numeric` and Prisma `Decimal` where applicable.
+- Long text uses PostgreSQL `text`.
+- JSON application structures use PostgreSQL `jsonb` and Prisma `Json`.
+- Timestamps are `timestamptz`.
 
-**Rationale**: UUID would add complexity (index size, display) without clear benefit. cuid is collision-resistant and URL-safe.
+## 2. Identity
 
-## 2. Type Mapping (SQLite → PostgreSQL)
+Stable identity is the UUID primary key.
 
-| SQLite Type | PostgreSQL Target | Rationale |
-|---|---|---|
-| `String` | `String` + `@db.Text` (for long text) | PostgreSQL Text is unlimited |
-| `Int` (price) | `Decimal(12,0)` via `@db.Decimal(12,0)` | Prevents Int32 overflow; money-safe |
-| `Int` (counts) | `Integer` | Standard integer |
-| `Float` (lat/lng) | `Double` via `@db.Double` | Precise floating point |
-| `Boolean` | `Boolean` | Same |
-| `DateTime` | `DateTime` + `@db.Timestamptz` | Timezone-aware timestamps |
-| `String` (JSON arrays) | `Json` via `@db.JsonB` | PostgreSQL JSONB — queryable + indexable |
+Public slugs are routing identifiers.
 
-## 3. Enum Design (PostgreSQL native enums)
+- Project slug: globally unique.
+- Building slug: globally unique in the current database.
+- Apartment slug: unique within its project.
+- Apartment number: unique within its project.
 
-PostgreSQL supports native enum types. Prisma maps these via `@map`.
+The apartment uniqueness contract is:
 
-### Enums to create:
-
-```sql
-CREATE TYPE project_type AS ENUM ('RESIDENTIAL', 'MIXED_USE', 'COMMERCIAL');
-CREATE TYPE project_status AS ENUM ('AVAILABLE', 'COMING_SOON', 'SOLD_OUT', 'DRAFT');
-CREATE TYPE apartment_type AS ENUM ('F2', 'F3', 'F4', 'F5', 'Duplex', 'Studio', 'Villa');
-CREATE TYPE apartment_status AS ENUM ('AVAILABLE', 'RESERVED', 'SOLD', 'COMING_SOON', 'OFF_MARKET', 'DRAFT');
-CREATE TYPE orientation AS ENUM ('Nord', 'Sud', 'Est', 'Ouest', 'Nord-Est', 'Nord-Ouest', 'Sud-Est', 'Sud-Ouest');
-CREATE TYPE lead_status AS ENUM ('NEW', 'CONTACTED', 'QUALIFIED', 'VISIT', 'NEGOTIATION', 'SOLD', 'LOST');
-CREATE TYPE admin_role AS ENUM ('ADMIN', 'EDITOR', 'VIEWER');
-CREATE TYPE media_type AS ENUM ('hero', 'gallery', 'floor-plan', '3d-plan', 'render', 'interior', 'exterior', 'amenity', 'document');
-CREATE TYPE video_type AS ENUM ('HERO', 'GALLERY', 'WALKTHROUGH', 'INTERVIEW', 'PROJECT_OVERVIEW', 'APARTMENT_TOUR', 'LOCATION', 'OTHER');
+```text
+UNIQUE(project_id, slug)
+UNIQUE(project_id, apartment_number)
 ```
 
-> **Note**: SQLite has no enum type — these are enforced at the app layer via Zod. When migrating to PostgreSQL, switch to native enums.
+## 3. Core catalog graph
 
-## 4. Money/Price Architecture
-
-### CRITICAL RULE: No floating point for money.
-
-**Current**: `price Int?` (stored in DA — Algerian Dinar, no decimal places needed)
-**Target**: `price Decimal? @db.Decimal(12, 0)` — max 999,999,999,999 DA (12 digits, 0 decimal places)
-
-**Rationale**: Algerian Dinar doesn't use decimal places. But using `Decimal` instead of `Int` prevents overflow for large values and is the standard for monetary columns.
-
-### Price fields:
-| Field | Type | Validation | Notes |
-|---|---|---|---|
-| `Apartment.price` | `Decimal(12,0)?` | `>= 0` | Sale price in DA |
-| `Apartment.oldPrice` | `Decimal(12,0)?` | `>= 0` | Previous price (for display) |
-| `Project.startingPrice` | `Decimal(12,0)?` | `>= 0` | Project starting price |
-
-### Price per m²:
-**Derived** — NOT stored. Computed at query time: `price / surface`.
-
-### CHECK constraints (PostgreSQL):
-```sql
-ALTER TABLE apartments ADD CONSTRAINT chk_price_nonneg CHECK (price IS NULL OR price >= 0);
-ALTER TABLE apartments ADD CONSTRAINT chk_surface_pos CHECK (surface > 0);
-ALTER TABLE apartments ADD CONSTRAINT chk_bedrooms_nonneg CHECK (bedrooms >= 0);
-ALTER TABLE apartments ADD CONSTRAINT chk_bathrooms_nonneg CHECK (bathrooms IS NULL OR bathrooms >= 0);
-ALTER TABLE projects ADD CONSTRAINT chk_starting_price_nonneg CHECK (starting_price IS NULL OR starting_price >= 0);
-ALTER TABLE projects ADD CONSTRAINT chk_surface_range CHECK (min_surface IS NULL OR max_surface IS NULL OR min_surface <= max_surface);
+```text
+Developer → Project → Building → Apartment
+                    ├→ ProjectImage
+                    ├→ ProjectAmenity
+                    └→ Video
+Apartment → ApartmentImage
+Apartment → Video
+Lead → LeadNote
 ```
 
-## 5. Publishing State Machine
+## 4. Publication vs inventory status
 
-### Problem: `published=true + archived=true` is a contradictory state
+Publication is represented by:
 
-**Current**: Two independent booleans allow contradictory combinations:
-- `published=true, archived=true` — should not be possible (archived implies unpublished)
-
-**Target**: Add CHECK constraint:
-```sql
-ALTER TABLE projects ADD CONSTRAINT chk_publish_state CHECK (NOT (published = true AND archived = true));
-ALTER TABLE apartments ADD CONSTRAINT chk_publish_state CHECK (NOT (published = true AND archived = true));
+```text
+published
+archived
 ```
 
-**Application-level enforcement**: The DELETE (archive) handler already sets `published=false, archived=true`. The CHECK constraint prevents any other code path from creating the contradictory state.
+Inventory availability is represented separately by `Apartment.status`.
 
-## 6. Concurrency (Optimistic Locking)
+The application currently uses uppercase canonical status values for new writes and state transitions, while the live database has a historical lowercase default (`available`). The application therefore normalizes legacy lowercase values rather than changing production DDL during stabilization.
 
-### Problem: Silent overwrites
+A future migration may standardize the database default after the baseline and state-machine policy are formally approved.
 
-Two admins editing the same apartment can overwrite each other's changes.
+## 5. RLS
 
-**Target**: Add `version` field to Project + Apartment:
+RLS is enabled on the inspected public tables.
 
-```prisma
-model Project {
-  // ... existing fields
-  version Int @default(0)
-}
+RLS policies are a PostgreSQL security feature and are not represented as normal Prisma model fields. They must be preserved and reviewed separately from the Prisma model contract.
 
-model Apartment {
-  // ... existing fields
-  version Int @default(0)
-}
+No broad public policy should be added merely to resolve an application error.
+
+## 6. Constraints
+
+Verified core constraints include:
+
+- primary keys on all application tables;
+- unique project/building/developer slugs;
+- unique admin email/session token/site-content key/newsletter email/rate-limit key;
+- project-scoped apartment number and slug uniqueness;
+- foreign keys with explicit delete actions for catalog and CRM relationships.
+
+`projects.developer_id` currently has valid data but no database FK. The application models the intended relationship; adding the FK is a future hardening migration, not part of the baseline.
+
+## 7. Future database hardening
+
+The following are **future migrations**, not current production facts:
+
+- price/surface CHECK constraints;
+- standardized status representation/default;
+- `projects.developer_id` foreign key;
+- additional indexes justified by measured query/RLS workloads;
+- historical price/version tables;
+- reservation/contract/commission/financial ledgers when those ERP domains become implemented.
+
+Each future change must be validated against real production data before deployment.
+
+## 8. Migration policy
+
+The production database is already populated and currently has no Prisma migration history table.
+
+Therefore:
+
+```text
+live schema
+  ↓
+reconcile
+  ↓
+baseline candidate
+  ↓
+isolated validation
+  ↓
+record baseline applied
+  ↓
+future migrations
 ```
 
-**Update flow**:
-```sql
-UPDATE apartments
-SET price = $1, version = version + 1
-WHERE id = $2 AND version = $3
-RETURNING *;
--- If 0 rows returned → concurrent modification detected
-```
+Never reset production and never use `prisma db push` as production migration management.
 
-See `CONCURRENCY_STRATEGY.md` for full implementation.
+## 9. Authoritative documents
 
-## 7. New Models to Add
+For current decisions use:
 
-### PriceHistory (per Phase 2 Decision #2 — recommended for production)
+- `ENGINEERING_SOURCE_OF_TRUTH.md`
+- `PHASE2_SCHEMA_CONTRACT.md`
+- `PHASE2_COLUMN_RECONCILIATION.md`
+- `PHASE2_CONSTRAINT_RECONCILIATION.md`
+- `PHASE2_TABLE_OWNERSHIP.md`
+- `DATABASE.md`
 
-```prisma
-model PriceHistory {
-  id          String   @id @default(cuid())
-  apartmentId String
-  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
-  oldPrice    Decimal? @db.Decimal(12, 0)
-  newPrice    Decimal? @db.Decimal(12, 0)
-  currency    String   @default("DZD")
-  changedBy   String?  // AdminUser email
-  reason      String?  // optional reason for change
-  createdAt   DateTime @default(now())
-
-  @@index([apartmentId])
-  @@index([createdAt])
-}
-```
-
-### AnalyticsEvent (per Phase 2 blueprint — prepare for Phase 9)
-
-```prisma
-model AnalyticsEvent {
-  id          String   @id @default(cuid())
-  eventName   String   // project_view, apartment_view, whatsapp_click, phone_click, lead_submit, brochure_download
-  projectId   String?
-  apartmentId String?
-  sessionId   String?
-  source      String?  // utm_source
-  campaign    String?  // utm_campaign
-  metadata    Json?    @db.JsonB // flexible metadata
-  createdAt   DateTime @default(now())
-
-  @@index([eventName])
-  @@index([projectId])
-  @@index([apartmentId])
-  @@index([createdAt])
-}
-```
-
-## 8. Composite Unique Constraints (PostgreSQL)
-
-```sql
--- Apartment reference unique within project
-ALTER TABLE apartments ADD CONSTRAINT uq_apartment_project_ref UNIQUE (project_id, unit_number);
-
--- Lead email + phone combination (prevent exact duplicate leads)
-ALTER TABLE leads ADD CONSTRAINT uq_lead_phone_msg UNIQUE (phone, message);
-```
-
-## 9. Index Strategy (see DATABASE_INDEX_STRATEGY.md for full rationale)
-
-### Critical indexes (already exist):
-- `Project.slug` (unique)
-- `Apartment.slug` (unique)
-- `AdminUser.email` (unique)
-- `AuditLog.action` + `AuditLog.createdAt`
-- `Lead.status` + `Lead.createdAt`
-
-### Indexes to add for PostgreSQL:
-- `Project(published, archived)` — partial index for published content
-- `Apartment(projectId, status)` — composite for project inventory queries
-- `Apartment(published, archived, status)` — partial index for public filtering
-- `AuditLog(entityType, entityId, createdAt)` — composite for entity audit history
-
-## 10. JSONB Strategy
-
-### Current: JSON stored as String
-- `Project.apartmentTypes` — JSON array string
-- `Apartment.features` — JSON array string
-- `Apartment.rooms` — JSON array string
-- `AuditLog.before/after` — JSON string
-
-### Target: PostgreSQL JSONB
-```prisma
-apartmentTypes Json? @db.JsonB
-features       Json? @db.JsonB
-rooms          Json? @db.JsonB
-before         Json? @db.JsonB
-after          Json? @db.JsonB
-```
-
-**Benefits**: Queryable (e.g., `WHERE features @> '["Climatisation"]'`), indexable with GIN index, type-safe at DB level.
-
-## 11. Timestamp Strategy
-
-### Current: `DateTime @default(now())` + `@updatedAt`
-### Target: `@db.Timestamptz` for timezone-aware timestamps
-
-```prisma
-createdAt DateTime @default(now()) @db.Timestamptz
-updatedAt DateTime @updatedAt @db.Timestamptz
-```
-
-**Benefit**: All timestamps stored in UTC, converted to local timezone at display time. Prevents timezone confusion in multi-region deployments.
+Historical PostgreSQL design material remains in Git history but is not an active implementation instruction.
