@@ -33,7 +33,8 @@ export async function PUT(
     if (!body.status) {
       return withSecurityHeaders(NextResponse.json({ error: 'Missing required field: status' }, { status: 400 }));
     }
-    if (!VALID_STATUSES.includes(body.status as typeof VALID_STATUSES[number])) {
+    const requestedStatus = String(body.status).toUpperCase();
+    if (!VALID_STATUSES.includes(requestedStatus as typeof VALID_STATUSES[number])) {
       return withSecurityHeaders(NextResponse.json({ error: `Invalid status. Valid values: ${VALID_STATUSES.join(', ')}` }, { status: 400 }));
     }
 
@@ -44,13 +45,16 @@ export async function PUT(
       return withSecurityHeaders(NextResponse.json({ error: 'Apartment not found' }, { status: 404 }));
     }
 
-    const currentStatus = apartment.status;
+    // Production historically contains both lowercase and uppercase status values.
+    // Normalize for the state machine while preserving the existing stored value unless
+    // a transition is explicitly requested.
+    const currentStatus = apartment.status.toUpperCase();
     const allowedTransitions = VALID_TRANSITIONS[currentStatus] ?? [];
-    if (!allowedTransitions.includes(body.status)) {
-      return withSecurityHeaders(NextResponse.json({ error: `Invalid status transition: ${currentStatus} → ${body.status}`, currentStatus, allowedTransitions }, { status: 400 }));
+    if (!allowedTransitions.includes(requestedStatus)) {
+      return withSecurityHeaders(NextResponse.json({ error: `Invalid status transition: ${currentStatus} → ${requestedStatus}`, currentStatus, allowedTransitions }, { status: 400 }));
     }
 
-    const updated = await db.apartment.update({ where: { id: apartment.id }, data: { status: body.status } });
+    const updated = await db.apartment.update({ where: { id: apartment.id }, data: { status: requestedStatus } });
 
     await logAudit({
       request,
@@ -59,8 +63,8 @@ export async function PUT(
       entityType: 'Apartment',
       entityId: apartment.id,
       entitySlug: apartment.slug,
-      before: { status: currentStatus },
-      after: { status: body.status },
+      before: { status: apartment.status },
+      after: { status: requestedStatus },
     });
 
     return withSecurityHeaders(NextResponse.json({ data: updated }));
