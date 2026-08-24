@@ -1,30 +1,26 @@
 # Phase 2 — Database Engineering & Schema Contract
 
-**Status:** ACTIVE — forensic contract audit started 2026-08-23
+## Status
 
-## 1. Phase 1 exit verification
+**ACTIVE — schema reconciliation and migration-baseline preparation**
 
-The latest production deployment is `READY` on Vercel for commit `8a728a17db2e4624123d87eac5806ef7e17fb0fe`.
-The deployment fixes the public catalog DTO boundary (`PublicApartmentCard`) and is the first current deployment after the final TypeScript blocker. No runtime error/warning logs were observed for that deployment during the verification window.
+## Scope
 
-Phase 1 is therefore closed for the deployment/type-contract layer.
+This phase establishes a truthful, version-controlled contract between the live Supabase PostgreSQL database and Prisma. It deliberately separates live production state, Prisma application model, migration history, RLS/security policy state, and performance/index strategy.
 
-## 2. Non-negotiable Phase 2 rule
+No destructive production operation is part of this phase unless separately reviewed and explicitly approved.
 
-Supabase production is the live database. No destructive `db push`, reset, or blind Prisma migration is permitted.
-Before any DDL change, the current PostgreSQL schema must be reconciled against `prisma/schema.postgres.prisma` table-by-table and column-by-column.
+## Evidence-based rules
 
-## 3. Critical discovery: existing migration history is not the production schema
+- Supabase production is currently the live source of truth.
+- The existing legacy Prisma migration history must not be treated as a representation of the live database until reconciled.
+- Prisma Migrate supports baselining an existing production database; the baseline is marked applied rather than executed against existing tables.
+- Supabase recommends version-controlled migrations for remote schema changes and warns that direct remote schema changes bypass migration history.
+- RLS policies must be designed from the application's access model and indexed according to policy predicates.
 
-The repository contains `prisma/migrations/postgres/0001_init/migration.sql`, but production does not contain `_prisma_migrations` and its live tables are snake_case (`projects`, `apartments`, etc.) while the committed migration creates quoted Prisma-style names (`Project`, `Apartment`, etc.).
+## Current production inventory
 
-**Conclusion:** the committed `0001_init` migration must NOT be applied to the existing production database. It is not a valid baseline for the live database.
-
-A new production baseline/reconciliation strategy is required before normal `migrate deploy` can be treated as authoritative.
-
-## 4. Live production inventory
-
-Current public tables observed in Supabase:
+Observed public tables include:
 
 - admin_profiles
 - admin_sessions
@@ -47,115 +43,126 @@ Current public tables observed in Supabase:
 - site_content
 - videos
 
-The repository's current Prisma schema models 15 of these as Prisma-managed application models. The additional tables (`admin_profiles`, `analytics_events`, `media`, `seo`, and `login_rate_limits` depending on application ownership) must be explicitly classified as Prisma-managed, Supabase-managed, or external/application-support tables before the contract is finalized.
+The repository's Prisma schema does not currently own every one of these tables. Ownership must be explicitly classified before migration automation is enabled.
 
-## 5. Confirmed contract mismatches
+## Contract decisions already made
 
-### `apartments`
+### Apartments
 
-Live database:
+The live apartment identity is project-scoped:
 
-- `apartment_number` is `NOT NULL`; Prisma currently declares it optional.
-- `surface` is PostgreSQL `numeric`; Prisma declares `Int`.
-- `price` is PostgreSQL `numeric`; Prisma declares `Int`.
-- legacy/support columns exist that are not represented by the Prisma model: `parking`, `balcony`, `images`.
-- live data currently has 8 apartments, no null apartment numbers, no fractional surfaces/prices, and no null bedrooms.
+- `(project_id, apartment_number)` is unique.
+- `(project_id, slug)` is unique.
 
-Prisma:
+Therefore `slug` must not be globally unique in Prisma. Application routes that receive only a slug must resolve the record with `findFirst` and then perform mutations by stable `id`, unless the route also receives project identity.
 
-- `apartmentNumber String? @map("apartment_number")`
-- `surface Int`
-- `price Int?`
+`surface` and `price` are PostgreSQL numeric values and Prisma represents them as `Decimal`.
 
-**Decision pending:** normalize the database to the intended Prisma contract rather than weakening the application model. The existing integer-valued data makes numeric→integer conversion technically safe, but the migration must still be staged and verified before production DDL.
+`apartment_number` is non-null in production and is required in Prisma.
 
-### `projects`
+### Projects
 
-The live table contains the expanded public catalog fields expected by the current Prisma model, including `published`, `archived`, SEO fields, localized fields, delivery metadata, and `display_order`.
+`slug` is globally unique and remains a Prisma `@unique` field.
 
-Live values currently include 5 projects and no null `city`/`district` values.
+### Relations
 
-The live schema also contains compatibility columns such as `images` that are not part of the current Prisma model.
+Project-scoped relations are modeled explicitly. Lead relations are represented on both sides so Prisma Client can validate the relation graph.
 
-### `leads`
+### Public DTO boundary
 
-The live table contains `assigned_to` and the attribution fields expected by the current Prisma model. A previous deployment reported `leads.assigned_to` missing; current live introspection confirms the column now exists. That previous error is therefore treated as historical drift, not as a current blocker.
+The public website uses `PublicApartmentCard` rather than exposing the full Prisma/domain `Apartment` model. UI code must not widen the public DTO merely to satisfy a domain type.
 
-### `project_amenities`
+## Migration-baseline strategy
 
-Current live introspection confirms both `description` and `description_ar` exist. A previous deployment reported `project_amenities.description` missing; that error is treated as historical drift and must not trigger an unnecessary production migration.
+Before introducing normal production `prisma migrate deploy` behavior:
 
-### `videos`
+1. Verify the Prisma schema against the live database.
+2. Archive or replace the obsolete migration history that does not represent production.
+3. Generate a baseline migration from the reconciled schema.
+4. Review the generated SQL manually.
+5. Verify unsupported database features and any intentionally external tables.
+6. Apply/resolve the baseline as already applied; do not execute the baseline against the populated production database.
+7. Create subsequent migrations only for intentional schema changes.
 
-The live database uses `display_order`; Prisma maps its `order` field to `display_order`, which is the correct contract mapping.
+The baseline is a history marker, not a production data migration.
 
-## 6. Constraints currently present
+## RLS strategy
 
-The live database has primary keys and foreign keys for the main project/apartment graph, including:
+RLS is enabled on the production public tables inspected so far. Policies are not uniform across all tables.
 
-- projects → buildings: CASCADE
-- projects → apartments: CASCADE
-- buildings → apartments: SET NULL
-- projects → project_images: CASCADE
-- projects → project_amenities: CASCADE
-- apartments → apartment_images: CASCADE
-- projects/apartments → videos: CASCADE
-- leads → lead_notes: CASCADE
-- admin_users → admin_sessions: CASCADE
+Before adding or changing policies, create an access matrix covering:
 
-The live database also has uniqueness constraints including project slug, building slug, developer slug, admin email, site-content key, newsletter email, session token, and apartment `(project_id, apartment_number)` / `(project_id, slug)` constraints.
+- anonymous/public website reads,
+- lead creation,
+- newsletter subscription,
+- analytics event insertion,
+- authenticated admin reads,
+- authenticated admin writes,
+- privileged destructive/archive operations,
+- audit-log writes,
+- service-role-only operations.
 
-These must be reconciled against Prisma before indexes or constraints are changed.
+Every policy predicate must be checked for an appropriate index. Do not add a broad `USING (true)` policy to administrative tables.
 
-## 7. RLS state
+## Index strategy
 
-RLS is enabled on all inspected public tables.
+Indexes will be evaluated from real query paths rather than from generic recommendations. Priority candidates include:
 
-Current explicit policies include:
+- apartments `(project_id, slug)` — uniqueness already provides an index
+- apartments `(project_id, apartment_number)` — uniqueness already provides an index
+- apartments `status`
+- apartments `published`
+- apartments `project_id`
+- buildings `project_id`
+- project_images `project_id, sort_order`
+- apartment_images `apartment_id, sort_order`
+- leads `status`
+- leads `created_at`
+- leads `project_id`
+- leads `apartment_id`
+- lead_notes `lead_id, created_at`
+- admin_sessions `user_id`
+- admin_sessions `expires_at`
 
-- public project read
-- public apartment read
-- public media read
-- public analytics insert
-- public lead insert
-- public newsletter insert/update
-- admin profile self-read
+Composite indexes will be added only when query plans or known access paths justify them.
 
-Several RLS-enabled tables have no policies. This is intentional only if those tables are inaccessible through the relevant client role; otherwise it is a security/availability defect.
+## Production safety
 
-**RLS is therefore not to be modified piecemeal.** The policy matrix must be designed from the application's public/admin access model and then applied as a controlled migration.
+Never use the following as a shortcut against production:
 
-## 8. Runtime connection contract
+- `prisma migrate reset`
+- blind `prisma db push`
+- dropping/recreating production tables
+- applying the obsolete legacy initial migration
+- adding RLS policies without an access matrix
+- changing column types without a data compatibility check
 
-The production Prisma runtime now defensively appends:
+## Verification gates
 
-- `pgbouncer=true`
-- `connection_limit=1`
+Phase 2 cannot be declared complete until all gates pass:
 
-when missing from `DATABASE_URL`, because Supabase transaction pooling does not support prepared statements and Vercel serverless workloads should use a small connection limit.
+1. Prisma schema validates.
+2. Prisma Client generates successfully.
+3. TypeScript passes.
+4. Production Next.js build passes.
+5. Live schema and Prisma schema have a documented reconciliation result.
+6. Migration baseline is reviewed and safely recorded.
+7. PK/FK/UNIQUE semantics are reconciled.
+8. Index strategy is reviewed against query paths.
+9. RLS access matrix is complete.
+10. RLS policies are validated without exposing admin data.
+11. Production smoke tests pass.
+12. No unresolved schema drift remains.
 
-This matches current Supabase guidance and prevents the historical `42P05 prepared statement already exists` failure.
+## Research references
 
-## 9. Phase 2 execution order
+- Prisma Migrate: https://docs.prisma.io/docs/orm/prisma-migrate
+- Prisma baselining: https://www.prisma.io/docs/orm/prisma-migrate/workflows/baselining
+- Prisma migrate resolve: https://www.prisma.io/docs/cli/migrate/resolve
+- Prisma migrate diff: https://docs.prisma.io/docs/cli/migrate/diff
+- Supabase database migrations: https://supabase.com/docs/guides/deployment/database-migrations
+- Supabase RLS performance: https://supabase.com/docs/guides/database/postgres/row-level-security
 
-1. Freeze the live schema as an observed baseline.
-2. Classify every live table as Prisma-managed, Supabase-managed, or application-support/external.
-3. Reconcile every Prisma model against its live table.
-4. Reconcile every column: name, type, nullability, default, and mapping.
-5. Reconcile PK/FK/UNIQUE/CASCADE semantics.
-6. Reconcile indexes against real query paths.
-7. Establish a truthful Prisma migration baseline for the existing database.
-8. Create only additive/controlled reconciliation migrations.
-9. Verify on a non-production database before production deployment.
-10. Apply RLS policy matrix after schema contract is stable.
-11. Re-run Prisma generation, build, smoke tests, and production runtime verification.
+## Change-control principle
 
-## 10. Current blockers before schema DDL
-
-- The repository's `0001_init` migration is not a valid representation of the current production schema.
-- `_prisma_migrations` is absent from the production database.
-- The exact ownership of the five extra live tables must be recorded.
-- Apartment numeric types and nullability require an explicit contract decision before DDL.
-- RLS policies require a complete access matrix before changing any policy.
-
-**No destructive database change has been made during this audit.**
+The schema contract is infrastructure. Treat it with the same discipline as a financial ledger: every structural change must be explainable, reversible where possible, tested against representative data, and traceable to a version-controlled migration.
