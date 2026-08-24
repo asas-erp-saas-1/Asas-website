@@ -33,10 +33,7 @@ export async function getPublicProjectCards(): Promise<PublicProjectCard[]> {
     counts.set(row.projectId, current);
   }
 
-  return projects.map((project) => toPublicProjectCard(
-    { ...project, images: project.imagesRelation },
-    counts.get(project.id) ?? { available: 0, reserved: 0 },
-  ));
+  return projects.map((project) => toPublicProjectCard({ ...project, images: project.imagesRelation }, counts.get(project.id) ?? { available: 0, reserved: 0 }));
 }
 
 export async function getPublicProject(slug: string): Promise<PublicProjectDetail | null> {
@@ -62,15 +59,31 @@ export async function getPublicProject(slug: string): Promise<PublicProjectDetai
   });
 }
 
-export async function getPublicApartment(slug: string): Promise<PublicApartmentDetail | null> {
-  const apartment = await db.apartment.findUnique({
-    where: { slug },
-    include: {
-      project: { select: { id: true, slug: true, name: true, city: true, district: true, hasElevator: true, hasSecurity: true, published: true, archived: true } },
-      building: true,
-      imagesRelation: { orderBy: { order: 'asc' } },
-    },
-  });
+/**
+ * Apartment URLs are project-scoped because the database enforces
+ * UNIQUE(project_id, slug), not global slug uniqueness.
+ * The optional projectSlug keeps the legacy API compatible while all
+ * canonical site routes pass the project slug explicitly.
+ */
+export async function getPublicApartment(apartmentSlug: string, projectSlug?: string): Promise<PublicApartmentDetail | null> {
+  const apartment = projectSlug
+    ? await db.apartment.findFirst({
+        where: { slug: apartmentSlug, project: { slug: projectSlug } },
+        include: {
+          project: { select: { id: true, slug: true, name: true, city: true, district: true, hasElevator: true, hasSecurity: true, published: true, archived: true } },
+          building: true,
+          imagesRelation: { orderBy: { order: 'asc' } },
+        },
+      })
+    : await db.apartment.findFirst({
+        where: { slug: apartmentSlug },
+        include: {
+          project: { select: { id: true, slug: true, name: true, city: true, district: true, hasElevator: true, hasSecurity: true, published: true, archived: true } },
+          building: true,
+          imagesRelation: { orderBy: { order: 'asc' } },
+        },
+      });
+
   if (!apartment || !apartment.published || apartment.archived || !apartment.project || !apartment.project.published || apartment.project.archived) return null;
   return toPublicApartmentDetail({ ...apartment, images: apartment.imagesRelation });
 }
