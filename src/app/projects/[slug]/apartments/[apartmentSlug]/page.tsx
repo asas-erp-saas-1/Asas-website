@@ -7,17 +7,18 @@ interface Props { params: Promise<{ slug: string; apartmentSlug: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, apartmentSlug } = await params;
-  const apartment = await getPublicApartment(apartmentSlug);
+  const projectSlug = decodeURIComponent(slug);
+  const apartment = await getPublicApartment(decodeURIComponent(apartmentSlug), projectSlug);
 
-  if (!apartment || apartment.project?.slug !== slug) {
+  if (!apartment) {
     return { title: 'Appartement introuvable | ASAS', robots: { index: false, follow: false } };
   }
 
-  const projectName = apartment.project?.name ?? decodeURIComponent(slug);
+  const projectName = apartment.project?.name ?? projectSlug;
   const title = `${apartment.typeName} ${apartment.surface} m² — ${projectName}`;
   const description = apartment.description?.trim() || `${apartment.typeName} de ${apartment.surface} m² à ${projectName}. Consultez les détails, le plan et les disponibilités auprès d'ASAS.`;
   const image = apartment.images?.find((item) => item.type === 'hero')?.url ?? apartment.images?.[0]?.url;
-  const path = `/projects/${slug}/apartments/${apartment.slug}`;
+  const path = `/projects/${projectSlug}/apartments/${apartment.slug}`;
 
   return {
     title,
