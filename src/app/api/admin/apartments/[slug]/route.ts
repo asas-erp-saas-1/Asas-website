@@ -11,7 +11,11 @@ export const runtime = 'nodejs';
 
 /**
  * GET /api/admin/apartments/[slug]
- * Get single apartment with images and building
+ * Get single apartment with images and building.
+ *
+ * `slug` is not globally unique in the database; apartment identity is
+ * `(project_id, slug)`. This legacy admin route does not receive projectId,
+ * so it intentionally uses findFirst rather than pretending slug is unique.
  */
 export async function GET(
   request: NextRequest,
@@ -22,7 +26,7 @@ export async function GET(
   }
   try {
     const { slug } = await params;
-    const apartment = await db.apartment.findUnique({
+    const apartment = await db.apartment.findFirst({
       where: { slug },
       include: {
         building: true,
@@ -35,7 +39,7 @@ export async function GET(
             district: true,
           },
         },
-        images: { orderBy: { order: 'asc' } },
+        imagesRelation: { orderBy: { order: 'asc' } },
       },
     });
 
@@ -72,7 +76,7 @@ export async function PUT(
     const { slug } = await params;
     const body = await request.json();
 
-    const existing = await db.apartment.findUnique({ where: { slug } });
+    const existing = await db.apartment.findFirst({ where: { slug } });
     if (!existing) {
       return withSecurityHeaders(NextResponse.json(
         { error: 'Apartment not found' },
@@ -97,7 +101,7 @@ export async function PUT(
       if (body[field] !== undefined) updateData[field] = body[field];
     }
 
-    const apartment = await db.apartment.update({ where: { slug }, data: updateData });
+    const apartment = await db.apartment.update({ where: { id: existing.id }, data: updateData });
 
     const keyFields = ['price', 'status', 'published', 'surface'];
     const before: Record<string, unknown> = {};
@@ -147,10 +151,10 @@ export async function DELETE(
   }
   try {
     const { slug } = await params;
-    const existing = await db.apartment.findUnique({ where: { slug } });
+    const existing = await db.apartment.findFirst({ where: { slug } });
     if (!existing) return withSecurityHeaders(NextResponse.json({ error: 'Apartment not found' }, { status: 404 }));
     const apartment = await db.apartment.update({
-      where: { slug },
+      where: { id: existing.id },
       data: { archived: true, published: false },
     });
     await logAudit({
