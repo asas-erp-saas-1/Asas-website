@@ -87,7 +87,6 @@ function normalizeDistrict(value: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    // Rate limit check
     const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
     if (!checkRateLimit(clientIp)) {
       return withSecurityHeaders(NextResponse.json(
@@ -150,23 +149,18 @@ Règles importantes:
       });
 
       const content = completion.choices[0]?.message?.content || '{}';
-
-      // Extract JSON from response (handle markdown code blocks if any)
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       const rawParsed = JSON.parse(jsonMatch ? jsonMatch[0] : content);
-      // Validate with Zod schema — prevents bad LLM output from causing DB errors
       const validated = searchFiltersSchema.safeParse(rawParsed);
       filters = validated.success ? validated.data : {};
     } catch (aiError) {
       console.error('[AI /ai-search] LLM parsing failed:', aiError);
-      // Graceful fallback: do an empty-filter search so the user still sees results
       filters = {
         explanation:
           "Nous n'avons pas pu analyser votre demande avec l'IA. Voici tous les appartements disponibles.",
       };
     }
 
-    // Normalize district spellings returned by the AI
     let normalizedDistrict: string[] | null = null;
     if (Array.isArray(filters.district) && filters.district.length > 0) {
       normalizedDistrict = filters.district
@@ -175,7 +169,6 @@ Règles importantes:
       if (normalizedDistrict.length === 0) normalizedDistrict = null;
     }
 
-    // Build Prisma where conditions (only those that are present)
     const conditions: Record<string, unknown>[] = [];
 
     if (Array.isArray(filters.apartmentType) && filters.apartmentType.length > 0) {
@@ -196,8 +189,20 @@ Règles importantes:
     if (filters.balcony === true) {
       conditions.push({ balconies: { gte: 1 } });
     }
-    // Only return apartments that are actually visible / bookable
-    conditions.push({ status: { in: ['AVAILABLE', 'RESERVED'] } });
+
+    // Public AI search must only expose inventory that is both published and available.
+    conditions.push({
+      status: { in: ['AVAILABLE', 'RESERVED'] },
+      published: true,
+      archived: false,
+      project: {
+        published: true,
+        archived: false,
+        ...(normalizedDistrict && normalizedDistrict.length > 0
+          ? { district: { in: normalizedDistrict } }
+          : {}),
+      },
+    });
 
     const apartments = await db.apartment.findMany({
       where: {
@@ -218,25 +223,10 @@ Règles importantes:
       take: 20,
     });
 
-    // Apply district filter on the joined project
-    // (SQLite via Prisma supports relation filtering in `where`, but we
-    // double-filter here to be resilient to spelling variations from the AI.)
-    const filteredApartments =
-      normalizedDistrict && normalizedDistrict.length > 0
-        ? apartments.filter(
-            (a) =>
-              a.project != null &&
-              normalizedDistrict!.some(
-                (d) =>
-                  a.project!.district.toLowerCase() === d.toLowerCase()
-              )
-          )
-        : apartments;
-
     return withSecurityHeaders(NextResponse.json({
       filters: { ...filters, district: normalizedDistrict ?? filters.district },
-      apartments: filteredApartments,
-      count: filteredApartments.length,
+      apartments,
+      count: apartments.length,
       query,
     }));
   } catch (error) {
