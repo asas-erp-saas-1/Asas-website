@@ -61,7 +61,7 @@ jobs:
           mkdir -p docs
           bunx prisma migrate diff \
             --from-empty \
-            --to-schema prisma/schema.postgres.prisma \
+            --to-schema-datamodel prisma/schema.postgres.prisma \
             --script > docs/PHASE2_BASELINE_CANDIDATE.sql
 
       - name: Verify baseline candidate is non-empty
