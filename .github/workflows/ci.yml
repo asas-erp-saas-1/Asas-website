@@ -4,12 +4,14 @@
 # connecting to production data. Database migrations are never executed
 # automatically.
 # Phase 2H: fresh execution marker after package/lockfile reconciliation.
+# Phase 2E: branch push execution is enabled so verification does not depend
+# on workflow_dispatch permissions from a Codespaces GITHUB_TOKEN.
 
 name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, chore/phase2e-ci-dispatch]
   pull_request:
     branches: [main, master]
   workflow_dispatch:
