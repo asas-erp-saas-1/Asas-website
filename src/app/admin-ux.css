@@ -1,0 +1,196 @@
+/* ASAS Admin UX/UI Foundation
+ * Scope: only active while body.admin-mode is present.
+ * Goal: operational clarity, predictable interaction, responsive density,
+ * accessible focus states, and reduced-motion support without changing
+ * public-site styling.
+ */
+
+html.admin-mode {
+  background: var(--ivory);
+}
+
+body.admin-mode {
+  --admin-surface: oklch(1 0 0);
+  --admin-surface-muted: oklch(0.975 0.006 80);
+  --admin-border: oklch(0.89 0.008 80);
+  --admin-text-muted: oklch(0.48 0.015 60);
+  --admin-shadow: 0 1px 2px oklch(0.17 0.01 60 / 5%), 0 8px 24px oklch(0.17 0.01 60 / 4%);
+  min-height: 100dvh;
+  background: var(--ivory);
+  color: var(--foreground);
+  text-rendering: optimizeLegibility;
+}
+
+/* Operational chrome */
+body.admin-mode button,
+body.admin-mode a,
+body.admin-mode [role='button'],
+body.admin-mode [role='tab'],
+body.admin-mode [role='menuitem'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.admin-mode button,
+body.admin-mode [role='button'] {
+  transition: transform 140ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+body.admin-mode button:active,
+body.admin-mode [role='button']:active {
+  transform: translateY(1px);
+}
+
+body.admin-mode input,
+body.admin-mode textarea,
+body.admin-mode select {
+  min-height: 40px;
+  border-color: var(--admin-border);
+  background: var(--admin-surface);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+body.admin-mode input:hover,
+body.admin-mode textarea:hover,
+body.admin-mode select:hover {
+  border-color: oklch(0.78 0.015 155);
+}
+
+body.admin-mode input:focus,
+body.admin-mode textarea:focus,
+body.admin-mode select:focus {
+  border-color: var(--forest);
+  box-shadow: 0 0 0 3px oklch(0.37 0.09 155 / 12%);
+  outline: none;
+}
+
+/* Tables: denser but calmer scanning */
+body.admin-mode table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+body.admin-mode thead th {
+  background: var(--admin-surface-muted);
+  color: var(--admin-text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body.admin-mode tbody tr {
+  transition: background-color 120ms ease;
+}
+
+body.admin-mode tbody tr:hover {
+  background: oklch(0.37 0.09 155 / 3.5%);
+}
+
+body.admin-mode tbody td {
+  vertical-align: middle;
+}
+
+/* Cards/dialogs: consistent depth instead of excessive decoration */
+body.admin-mode [data-slot='card'] {
+  border-color: var(--admin-border);
+  box-shadow: var(--admin-shadow);
+}
+
+body.admin-mode [role='dialog'] {
+  border-color: var(--admin-border);
+  box-shadow: 0 24px 80px oklch(0.17 0.01 60 / 18%);
+}
+
+/* Tabs: clear active state and horizontal scrolling on small screens */
+body.admin-mode [role='tablist'] {
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+body.admin-mode [role='tablist']::-webkit-scrollbar {
+  display: none;
+}
+
+body.admin-mode [role='tab'] {
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+/* Status/action affordances */
+body.admin-mode [data-state='active'] {
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+/* Keep error/help text readable without overwhelming the page */
+body.admin-mode [aria-invalid='true'] {
+  border-color: oklch(0.58 0.19 25);
+  box-shadow: 0 0 0 3px oklch(0.58 0.19 25 / 9%);
+}
+
+body.admin-mode [role='alert'] {
+  border-radius: 0.65rem;
+}
+
+/* Loading: prevent layout jumps when buttons become busy */
+body.admin-mode button[disabled],
+body.admin-mode [aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+/* Keyboard-first interaction */
+body.admin-mode :focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+}
+
+body.admin-mode :focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Desktop content rhythm */
+@media (min-width: 1024px) {
+  body.admin-mode main {
+    scroll-margin-top: 1rem;
+  }
+}
+
+/* Tablet/mobile: preserve usability before aesthetics */
+@media (max-width: 767px) {
+  body.admin-mode {
+    overflow-x: hidden;
+  }
+
+  body.admin-mode button,
+  body.admin-mode a[role='button'],
+  body.admin-mode [role='button'] {
+    min-height: 44px;
+  }
+
+  body.admin-mode [role='tablist'] {
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  body.admin-mode table {
+    min-width: 680px;
+  }
+
+  body.admin-mode [role='dialog'] {
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+}
+
+/* Reduced motion is a first-class admin requirement: data work should not
+ * be visually delayed by ornamental animation. */
+@media (prefers-reduced-motion: reduce) {
+  body.admin-mode *,
+  body.admin-mode *::before,
+  body.admin-mode *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
