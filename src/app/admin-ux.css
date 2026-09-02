@@ -21,6 +21,19 @@ body.admin-mode {
   text-rendering: optimizeLegibility;
 }
 
+/* Admin surfaces intentionally keep the operational light theme even when
+ * the public application is switched to dark mode. This prevents the
+ * scoped white form/table surfaces from inheriting near-white foreground
+ * tokens and becoming unreadable. */
+html.dark body.admin-mode {
+  --admin-surface: oklch(0.985 0.004 80);
+  --admin-surface-muted: oklch(0.95 0.006 80);
+  --admin-border: oklch(0.82 0.012 80);
+  --admin-text-muted: oklch(0.42 0.015 60);
+  --foreground: oklch(0.17 0.01 60);
+  color-scheme: light;
+}
+
 body.admin-mode .admin-workspace {
   min-height: 100dvh;
 }
