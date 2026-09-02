@@ -6,7 +6,7 @@
  */
 
 html.admin-mode {
-  background: var(--ivory);
+  background: var(--ivory, #f7f4ec);
 }
 
 body.admin-mode {
@@ -16,9 +16,18 @@ body.admin-mode {
   --admin-text-muted: oklch(0.48 0.015 60);
   --admin-shadow: 0 1px 2px oklch(0.17 0.01 60 / 5%), 0 8px 24px oklch(0.17 0.01 60 / 4%);
   min-height: 100dvh;
-  background: var(--ivory);
+  background: var(--ivory, #f7f4ec);
   color: var(--foreground);
   text-rendering: optimizeLegibility;
+}
+
+/* Prevent public-site decorative effects from leaking into the operational UI. */
+body.admin-mode :is(h1, h2, h3, h4, h5, h6) {
+  text-wrap: balance;
+}
+
+body.admin-mode img {
+  max-width: 100%;
 }
 
 /* Operational chrome */
