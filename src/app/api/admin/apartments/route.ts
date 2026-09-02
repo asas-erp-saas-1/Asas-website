@@ -11,15 +11,29 @@ export async function GET(request: NextRequest) {
     const projectSlug = searchParams.get('projectSlug') ?? undefined;
     const status = searchParams.get('status') ?? undefined;
     const type = searchParams.get('type') ?? undefined;
+    const search = searchParams.get('search')?.trim() || undefined;
     const publishedStr = searchParams.get('published');
-    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20', 10)));
+    const parsedPage = Number.parseInt(searchParams.get('page') ?? '1', 10);
+    const parsedLimit = Number.parseInt(searchParams.get('limit') ?? '20', 10);
+    const page = Number.isFinite(parsedPage) ? Math.max(1, parsedPage) : 1;
+    const limit = Number.isFinite(parsedLimit) ? Math.min(100, Math.max(1, parsedLimit)) : 20;
     const where: Record<string, unknown> = { archived: false };
     if (projectId) where.projectId = projectId;
     if (status) where.status = status;
     if (type) where.apartmentType = type;
     if (publishedStr) where.published = publishedStr === 'true';
     if (projectSlug) where.project = { slug: projectSlug };
+    if (search) {
+      where.OR = [
+        { apartmentNumber: { contains: search, mode: 'insensitive' } },
+        { unitNumber: { contains: search, mode: 'insensitive' } },
+        { slug: { contains: search, mode: 'insensitive' } },
+        { typeName: { contains: search, mode: 'insensitive' } },
+        { project: { name: { contains: search, mode: 'insensitive' } } },
+        { building: { name: { contains: search, mode: 'insensitive' } } },
+        { building: { code: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
     const skip = (page - 1) * limit;
     const [apartments, total] = await Promise.all([
       db.apartment.findMany({
