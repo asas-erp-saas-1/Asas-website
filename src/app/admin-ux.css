@@ -21,7 +21,6 @@ body.admin-mode {
   text-rendering: optimizeLegibility;
 }
 
-/* Prevent public-site decorative effects from leaking into the operational UI. */
 body.admin-mode :is(h1, h2, h3, h4, h5, h6) {
   text-wrap: balance;
 }
@@ -30,7 +29,6 @@ body.admin-mode img {
   max-width: 100%;
 }
 
-/* Keyboard-first workspace entry */
 body.admin-mode .admin-skip-link {
   position: fixed;
   z-index: 9999;
@@ -60,7 +58,6 @@ body.admin-mode .admin-workspace {
   min-height: 100dvh;
 }
 
-/* Operational chrome */
 body.admin-mode button,
 body.admin-mode a,
 body.admin-mode [role='button'],
@@ -102,10 +99,10 @@ body.admin-mode select:focus {
   outline: none;
 }
 
-/* Tables: denser but calmer scanning */
 body.admin-mode table {
   border-collapse: separate;
   border-spacing: 0;
+  width: 100%;
 }
 
 body.admin-mode thead th {
@@ -130,7 +127,6 @@ body.admin-mode tbody td {
   vertical-align: middle;
 }
 
-/* Cards/dialogs: consistent depth instead of excessive decoration */
 body.admin-mode [data-slot='card'] {
   border-color: var(--admin-border);
   box-shadow: var(--admin-shadow);
@@ -141,7 +137,6 @@ body.admin-mode [role='dialog'] {
   box-shadow: 0 24px 80px oklch(0.17 0.01 60 / 18%);
 }
 
-/* Tabs: clear active state and horizontal scrolling on small screens */
 body.admin-mode [role='tablist'] {
   scrollbar-width: none;
   border-bottom: 1px solid var(--admin-border);
@@ -156,12 +151,10 @@ body.admin-mode [role='tab'] {
   white-space: nowrap;
 }
 
-/* Status/action affordances */
 body.admin-mode [data-state='active'] {
   transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 
-/* Keep error/help text readable without overwhelming the page */
 body.admin-mode [aria-invalid='true'] {
   border-color: oklch(0.58 0.19 25);
   box-shadow: 0 0 0 3px oklch(0.58 0.19 25 / 9%);
@@ -171,13 +164,11 @@ body.admin-mode [role='alert'] {
   border-radius: 0.65rem;
 }
 
-/* Loading: prevent layout jumps when buttons become busy */
 body.admin-mode button[disabled],
 body.admin-mode [aria-disabled='true'] {
   cursor: not-allowed;
 }
 
-/* Keyboard-first interaction */
 body.admin-mode :focus-visible {
   outline: 2px solid var(--forest);
   outline-offset: 2px;
@@ -187,14 +178,12 @@ body.admin-mode :focus:not(:focus-visible) {
   outline: none;
 }
 
-/* Desktop content rhythm */
 @media (min-width: 1024px) {
   body.admin-mode main {
     scroll-margin-top: 1rem;
   }
 }
 
-/* Tablet/mobile: preserve usability before aesthetics */
 @media (max-width: 767px) {
   body.admin-mode {
     overflow-x: hidden;
@@ -211,8 +200,11 @@ body.admin-mode :focus:not(:focus-visible) {
     justify-content: flex-start;
   }
 
+  /* Do not force a wide table under an overflow-hidden body. If a table
+   * needs horizontal scrolling, its existing parent must own that scroll
+   * context; the global admin foundation must not create a mobile trap. */
   body.admin-mode table {
-    min-width: 680px;
+    min-width: 0;
   }
 
   body.admin-mode [role='dialog'] {
@@ -221,8 +213,6 @@ body.admin-mode :focus:not(:focus-visible) {
   }
 }
 
-/* Reduced motion is a first-class admin requirement: data work should not
- * be visually delayed by ornamental animation. */
 @media (prefers-reduced-motion: reduce) {
   body.admin-mode *,
   body.admin-mode *::before,
