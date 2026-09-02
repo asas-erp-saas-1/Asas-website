@@ -46,11 +46,19 @@ export function AdminWorkspaceAssist() {
 
   useEffect(() => {
     const label = TAB_LABELS[activeTab] ?? TAB_LABELS.dashboard;
+    const previousTitle = document.title;
+    const previousHtmlSection = document.documentElement.dataset.adminSection;
+
     document.title = `${label} — ASAS Administration`;
     document.documentElement.dataset.adminSection = activeTab;
 
     return () => {
-      delete document.documentElement.dataset.adminSection;
+      document.title = previousTitle;
+      if (previousHtmlSection) {
+        document.documentElement.dataset.adminSection = previousHtmlSection;
+      } else {
+        delete document.documentElement.dataset.adminSection;
+      }
     };
   }, [activeTab]);
 
