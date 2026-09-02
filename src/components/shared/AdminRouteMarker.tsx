@@ -4,10 +4,24 @@ import { useEffect } from 'react';
 
 const ADMIN_HASH = '#/admin';
 
+function getAdminRoute() {
+  const hash = window.location.hash || '';
+  const isAdmin = hash === ADMIN_HASH || hash.startsWith(`${ADMIN_HASH}/`);
+  return { isAdmin, route: isAdmin ? hash.slice(2) || '/admin' : '' };
+}
+
 function syncAdminMode() {
-  const isAdmin = window.location.hash === ADMIN_HASH || window.location.hash.startsWith(`${ADMIN_HASH}/`);
+  const { isAdmin, route } = getAdminRoute();
   document.body.classList.toggle('admin-mode', isAdmin);
   document.documentElement.classList.toggle('admin-mode', isAdmin);
+
+  if (isAdmin) {
+    document.body.dataset.adminRoute = route;
+    document.documentElement.dataset.adminRoute = route;
+  } else {
+    delete document.body.dataset.adminRoute;
+    delete document.documentElement.dataset.adminRoute;
+  }
 }
 
 export function AdminRouteMarker() {
@@ -21,6 +35,8 @@ export function AdminRouteMarker() {
       window.removeEventListener('popstate', syncAdminMode);
       document.body.classList.remove('admin-mode');
       document.documentElement.classList.remove('admin-mode');
+      delete document.body.dataset.adminRoute;
+      delete document.documentElement.dataset.adminRoute;
     };
   }, []);
 
