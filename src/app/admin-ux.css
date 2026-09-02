@@ -207,6 +207,48 @@ body.admin-mode :focus:not(:focus-visible) {
     overflow-x: hidden;
   }
 
+  /* The legacy AdminPage keeps a persistent sidebar. On phones it becomes a
+   * compact icon rail so the workspace retains usable horizontal space. The
+   * existing title tooltips keep navigation discoverable without changing
+   * AdminPage state or business behavior. */
+  body.admin-mode .admin-workspace > aside {
+    width: 4rem !important;
+    min-width: 4rem !important;
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  body.admin-mode .admin-workspace > aside > div:first-child {
+    justify-content: center;
+    padding-inline: 0.75rem;
+  }
+
+  body.admin-mode .admin-workspace > aside nav {
+    padding-inline: 0.45rem;
+  }
+
+  body.admin-mode .admin-workspace > aside nav button {
+    justify-content: center;
+    padding-inline: 0.55rem;
+  }
+
+  body.admin-mode .admin-workspace > aside nav button span,
+  body.admin-mode .admin-workspace > aside nav p {
+    display: none;
+  }
+
+  body.admin-mode .admin-workspace > aside > button {
+    padding-inline: 0.5rem;
+  }
+
+  body.admin-mode .admin-workspace > main {
+    min-width: 0;
+    width: calc(100vw - 4rem);
+    padding: 1rem;
+  }
+
   body.admin-mode button,
   body.admin-mode a[role='button'],
   body.admin-mode [role='button'] {
@@ -218,9 +260,6 @@ body.admin-mode :focus:not(:focus-visible) {
     justify-content: flex-start;
   }
 
-  /* Do not force a wide table under an overflow-hidden body. If a table
-   * needs horizontal scrolling, its existing parent must own that scroll
-   * context; the global admin foundation must not create a mobile trap. */
   body.admin-mode table {
     min-width: 0;
   }
