@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import AdminPage from '@/components/pages/AdminPage';
 import AdminErrorBoundary from '@/components/admin/AdminErrorBoundary';
+import AdminWorkspaceAssist from '@/components/admin/AdminWorkspaceAssist';
 
 interface AdminExperienceProps {
   children?: ReactNode;
@@ -18,6 +19,7 @@ interface AdminExperienceProps {
 export function AdminExperience({ children }: AdminExperienceProps) {
   return (
     <div className="admin-workspace" data-admin-workspace="true">
+      <AdminWorkspaceAssist />
       <a className="admin-skip-link" href="#admin-workspace-content">
         Aller directement au contenu d’administration
       </a>
