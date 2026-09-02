@@ -3,11 +3,22 @@
 import { useEffect } from 'react';
 
 const ADMIN_HASH = '#/admin';
+const ADMIN_PATH = '/admin';
 
 function getAdminRoute() {
   const hash = window.location.hash || '';
-  const isAdmin = hash === ADMIN_HASH || hash.startsWith(`${ADMIN_HASH}/`);
-  return { isAdmin, route: isAdmin ? hash.slice(2) || '/admin' : '' };
+  const pathname = window.location.pathname || '';
+  const hashIsAdmin = hash === ADMIN_HASH || hash.startsWith(`${ADMIN_HASH}/`);
+  const pathIsAdmin = pathname === ADMIN_PATH || pathname.startsWith(`${ADMIN_PATH}/`);
+  const isAdmin = hashIsAdmin || pathIsAdmin;
+
+  const route = hashIsAdmin
+    ? hash.slice(1) || ADMIN_PATH
+    : pathIsAdmin
+      ? pathname
+      : '';
+
+  return { isAdmin, route };
 }
 
 function syncAdminMode() {
