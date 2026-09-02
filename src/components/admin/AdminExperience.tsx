@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import AdminPage from '@/components/pages/AdminPage';
+import AdminErrorBoundary from '@/components/admin/AdminErrorBoundary';
 
 interface AdminExperienceProps {
   children?: ReactNode;
@@ -20,8 +21,15 @@ export function AdminExperience({ children }: AdminExperienceProps) {
       <a className="admin-skip-link" href="#admin-workspace-content">
         Aller directement au contenu d’administration
       </a>
-      <div id="admin-workspace-content" tabIndex={-1}>
-        {children ?? <AdminPage />}
+      <div
+        id="admin-workspace-content"
+        tabIndex={-1}
+        role="region"
+        aria-label="Espace d’administration ASAS"
+      >
+        <AdminErrorBoundary>
+          {children ?? <AdminPage />}
+        </AdminErrorBoundary>
       </div>
     </div>
   );
