@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Filter, Home, Loader2, RefreshCw, Search, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Filter, Home, Loader2, RefreshCw, Search, X, Eye, EyeOff, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatPrice } from '@/lib/constants';
 
 interface Apartment {
@@ -36,6 +37,7 @@ interface Apartment {
 
 interface ProjectOption { id: string; slug: string; name: string }
 interface Pagination { page: number; limit: number; total: number; totalPages: number }
+type PendingAction = { kind: 'publish' | 'archive'; apartment: Apartment } | null;
 
 const PAGE_SIZE = 20;
 const STATUS_OPTIONS = [
@@ -47,9 +49,18 @@ const STATUS_OPTIONS = [
   ['DRAFT', 'Brouillon'],
 ] as const;
 
-async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(url, { signal, cache: 'no-store' });
-  if (!response.ok) throw new Error(response.status === 401 ? 'Session administrateur expirée.' : 'Impossible de charger les données.');
+async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, { ...init, cache: 'no-store' });
+  if (!response.ok) {
+    let message = 'Opération impossible.';
+    try {
+      const json = await response.json();
+      if (typeof json?.error === 'string') message = json.error;
+    } catch { /* keep fallback */ }
+    if (response.status === 401) message = 'Session administrateur expirée.';
+    if (response.status === 403) message = 'Vous n’avez pas les privilèges nécessaires pour cette opération.';
+    throw new Error(message);
+  }
   return response.json();
 }
 
@@ -78,10 +89,13 @@ export function AdminApartmentsWorkspace() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [mutationError, setMutationError] = useState<string | null>(null);
+  const [mutationSuccess, setMutationSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
-    getJson<{ data?: ProjectOption[] }>('/api/admin/projects', controller.signal)
+    getJson<{ data?: ProjectOption[] }>('/api/admin/projects', { signal: controller.signal })
       .then((json) => setProjects(json.data ?? []))
       .catch((err: unknown) => {
         if (!(err instanceof DOMException && err.name === 'AbortError')) setProjects([]);
@@ -99,7 +113,7 @@ export function AdminApartmentsWorkspace() {
     if (type !== 'all') params.set('type', type);
     if (search.trim()) params.set('search', search.trim());
 
-    getJson<{ data?: Apartment[]; pagination?: Pagination }>(`/api/admin/apartments?${params}`, controller.signal)
+    getJson<{ data?: Apartment[]; pagination?: Pagination }>(`/api/admin/apartments?${params}`, { signal: controller.signal })
       .then((json) => {
         setApartments(json.data ?? []);
         setPagination(json.pagination ?? { page, limit: PAGE_SIZE, total: json.data?.length ?? 0, totalPages: json.data?.length ? 1 : 0 });
@@ -137,6 +151,32 @@ export function AdminApartmentsWorkspace() {
 
   const hasFilters = projectSlug !== 'all' || status !== 'all' || type !== 'all' || search.trim() !== '';
 
+  async function executeMutation() {
+    if (!pendingAction) return;
+    const { kind, apartment } = pendingAction;
+    setMutationError(null);
+    setMutationSuccess(null);
+    try {
+      if (kind === 'publish') {
+        await getJson(`/api/admin/apartments/${encodeURIComponent(apartment.slug)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ published: !apartment.published }),
+        });
+        setMutationSuccess(!apartment.published ? `« ${apartment.typeName} » est maintenant publié.` : `« ${apartment.typeName} » a été retiré de la publication.`);
+      } else {
+        await getJson(`/api/admin/apartments/${encodeURIComponent(apartment.slug)}`, { method: 'DELETE' });
+        setMutationSuccess(`« ${apartment.typeName} » a été archivé.`);
+      }
+      setPendingAction(null);
+      setRetryKey((value) => value + 1);
+    } catch (err) {
+      setMutationError(err instanceof Error ? err.message : 'L’opération a échoué.');
+    }
+  }
+
+  const mutationBusy = pendingAction !== null && mutationError === null && mutationSuccess === null;
+
   return (
     <section className="admin-apartments-workspace min-h-screen bg-ivory p-4 sm:p-6 lg:p-8" aria-labelledby="apartments-workspace-title">
       <div className="mx-auto max-w-[1400px] space-y-5">
@@ -151,6 +191,19 @@ export function AdminApartmentsWorkspace() {
             <Button variant="outline" size="sm" onClick={refresh} disabled={loading || refreshing} className="gap-2" aria-label="Actualiser les appartements"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Actualiser</Button>
           </div>
         </header>
+
+        {mutationError && (
+          <div role="alert" className="flex flex-col gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 sm:flex-row sm:items-center sm:justify-between">
+            <span>{mutationError}</span>
+            <Button variant="outline" size="sm" onClick={() => setMutationError(null)}>Fermer</Button>
+          </div>
+        )}
+        {mutationSuccess && (
+          <div role="status" className="flex flex-col gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 sm:flex-row sm:items-center sm:justify-between">
+            <span>{mutationSuccess}</span>
+            <Button variant="outline" size="sm" onClick={() => setMutationSuccess(null)}>Fermer</Button>
+          </div>
+        )}
 
         <Card>
           <CardHeader className="pb-3"><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"><CardTitle className="flex items-center gap-2 text-base"><Filter className="h-4 w-4" /> Filtres</CardTitle>{hasFilters && <Button variant="ghost" size="sm" onClick={clearFilters} className="w-fit gap-2"><X className="h-4 w-4" /> Effacer</Button>}</div></CardHeader>
@@ -167,10 +220,48 @@ export function AdminApartmentsWorkspace() {
         {error ? <Card role="alert"><CardContent className="flex flex-col items-center gap-3 py-12 text-center"><p className="font-semibold text-charcoal">Impossible de charger les appartements</p><p className="max-w-md text-sm text-muted-foreground">{error}</p><Button onClick={() => setRetryKey((value) => value + 1)} className="gap-2"><RefreshCw className="h-4 w-4" /> Réessayer</Button></CardContent></Card>
         : loading && apartments.length === 0 ? <Card><CardContent className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /> Chargement des appartements…</CardContent></Card>
         : filteredApartments.length === 0 ? <Card><CardContent className="flex flex-col items-center gap-3 py-16 text-center"><Home className="h-8 w-8 text-muted-foreground" /><p className="font-semibold text-charcoal">Aucun appartement trouvé</p><p className="text-sm text-muted-foreground">{hasFilters ? 'Modifiez les filtres ou effacez-les pour élargir la recherche.' : 'Aucun appartement n’est disponible dans cette page.'}</p>{hasFilters && <Button variant="outline" onClick={clearFilters}>Effacer les filtres</Button>}</CardContent></Card>
-        : <Card className="overflow-hidden"><div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Unité</TableHead><TableHead>Projet</TableHead><TableHead>Type</TableHead><TableHead>Surface</TableHead><TableHead>Étage</TableHead><TableHead>Prix</TableHead><TableHead>Statut</TableHead><TableHead>Publication</TableHead></TableRow></TableHeader><TableBody>{filteredApartments.map((a) => <TableRow key={a.id} className={loading ? 'opacity-70' : undefined}><TableCell className="font-medium">{a.apartmentNumber ?? a.unitNumber ?? '—'}</TableCell><TableCell><div className="min-w-[150px]"><div className="font-medium">{a.project.name}</div><div className="text-xs text-muted-foreground">{a.project.district}, {a.project.city}</div></div></TableCell><TableCell><div>{a.apartmentType}</div><div className="text-xs text-muted-foreground">{a.typeName}</div></TableCell><TableCell>{a.surface} m²</TableCell><TableCell>{a.floor ?? '—'}</TableCell><TableCell className="whitespace-nowrap">{a.priceOnRequest ? 'Sur demande' : a.price != null ? formatPrice(a.price) : '—'}</TableCell><TableCell><span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${statusClass(a.status)}`}>{statusLabel(a.status)}</span></TableCell><TableCell><Badge variant={a.published ? 'default' : 'secondary'}>{a.published ? 'Publié' : 'Brouillon'}</Badge></TableCell></TableRow>)}</TableBody></Table></div></Card>}
+        : <Card className="overflow-hidden"><div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Unité</TableHead><TableHead>Projet</TableHead><TableHead>Type</TableHead><TableHead>Surface</TableHead><TableHead>Étage</TableHead><TableHead>Prix</TableHead><TableHead>Statut</TableHead><TableHead>Publication</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{filteredApartments.map((a) => <TableRow key={a.id} className={loading ? 'opacity-70' : undefined}>
+          <TableCell className="font-medium">{a.apartmentNumber ?? a.unitNumber ?? '—'}</TableCell>
+          <TableCell><div className="min-w-[150px]"><div className="font-medium">{a.project.name}</div><div className="text-xs text-muted-foreground">{a.project.district}, {a.project.city}</div></div></TableCell>
+          <TableCell><div>{a.apartmentType}</div><div className="text-xs text-muted-foreground">{a.typeName}</div></TableCell>
+          <TableCell>{a.surface} m²</TableCell><TableCell>{a.floor ?? '—'}</TableCell>
+          <TableCell className="whitespace-nowrap">{a.priceOnRequest ? 'Sur demande' : a.price != null ? formatPrice(a.price) : '—'}</TableCell>
+          <TableCell><span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${statusClass(a.status)}`}>{statusLabel(a.status)}</span></TableCell>
+          <TableCell><Badge variant={a.published ? 'default' : 'secondary'}>{a.published ? 'Publié' : 'Brouillon'}</Badge></TableCell>
+          <TableCell><div className="flex justify-end gap-1">
+            <Button variant="ghost" size="sm" className="h-8 gap-1 px-2" onClick={() => { setMutationError(null); setMutationSuccess(null); setPendingAction({ kind: 'publish', apartment: a }); }} disabled={loading || pendingAction !== null} title={a.published ? 'Retirer de la publication' : 'Publier'} aria-label={a.published ? `Retirer ${a.typeName} de la publication` : `Publier ${a.typeName}`}>
+              {a.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}<span className="sr-only">{a.published ? 'Retirer de la publication' : 'Publier'}</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="h-8 gap-1 px-2 text-red-600 hover:text-red-700" onClick={() => { setMutationError(null); setMutationSuccess(null); setPendingAction({ kind: 'archive', apartment: a }); }} disabled={loading || pendingAction !== null} title="Archiver" aria-label={`Archiver ${a.typeName}`}>
+              <Archive className="h-4 w-4" /><span className="sr-only">Archiver</span>
+            </Button>
+          </div></TableCell>
+        </TableRow>)}</TableBody></Table></div></Card>}
 
         <nav className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Pagination des appartements"><p className="text-sm text-muted-foreground">Page {pagination.page} sur {Math.max(pagination.totalPages, 1)}</p><div className="flex items-center gap-2"><Button variant="outline" size="sm" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={loading || page <= 1} className="gap-1"><ChevronLeft className="h-4 w-4" /> Précédent</Button><Button variant="outline" size="sm" onClick={() => setPage((value) => Math.min(Math.max(pagination.totalPages, 1), value + 1))} disabled={loading || page >= pagination.totalPages || pagination.totalPages === 0} className="gap-1">Suivant <ChevronRight className="h-4 w-4" /></Button></div></nav>
       </div>
+
+      <Dialog open={pendingAction !== null} onOpenChange={(open) => { if (!open && !mutationBusy) setPendingAction(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{pendingAction?.kind === 'archive' ? 'Archiver cet appartement ?' : pendingAction?.apartment.published ? 'Retirer la publication ?' : 'Publier cet appartement ?'}</DialogTitle>
+            <DialogDescription>
+              {pendingAction?.kind === 'archive'
+                ? `« ${pendingAction.apartment.typeName} » sera archivé et retiré du site public. Cette action est réservée aux administrateurs.`
+                : pendingAction?.apartment.published
+                  ? `« ${pendingAction.apartment.typeName} » sera retiré du site public sans être archivé.`
+                  : `« ${pendingAction?.apartment.typeName} » sera rendu visible sur le site public.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingAction(null)} disabled={mutationBusy}>Annuler</Button>
+            <Button variant={pendingAction?.kind === 'archive' ? 'destructive' : 'default'} onClick={executeMutation} disabled={mutationBusy} className="gap-2">
+              {mutationBusy && <Loader2 className="h-4 w-4 animate-spin" />}
+              {mutationBusy ? 'Traitement…' : pendingAction?.kind === 'archive' ? 'Archiver' : pendingAction?.apartment.published ? 'Retirer la publication' : 'Publier'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
