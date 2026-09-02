@@ -97,6 +97,7 @@ export function AdminApartmentsWorkspace() {
     if (projectSlug !== 'all') params.set('projectSlug', projectSlug);
     if (status !== 'all') params.set('status', status);
     if (type !== 'all') params.set('type', type);
+    if (search.trim()) params.set('search', search.trim());
 
     getJson<{ data?: Apartment[]; pagination?: Pagination }>(`/api/admin/apartments?${params}`, controller.signal)
       .then((json) => {
@@ -111,15 +112,9 @@ export function AdminApartmentsWorkspace() {
       .finally(() => setLoading(false));
 
     return () => controller.abort();
-  }, [page, projectSlug, status, type, retryKey]);
+  }, [page, projectSlug, status, type, retryKey, search]);
 
-  const filteredApartments = useMemo(() => {
-    const normalized = search.trim().toLowerCase();
-    if (!normalized) return apartments;
-    return apartments.filter((a) => [a.apartmentNumber, a.unitNumber, a.typeName, a.project.name, a.building?.name, a.building?.code]
-      .filter(Boolean).some((value) => String(value).toLowerCase().includes(normalized)));
-  }, [apartments, search]);
-
+  const filteredApartments = useMemo(() => apartments, [apartments]);
   const rangeStart = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1;
   const rangeEnd = Math.min(pagination.page * pagination.limit, pagination.total);
 
@@ -127,11 +122,14 @@ export function AdminApartmentsWorkspace() {
   function clearFilters() {
     setProjectSlug('all'); setStatus('all'); setType('all'); setSearch(''); resetPage();
   }
-  async function refresh() {
+  function refresh() {
     setRefreshing(true);
     setRetryKey((value) => value + 1);
-    window.setTimeout(() => setRefreshing(false), 400);
   }
+
+  useEffect(() => {
+    if (!loading) setRefreshing(false);
+  }, [loading]);
 
   const hasFilters = projectSlug !== 'all' || status !== 'all' || type !== 'all' || search.trim() !== '';
 
@@ -165,7 +163,7 @@ export function AdminApartmentsWorkspace() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <label className="space-y-1.5 text-sm font-medium">
                 <span>Recherche</span>
-                <div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="N° unité, type, projet…" className="pl-9" /></div>
+                <div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(e) => { setSearch(e.target.value); resetPage(); }} placeholder="N° unité, type, projet…" className="pl-9" /></div>
               </label>
               <label className="space-y-1.5 text-sm font-medium"><span>Projet</span><Select value={projectSlug} onValueChange={(value) => { setProjectSlug(value); resetPage(); }}><SelectTrigger><SelectValue placeholder="Tous les projets" /></SelectTrigger><SelectContent><SelectItem value="all">Tous les projets</SelectItem>{projects.map((p) => <SelectItem key={p.id} value={p.slug}>{p.name}</SelectItem>)}</SelectContent></Select></label>
               <label className="space-y-1.5 text-sm font-medium"><span>Statut</span><Select value={status} onValueChange={(value) => { setStatus(value); resetPage(); }}><SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger><SelectContent><SelectItem value="all">Tous les statuts</SelectItem>{STATUS_OPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></label>
