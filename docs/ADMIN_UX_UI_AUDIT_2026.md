@@ -18,7 +18,7 @@ The existing UX specification is strong and should be treated as the contract ra
 | P0 | Interaction safety | Admin mutations need deterministic pending/success/error behavior | Centralize mutation feedback and disable duplicate submits |
 | P0 | Component architecture | `AdminPage.tsx` contains many responsibilities | Extract shell, navigation, feedback, table primitives and editors incrementally |
 | P1 | Information architecture | Existing groups are correct but navigation needs stronger current-context feedback | Preserve Dashboard/Catalogue/Media/Sales/System grouping |
-| P1 | Lists | 50-item client fetches are acceptable for MVP but not scalable | Introduce server pagination/filter contracts before data volume grows |
+| P1 | Lists | Apartments/leads fetches are capped at 50 with client-side filtering; projects are fetched unbounded; the apartments API already exposes server pagination metadata and the new apartments workspace now consumes it | Preserve server pagination/filtering for apartments and add an explicit limit/pagination contract for projects and leads before data volume grows |
 | P1 | Forms | Existing multi-tab editors are useful but can become cognitively heavy | Group by task, show readiness, preserve drafts on errors |
 | P1 | Mobile | Specification requires cards/full-screen dialogs but this must be continuously verified | Treat 360px as a hard constraint |
 | P1 | Accessibility | Specification lists focus/error-announcement work as future | Implement dialog focus, `aria-live`, keyboard coverage and contrast checks |
@@ -52,6 +52,7 @@ Implemented:
 
 - `AdminRouteMarker` detects the existing `#/admin` route and adds an `admin-mode` scope to the document.
 - `admin-ux.css` provides operational interaction primitives: consistent focus, form states, table scanning, card/dialog depth, mobile touch targets, horizontal tab behavior and reduced-motion support.
+- The apartments catalogue now has a dedicated server-paginated workspace with search and filters, while the existing monolithic page remains the source of truth for other admin sections.
 - The execution prompt is stored as a durable engineering contract for subsequent waves.
 
 ## Verification requirement for the next wave
