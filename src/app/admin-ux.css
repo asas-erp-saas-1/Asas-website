@@ -30,6 +30,36 @@ body.admin-mode img {
   max-width: 100%;
 }
 
+/* Keyboard-first workspace entry */
+body.admin-mode .admin-skip-link {
+  position: fixed;
+  z-index: 9999;
+  top: 0.75rem;
+  left: 0.75rem;
+  transform: translateY(-180%);
+  border: 1px solid var(--forest);
+  border-radius: 0.625rem;
+  background: var(--admin-surface);
+  color: var(--forest);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+  box-shadow: var(--admin-shadow);
+  transition: transform 140ms ease;
+}
+
+body.admin-mode .admin-skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+body.admin-mode #admin-workspace-content:focus {
+  outline: none;
+}
+
+body.admin-mode .admin-workspace {
+  min-height: 100dvh;
+}
+
 /* Operational chrome */
 body.admin-mode button,
 body.admin-mode a,
