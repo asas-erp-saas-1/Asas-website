@@ -1,23 +1,19 @@
 'use client';
 
-import { useIsFetching, useIsMutating } from '@tanstack/react-query';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { useIsFetching } from '@tanstack/react-query';
+import { RefreshCw } from 'lucide-react';
 
 /**
- * Workspace-level network feedback for the Admin surface.
+ * Workspace-level network feedback for Admin data refreshes.
  *
- * It intentionally observes only queries/mutations whose keys start with
- * `admin`, so public-site requests never trigger Admin feedback.
+ * It observes only queries whose keys start with `admin`, so public-site
+ * requests never trigger Admin feedback. Mutations are intentionally excluded
+ * until the existing mutation calls are consistently keyed as `admin`.
  */
 export function AdminOperationStatus() {
   const fetching = useIsFetching({ queryKey: ['admin'] });
-  const mutating = useIsMutating({ mutationKey: ['admin'] });
 
-  if (fetching === 0 && mutating === 0) return null;
-
-  const label = mutating > 0
-    ? 'Enregistrement en cours…'
-    : 'Mise à jour des données…';
+  if (fetching === 0) return null;
 
   return (
     <div
@@ -27,12 +23,8 @@ export function AdminOperationStatus() {
       aria-atomic="true"
       data-admin-operation-status="true"
     >
-      {mutating > 0 ? (
-        <Loader2 className="h-3.5 w-3.5 animate-spin text-forest" aria-hidden="true" />
-      ) : (
-        <RefreshCw className="h-3.5 w-3.5 animate-spin text-forest" aria-hidden="true" />
-      )}
-      <span>{label}</span>
+      <RefreshCw className="h-3.5 w-3.5 animate-spin text-forest" aria-hidden="true" />
+      <span>Mise à jour des données…</span>
     </div>
   );
 }
