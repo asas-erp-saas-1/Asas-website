@@ -17,9 +17,14 @@ const TAB_LABELS: Record<string, string> = {
 
 function getActiveTab(): string {
   if (typeof window === 'undefined') return 'dashboard';
+
   const hash = window.location.hash.replace(/^#\/?/, '');
-  const match = hash.match(/^admin(?:\/([^/]+))?/i);
-  return match?.[1] && TAB_LABELS[match[1]] ? match[1] : 'dashboard';
+  const hashMatch = hash.match(/^admin(?:\/([^/]+))?/i);
+  if (hashMatch?.[1] && TAB_LABELS[hashMatch[1]]) return hashMatch[1];
+  if (/^admin(?:\/|$)/i.test(hash)) return 'dashboard';
+
+  const pathMatch = window.location.pathname.match(/\/admin(?:\/([^/]+))?/i);
+  return pathMatch?.[1] && TAB_LABELS[pathMatch[1]] ? pathMatch[1] : 'dashboard';
 }
 
 /**
