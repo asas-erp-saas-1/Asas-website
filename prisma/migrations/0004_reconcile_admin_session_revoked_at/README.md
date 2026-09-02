@@ -1,0 +1,1 @@
+Migration 0004 reconciles the PostgreSQL admin_sessions revokedAt column with the Prisma production schema contract. It is idempotent and preserves existing session data.
