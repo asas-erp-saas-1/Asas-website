@@ -2,12 +2,12 @@
 
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Loader2, Mail, Phone, RefreshCw, Search, UserRound, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Lead {
   id: string;
@@ -49,16 +49,26 @@ function formatDate(value?: string | null) {
   return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+function formatDateTime(value?: string | null) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
+}
+
 async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { ...init, cache: 'no-store' });
   if (!response.ok) {
     let message = 'Opération impossible.';
-    try { const json = await response.json(); if (typeof json?.error === 'string') message = json.error; } catch { /* fallback */ }
+    try {
+      const json: unknown = await response.json();
+      if (typeof json === 'object' && json !== null && 'error' in json && typeof json.error === 'string') message = json.error;
+    } catch { /* fallback */ }
     if (response.status === 401) message = 'Session administrateur expirée.';
     if (response.status === 403) message = 'Vous n’avez pas les privilèges nécessaires pour cette opération.';
     throw new Error(message);
   }
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
 export function AdminLeadsPremiumWorkspace() {
@@ -82,24 +92,29 @@ export function AdminLeadsPremiumWorkspace() {
   useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams({ page: String(page), limit: '20' });
-    if (deferredSearch.trim()) params.set('search', deferredSearch.trim());
+    const query = deferredSearch.trim();
+    const sourceQuery = source.trim();
+    if (query) params.set('search', query);
     if (status !== 'all') params.set('status', status);
     if (intent !== 'all') params.set('intent', intent);
-    if (source.trim()) params.set('source', source.trim());
+    if (sourceQuery) params.set('source', sourceQuery);
 
     setLoading(true);
     setError(null);
     getJson<{ data?: Lead[]; pagination?: LeadMeta }>(`/api/admin/leads?${params.toString()}`, { signal: controller.signal })
       .then((json) => {
+        if (controller.signal.aborted) return;
         setLeads(json.data ?? []);
         setMeta(json.pagination ?? { page, limit: 20, total: 0, totalPages: 1 });
       })
       .catch((err: unknown) => {
-        if (err instanceof DOMException && err.name === 'AbortError') return;
+        if (controller.signal.aborted || (err instanceof DOMException && err.name === 'AbortError')) return;
         setLeads([]);
         setError(err instanceof Error ? err.message : 'Impossible de charger les leads.');
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
     return () => controller.abort();
   }, [page, deferredSearch, status, intent, source, retryKey]);
 
@@ -117,6 +132,7 @@ export function AdminLeadsPremiumWorkspace() {
   async function updateStatus() {
     if (!statusRequest) return;
     const request = statusRequest;
+    if (request.nextStatus === request.lead.status) { setStatusRequest(null); return; }
     setMutationBusy(true);
     setFeedback(null);
     try {
@@ -127,38 +143,33 @@ export function AdminLeadsPremiumWorkspace() {
       setFeedback({ type: 'success', text: `« ${request.lead.name} » est maintenant « ${labelOf(STATUS_OPTIONS, request.nextStatus)} ».` });
       setStatusRequest(null);
       setSelectedLead((current) => current ? { ...current, status: request.nextStatus } : current);
-      setRetryKey((value) => value + 1);
+      setLeads((current) => current.map((lead) => lead.id === request.lead.id ? { ...lead, status: request.nextStatus } : lead));
     } catch (err) {
       setFeedback({ type: 'error', text: err instanceof Error ? err.message : 'La mise à jour a échoué.' });
     } finally { setMutationBusy(false); }
+  }
+
+  function openStatusForLead(lead: Lead) {
+    setSelectedLead(null);
+    setStatusRequest({ lead, nextStatus: lead.status });
   }
 
   return (
     <section className="admin-leads-workspace min-h-screen bg-ivory p-4 sm:p-6 lg:p-8" aria-labelledby="leads-workspace-title">
       <div className="mx-auto max-w-[1500px] space-y-5">
         <header className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest">Ventes</p>
-            <h1 id="leads-workspace-title" className="text-2xl font-bold text-charcoal sm:text-3xl">Leads</h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">Pipeline commercial opérationnel. Recherchez, qualifiez et suivez chaque prospect sans perdre le contexte.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => { window.location.hash = '#admin'; }} className="gap-2"><ChevronLeft className="h-4 w-4" /> Retour</Button>
-            <Button variant="outline" size="sm" onClick={refresh} disabled={loading || refreshing} className="gap-2" aria-label="Actualiser les leads"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Actualiser</Button>
-          </div>
+          <div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest">Ventes</p><h1 id="leads-workspace-title" className="text-2xl font-bold text-charcoal sm:text-3xl">Leads</h1><p className="mt-1 max-w-3xl text-sm text-muted-foreground">Pipeline commercial opérationnel. Recherchez, qualifiez et suivez chaque prospect sans perdre le contexte.</p></div>
+          <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => { window.location.hash = '#admin'; }} className="gap-2"><ChevronLeft className="h-4 w-4" /> Retour</Button><Button variant="outline" size="sm" onClick={refresh} disabled={loading || refreshing} className="gap-2" aria-label="Actualiser les leads"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Actualiser</Button></div>
         </header>
 
         {feedback && <div role={feedback.type === 'error' ? 'alert' : 'status'} className="flex flex-col gap-2 rounded-md border border-border bg-background p-3 text-sm sm:flex-row sm:items-center sm:justify-between"><span>{feedback.text}</span><Button variant="ghost" size="sm" onClick={() => setFeedback(null)}>Fermer</Button></div>}
 
-        <Card>
-          <CardHeader className="pb-3"><div className="flex items-center justify-between gap-3"><CardTitle className="flex items-center gap-2 text-base"><Search className="h-4 w-4" /> Recherche et filtres</CardTitle>{hasFilters && <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2"><X className="h-4 w-4" /> Effacer</Button>}</div></CardHeader>
-          <CardContent><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <label className="space-y-1.5 text-sm font-medium lg:col-span-2"><span>Recherche</span><Input value={search} onChange={(event) => { setSearch(event.target.value); resetPage(); }} placeholder="Nom, téléphone, email, projet…" aria-describedby="lead-search-help" /><span id="lead-search-help" className="text-xs font-normal text-muted-foreground">La recherche se déclenche automatiquement après votre saisie.</span></label>
-            <label className="space-y-1.5 text-sm font-medium"><span>Statut</span><select value={status} onChange={(event) => { setStatus(event.target.value); resetPage(); }} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="all">Tous les statuts</option>{STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-            <label className="space-y-1.5 text-sm font-medium"><span>Intention</span><select value={intent} onChange={(event) => { setIntent(event.target.value); resetPage(); }} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="all">Toutes</option>{INTENT_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-            <label className="space-y-1.5 text-sm font-medium"><span>Source</span><Input value={source} onChange={(event) => { setSource(event.target.value); resetPage(); }} placeholder="Facebook, Google…" /></label>
-          </div></CardContent>
-        </Card>
+        <Card><CardHeader className="pb-3"><div className="flex items-center justify-between gap-3"><CardTitle className="flex items-center gap-2 text-base"><Search className="h-4 w-4" /> Recherche et filtres</CardTitle>{hasFilters && <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2"><X className="h-4 w-4" /> Effacer</Button>}</div></CardHeader><CardContent><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="space-y-1.5 text-sm font-medium lg:col-span-2"><span>Recherche</span><Input value={search} onChange={(event) => { setSearch(event.target.value); resetPage(); }} placeholder="Nom, téléphone, email, projet…" aria-describedby="lead-search-help" /><span id="lead-search-help" className="text-xs font-normal text-muted-foreground">Recherche serveur après stabilisation de la saisie.</span></label>
+          <label className="space-y-1.5 text-sm font-medium"><span>Statut</span><select value={status} onChange={(event) => { setStatus(event.target.value); resetPage(); }} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="all">Tous les statuts</option>{STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label className="space-y-1.5 text-sm font-medium"><span>Intention</span><select value={intent} onChange={(event) => { setIntent(event.target.value); resetPage(); }} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="all">Toutes</option>{INTENT_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label className="space-y-1.5 text-sm font-medium"><span>Source</span><Input value={source} onChange={(event) => { setSource(event.target.value); resetPage(); }} placeholder="Facebook, Google…" /></label>
+        </div></CardContent></Card>
 
         <div aria-live="polite" className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground"><span>{meta.total > 0 ? `${firstResult.toLocaleString('fr-FR')}–${lastResult.toLocaleString('fr-FR')} sur ${meta.total.toLocaleString('fr-FR')} lead${meta.total > 1 ? 's' : ''}` : '0 lead'}</span>{loading && <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Chargement…</span>}</div>
 
@@ -171,34 +182,14 @@ export function AdminLeadsPremiumWorkspace() {
           <TableCell><Badge variant="secondary">{labelOf(INTENT_OPTIONS, lead.intent)}</Badge></TableCell>
           <TableCell><div className="min-w-[140px]">{lead.projectName ?? lead.apartmentName ?? '—'}{lead.projectName && lead.apartmentName && <div className="text-xs text-muted-foreground">{lead.apartmentName}</div>}</div></TableCell>
           <TableCell className="text-sm">{lead.source ?? '—'}</TableCell>
-          <TableCell><select aria-label={`Statut de ${lead.name}`} value={lead.status} onChange={(event) => setStatusRequest({ lead, nextStatus: event.target.value })} disabled={mutationBusy} className="h-9 rounded-md border border-input bg-background px-2 text-sm">{STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></TableCell>
-          <TableCell className="whitespace-nowrap text-sm">{formatDate(lead.createdAt)}</TableCell>
-          <TableCell className="text-right"><Button variant="outline" size="sm" onClick={() => setSelectedLead(lead)}>Détails</Button></TableCell>
-        </TableRow>)}</TableBody></Table></div>
-          <div className="flex flex-col gap-3 border-t p-3 sm:flex-row sm:items-center sm:justify-between"><span className="text-xs text-muted-foreground">Page {meta.page} sur {meta.totalPages}</span><nav aria-label="Pagination des leads" className="flex items-center gap-1"><Button variant="outline" size="sm" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={loading || page <= 1} aria-label="Page précédente" className="gap-1"><ChevronLeft className="h-4 w-4" /> Précédente</Button><Button variant="outline" size="sm" onClick={() => setPage((value) => Math.min(meta.totalPages, value + 1))} disabled={loading || page >= meta.totalPages} aria-label="Page suivante" className="gap-1">Suivante <ChevronRight className="h-4 w-4" /></Button></nav></div>
-        </Card>}
+          <TableCell><select aria-label={`Statut de ${lead.name}`} value={lead.status} onChange={(event) => { if (event.target.value !== lead.status) setStatusRequest({ lead, nextStatus: event.target.value }); }} disabled={mutationBusy} className="h-9 rounded-md border border-input bg-background px-2 text-sm">{STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></TableCell>
+          <TableCell className="whitespace-nowrap text-sm">{formatDate(lead.createdAt)}</TableCell><TableCell className="text-right"><Button variant="outline" size="sm" onClick={() => setSelectedLead(lead)}>Détails</Button></TableCell>
+        </TableRow>)}</TableBody></Table></div><div className="flex flex-col gap-3 border-t p-3 sm:flex-row sm:items-center sm:justify-between"><span className="text-xs text-muted-foreground">Page {meta.page} sur {meta.totalPages}</span><nav aria-label="Pagination des leads" className="flex items-center gap-1"><Button variant="outline" size="sm" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={loading || page <= 1} aria-label="Page précédente" className="gap-1"><ChevronLeft className="h-4 w-4" /> Précédente</Button><Button variant="outline" size="sm" onClick={() => setPage((value) => Math.min(meta.totalPages, value + 1))} disabled={loading || page >= meta.totalPages} aria-label="Page suivante" className="gap-1">Suivante <ChevronRight className="h-4 w-4" /></Button></nav></div></Card>}
       </div>
 
-      <Dialog open={selectedLead !== null} onOpenChange={(open) => { if (!open) setSelectedLead(null); }}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
-          <DialogHeader><DialogTitle>Détails du lead{selectedLead ? ` — ${selectedLead.name}` : ''}</DialogTitle><DialogDescription>Contexte commercial du prospect. Aucune modification n’est effectuée depuis cette vue.</DialogDescription></DialogHeader>
-          {selectedLead && <div className="grid gap-4 text-sm">
-            <div className="flex flex-wrap gap-2"><Badge>{labelOf(STATUS_OPTIONS, selectedLead.status)}</Badge><Badge variant="secondary">{labelOf(INTENT_OPTIONS, selectedLead.intent)}</Badge></div>
-            <div className="grid gap-3 sm:grid-cols-2"><div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Téléphone</p><a href={`tel:${selectedLead.phone}`} className="mt-1 inline-flex items-center gap-2 hover:underline"><Phone className="h-4 w-4" />{selectedLead.phone}</a></div>{selectedLead.email && <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</p><a href={`mailto:${selectedLead.email}`} className="mt-1 inline-flex max-w-full items-center gap-2 break-all hover:underline"><Mail className="h-4 w-4" />{selectedLead.email}</a></div>}</div>
-            <div className="grid gap-3 sm:grid-cols-2"><div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Projet</p><p className="mt-1">{selectedLead.projectName ?? '—'}</p></div><div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Lot / appartement</p><p className="mt-1">{selectedLead.apartmentName ?? '—'}</p></div><div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Source</p><p className="mt-1">{selectedLead.source ?? '—'}</p></div><div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Assigné à</p><p className="mt-1">{selectedLead.assignedTo ?? 'Non assigné'}</p></div><div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Suivi</p><p className="mt-1">{formatDate(selectedLead.followUpDate)}</p></div><div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Créé</p><p className="mt-1">{formatDate(selectedLead.createdAt)}</p></div></div>
-            <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Message</p><div className="mt-1 whitespace-pre-wrap rounded-md border bg-muted/30 p-3">{selectedLead.message || 'Aucun message fourni par le prospect.'}</div></div>
-          </div>}
-          <DialogFooter><Button variant="outline" onClick={() => setSelectedLead(null)}>Fermer</Button>{selectedLead && <Button onClick={() => { setStatusRequest({ lead: selectedLead, nextStatus: selectedLead.status }); setSelectedLead(null); }}>Changer le statut</Button>}</DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Dialog open={selectedLead !== null} onOpenChange={(open) => { if (!open) setSelectedLead(null); }}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl"><DialogHeader><DialogTitle>Détails du lead{selectedLead ? ` — ${selectedLead.name}` : ''}</DialogTitle><DialogDescription>Contexte commercial et coordonnées disponibles pour traiter le prospect.</DialogDescription></DialogHeader>{selectedLead && <div className="grid gap-4 text-sm"><div className="flex flex-wrap gap-2"><Badge variant="secondary">{labelOf(STATUS_OPTIONS, selectedLead.status)}</Badge><Badge variant="outline">{labelOf(INTENT_OPTIONS, selectedLead.intent)}</Badge></div><div className="grid gap-3 sm:grid-cols-2"><div><p className="text-xs font-medium text-muted-foreground">Téléphone</p><a className="inline-flex min-h-11 items-center gap-2 hover:underline" href={`tel:${selectedLead.phone}`}><Phone className="h-4 w-4" />{selectedLead.phone}</a></div><div><p className="text-xs font-medium text-muted-foreground">Email</p>{selectedLead.email ? <a className="inline-flex min-h-11 items-center gap-2 break-all hover:underline" href={`mailto:${selectedLead.email}`}><Mail className="h-4 w-4" />{selectedLead.email}</a> : <p className="mt-2">—</p>}</div><div><p className="text-xs font-medium text-muted-foreground">Projet</p><p className="mt-1">{selectedLead.projectName ?? '—'}</p></div><div><p className="text-xs font-medium text-muted-foreground">Lot / appartement</p><p className="mt-1">{selectedLead.apartmentName ?? '—'}</p></div><div><p className="text-xs font-medium text-muted-foreground">Source</p><p className="mt-1">{selectedLead.source ?? '—'}</p></div><div><p className="text-xs font-medium text-muted-foreground">Assigné à</p><p className="mt-1">{selectedLead.assignedTo ?? 'Non assigné'}</p></div><div><p className="text-xs font-medium text-muted-foreground">Prochain suivi</p><p className="mt-1">{formatDate(selectedLead.followUpDate)}</p></div><div><p className="text-xs font-medium text-muted-foreground">Créé le</p><p className="mt-1">{formatDateTime(selectedLead.createdAt)}</p></div></div><div className="rounded-md border bg-muted/20 p-3"><p className="mb-1 text-xs font-medium text-muted-foreground">Message</p><p className="whitespace-pre-wrap leading-6">{selectedLead.message?.trim() || 'Aucun message fourni.'}</p></div></div>}<DialogFooter>{selectedLead && <Button variant="outline" onClick={() => openStatusForLead(selectedLead)}>Changer le statut</Button>}<Button variant="outline" onClick={() => setSelectedLead(null)}>Fermer</Button></DialogFooter></DialogContent></Dialog>
 
-      <Dialog open={statusRequest !== null} onOpenChange={(open) => { if (!open && !mutationBusy) setStatusRequest(null); }}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Confirmer le changement de statut</DialogTitle><DialogDescription>{statusRequest ? `Le lead « ${statusRequest.lead.name} » passera de « ${labelOf(STATUS_OPTIONS, statusRequest.lead.status)} » à « ${labelOf(STATUS_OPTIONS, statusRequest.nextStatus)} ».` : ''}</DialogDescription></DialogHeader>
-          <div className="rounded-md border bg-muted/30 p-3 text-sm"><span className="font-medium">Attention :</span> cette action met à jour le pipeline commercial et peut déclencher des traitements métier côté serveur.</div>
-          <DialogFooter><Button variant="outline" onClick={() => setStatusRequest(null)} disabled={mutationBusy}>Annuler</Button><Button onClick={updateStatus} disabled={mutationBusy}>{mutationBusy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Confirmer</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Dialog open={statusRequest !== null} onOpenChange={(open) => { if (!open && !mutationBusy) setStatusRequest(null); }}><DialogContent className="sm:max-w-md"><DialogHeader><DialogTitle>Mettre à jour le statut</DialogTitle><DialogDescription>{statusRequest ? `Choisissez le nouveau statut de « ${statusRequest.lead.name} ».` : 'Choisissez un nouveau statut.'}</DialogDescription></DialogHeader>{statusRequest && <label className="space-y-2 text-sm font-medium"><span>Nouveau statut</span><select autoFocus value={statusRequest.nextStatus} onChange={(event) => setStatusRequest((current) => current ? { ...current, nextStatus: event.target.value } : current)} disabled={mutationBusy} className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">{STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>}<DialogFooter><Button variant="outline" onClick={() => setStatusRequest(null)} disabled={mutationBusy}>Annuler</Button><Button onClick={updateStatus} disabled={mutationBusy || !statusRequest || statusRequest.nextStatus === statusRequest.lead.status} className="gap-2">{mutationBusy && <Loader2 className="h-4 w-4 animate-spin" />} Enregistrer</Button></DialogFooter></DialogContent></Dialog>
     </section>
   );
 }
