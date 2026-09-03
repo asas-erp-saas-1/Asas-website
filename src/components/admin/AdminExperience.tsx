@@ -8,6 +8,7 @@ import AdminOperationStatus from '@/components/admin/AdminOperationStatus';
 import AdminWorkspaceAssist from '@/components/admin/AdminWorkspaceAssist';
 import AdminApartmentsWorkspace from '@/components/admin/AdminApartmentsWorkspace';
 import AdminProjectsWorkspace from '@/components/admin/AdminProjectsWorkspace';
+import AdminLeadsWorkspace from '@/components/admin/AdminLeadsWorkspace';
 
 interface AdminExperienceProps { children?: ReactNode; }
 
@@ -36,7 +37,9 @@ export function AdminExperience({ children }: AdminExperienceProps) {
     ? <AdminApartmentsWorkspace />
     : !children && section === 'projects'
       ? <AdminProjectsWorkspace />
-      : children ?? <AdminPage />;
+      : !children && section === 'leads'
+        ? <AdminLeadsWorkspace />
+        : children ?? <AdminPage />;
 
   return (
     <div className="admin-workspace" data-admin-workspace="true">
