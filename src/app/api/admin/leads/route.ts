@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { withSecurityHeaders } from '@/lib/with-security-headers';
 import { verifyAdminAuth } from '@/lib/admin-auth';
+import type { Prisma } from '@/generated/prisma-postgres';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 const SORT_FIELDS = ['createdAt', 'name', 'status', 'intent', 'source'] as const;
 type SortField = (typeof SORT_FIELDS)[number];
+type SortOrder = Prisma.SortOrder;
 
 /**
  * GET /api/admin/leads
@@ -27,9 +29,9 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(MAX_LIMIT, Math.max(1, Number.parseInt(searchParams.get('limit') ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT));
     const requestedSort = searchParams.get('sortBy') as SortField | null;
     const sortBy: SortField = requestedSort && SORT_FIELDS.includes(requestedSort) ? requestedSort : 'createdAt';
-    const sortOrder = searchParams.get('sortOrder') === 'asc' ? 'asc' : 'desc';
+    const sortOrder: SortOrder = searchParams.get('sortOrder') === 'asc' ? 'asc' : 'desc';
 
-    const where: Record<string, unknown> = {};
+    const where: Prisma.LeadWhereInput = {};
     if (status) where.status = status;
     if (intent) where.intent = intent;
     if (source) where.source = source;
@@ -44,7 +46,7 @@ export async function GET(request: NextRequest) {
     }
 
     const skip = (page - 1) * limit;
-    const orderBy = sortBy === 'createdAt'
+    const orderBy: Prisma.LeadOrderByWithRelationInput[] = sortBy === 'createdAt'
       ? [{ createdAt: sortOrder }, { id: 'desc' }]
       : [{ [sortBy]: sortOrder }, { createdAt: 'desc' }, { id: 'desc' }];
 
