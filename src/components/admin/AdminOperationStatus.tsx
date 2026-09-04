@@ -5,7 +5,7 @@ import { RefreshCw } from 'lucide-react';
 
 export function AdminOperationStatus() {
   const fetching = useIsFetching({ queryKey: ['admin'] });
-  const mutating = useIsMutating({ mutationKey: ['admin'] });
+  const mutating = useIsMutating();
   const active = fetching + mutating;
 
   if (active === 0) return null;
