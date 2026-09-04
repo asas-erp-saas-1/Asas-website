@@ -191,7 +191,6 @@ function StatusBadge({ status }: { status: string }) {
   };
   const c = config[status] ?? { label: status, className: 'bg-gray-100 text-gray-600 border-gray-200' };
   const activeDomain = getAdminDomain(activeTab);
-
   return (
     <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${c.className}`}>
       {c.label}
