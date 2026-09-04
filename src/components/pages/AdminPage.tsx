@@ -4095,7 +4095,13 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<TabId>(() => {\n    if (typeof window === 'undefined') return 'dashboard';\n    const hash = window.location.hash.replace(/^#\\/?/, '');\n    const match = hash.match(/^admin(?:\\/([^/]+))?/i);\n    const candidate = match?.[1]?.toLowerCase();\n    return candidate && SIDEBAR_ITEMS.some((item) => item.id === candidate) ? candidate as TabId : 'dashboard';\n  });
+  const [activeTab, setActiveTab] = useState<TabId>(() => {
+    if (typeof window === 'undefined') return 'dashboard';
+    const hash = window.location.hash.replace(/^#\\/?/, '');
+    const match = hash.match(/^admin(?:\\/([^/]+))?/i);
+    const candidate = match?.[1]?.toLowerCase();
+    return candidate && SIDEBAR_ITEMS.some((item) => item.id === candidate) ? candidate as TabId : 'dashboard';
+  });
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Filter state
@@ -4201,7 +4207,10 @@ export default function AdminPage() {
               {group.items.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => {\n                    setActiveTab(item.id);\n                    window.location.hash = item.id === 'dashboard' ? '#/admin' : `#/admin/${item.id}`;\n                  }}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    window.location.hash = item.id === 'dashboard' ? '#/admin' : `#/admin/${item.id}`;
+                  }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
                     activeTab === item.id
                       ? 'bg-forest text-white shadow-lg shadow-forest/20'
