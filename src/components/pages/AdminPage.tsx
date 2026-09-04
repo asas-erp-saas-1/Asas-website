@@ -4241,7 +4241,7 @@ export default function AdminPage() {
       }};
       return json.data;
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && activeTab === 'dashboard',
     staleTime: 30_000,
   });
 
