@@ -21,10 +21,6 @@ body.admin-mode {
   text-rendering: optimizeLegibility;
 }
 
-/* Admin surfaces intentionally keep the operational light theme even when
- * the public application is switched to dark mode. This prevents the
- * scoped white form/table surfaces from inheriting near-white foreground
- * tokens and becoming unreadable. */
 html.dark body.admin-mode {
   --admin-surface: oklch(0.985 0.004 80);
   --admin-surface-muted: oklch(0.95 0.006 80);
@@ -40,6 +36,12 @@ body.admin-mode .admin-workspace {
 
 body.admin-mode .admin-workspace > main {
   min-width: 0;
+}
+
+body.admin-mode [data-admin-operation-status='true'] {
+  border-color: var(--admin-border);
+  background: color-mix(in oklab, var(--admin-surface) 96%, transparent);
+  color: var(--foreground);
 }
 
 @media (min-width: 768px) {
@@ -220,10 +222,6 @@ body.admin-mode :focus:not(:focus-visible) {
     overflow-x: hidden;
   }
 
-  /* The legacy AdminPage keeps a persistent sidebar. On phones it becomes a
-   * compact icon rail so the workspace retains usable horizontal space. The
-   * existing title tooltips keep navigation discoverable without changing
-   * AdminPage state or business behavior. */
   body.admin-mode .admin-workspace > aside {
     width: 4rem !important;
     min-width: 4rem !important;
