@@ -73,26 +73,43 @@ export function AdminProjectsWorkspace() {
     if (search.trim()) params.set('search', search.trim());
     if (status !== 'all') params.set('status', status);
 
-    // This effect is an imperative remote-fetch lifecycle; the state sync is intentional.\n    // eslint-disable-next-line react-hooks/set-state-in-effect\n    setLoading(true);
-    // eslint-disable-next-line react-hooks/set-state-in-effect\n    setError(null);
+    // This effect is an imperative remote-fetch lifecycle; the state sync is intentional.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setError(null);
     getJson<{ data?: Project[]; meta?: ProjectMeta }>(`/api/admin/projects?${params.toString()}`, { signal: controller.signal })
       .then((json) => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setProjects(json.data ?? []);
-        if (json.meta) {\n          // eslint-disable-next-line react-hooks/set-state-in-effect\n          setMeta(json.meta);\n        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setProjects(json.data ?? []);
+        if (json.meta) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setMeta(json.meta);
+        }
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === 'AbortError') return;
-        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setProjects([]);
-        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setError(err instanceof Error ? err.message : 'Impossible de charger les projets.');
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setProjects([]);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setError(err instanceof Error ? err.message : 'Impossible de charger les projets.');
       })
-      .finally(() => {\n        if (!controller.signal.aborted) {\n          // eslint-disable-next-line react-hooks/set-state-in-effect\n          setLoading(false);\n        }\n      });
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setLoading(false);
+        }
+      });
     return () => controller.abort();
   }, [page, search, status, retryKey]);
 
   useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
 
   useEffect(() => {
-    if (meta.totalPages > 0 && page > meta.totalPages) {\n      // eslint-disable-next-line react-hooks/set-state-in-effect\n      setPage(meta.totalPages);\n    }
+    if (meta.totalPages > 0 && page > meta.totalPages) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPage(meta.totalPages);
+    }
   }, [meta.totalPages, page]);
 
   const normalizedSearch = search.trim();
