@@ -4240,7 +4240,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ivory flex">
+    <div className="admin-page-shell min-h-screen bg-ivory flex">
       {/* Mobile navigation */}
       <div className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 shadow-sm backdrop-blur md:hidden">
         <div className="flex min-w-0 items-center gap-2">
@@ -4259,7 +4259,7 @@ export default function AdminPage() {
           type="button"
           aria-label="Fermer le menu d’administration"
           className="fixed inset-0 z-40 bg-charcoal/50 backdrop-blur-[1px] md:hidden"
-          onClick={() => setSidebarOpen(false)}
+          onClick={() => setMobileSidebarOpen(false)}
         />
       )}
       {/* Sidebar */}
