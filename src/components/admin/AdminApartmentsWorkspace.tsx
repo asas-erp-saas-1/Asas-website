@@ -176,7 +176,7 @@ export function AdminApartmentsWorkspace() {
         });
         setMutationSuccess(!apartment.published ? `« ${apartment.typeName} » est maintenant publié.` : `« ${apartment.typeName} » a été retiré de la publication.`);
       } else {
-        await getJson(`/api/admin/apartments/${encodeURIComponent(apartment.slug)}`, { method: 'DELETE' });
+        await getJson(`/api/admin/apartments/${encodeURIComponent(apartment.slug)}?id=${encodeURIComponent(apartment.id)}`, { method: 'DELETE' });
         setMutationSuccess(`« ${apartment.typeName} » a été archivé.`);
       }
       setPendingAction(null);
