@@ -15,9 +15,13 @@ interface AdminExperienceProps { children?: ReactNode; }
 
 function getAdminSection(): string {
   if (typeof window === 'undefined') return 'dashboard';
+
   const hash = window.location.hash.replace(/^#\/?/, '');
-  const match = hash.match(/^admin(?:\/([^/]+))?/i);
-  return match?.[1]?.toLowerCase() ?? 'dashboard';
+  const hashMatch = hash.match(/^admin(?:\/([^/]+))?/i);
+  if (hashMatch?.[1]) return hashMatch[1].toLowerCase();
+
+  const pathMatch = window.location.pathname.match(/^\/admin(?:\/([^/]+))?/i);
+  return pathMatch?.[1]?.toLowerCase() ?? 'dashboard';
 }
 
 export function AdminExperience({ children }: AdminExperienceProps) {
