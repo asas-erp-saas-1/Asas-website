@@ -115,7 +115,7 @@ function formatDate(dateStr: string): string {
 /* ─── API Fetch Helpers ─── */
 
 async function fetchAdminProjects(): Promise<AdminProject[]> {
-  const res = await fetch('/api/admin/projects');
+  const res = await fetch('/api/admin/projects?limit=50', { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch projects');
   const json = await res.json();
   return json.data ?? [];
@@ -127,14 +127,14 @@ async function fetchAdminApartments(filters: { projectSlug?: string; status?: st
   if (filters.status) params.set('status', filters.status);
   if (filters.type) params.set('type', filters.type);
   params.set('limit', '50');
-  const res = await fetch(`/api/admin/apartments?${params.toString()}`);
+  const res = await fetch(`/api/admin/apartments?${params.toString()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch apartments');
   const json = await res.json();
   return json.data ?? [];
 }
 
 async function fetchAdminBuildings(): Promise<AdminBuilding[]> {
-  const res = await fetch('/api/admin/buildings');
+  const res = await fetch('/api/admin/buildings?limit=50', { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch buildings');
   const json = await res.json();
   return json.data ?? [];
@@ -144,13 +144,14 @@ async function fetchAdminLeads(statusFilter?: string): Promise<AdminLead[]> {
   const params = new URLSearchParams();
   if (statusFilter) params.set('status', statusFilter);
   params.set('limit', '50');
-  const res = await fetch(`/api/admin/leads?${params.toString()}`);
+  const res = await fetch(`/api/admin/leads?${params.toString()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch leads');
   const json = await res.json();
   return json.data ?? [];
 }
 
 /* ─── Status Badge ─── */
+
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; className: string }> = {
@@ -4140,7 +4141,8 @@ export default function AdminPage() {
     enabled: isAuthenticated,
   });
 
-  // Stats derived from queries
+  // These collections are bounded workspace previews only. Dashboard KPIs must
+  // not be inferred from paginated results; aggregate contracts are required.
   const projects = projectsQuery.data ?? [];
   const apartments = apartmentsQuery.data ?? [];
   const leads = leadsQuery.data ?? [];
