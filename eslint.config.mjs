@@ -44,17 +44,6 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     "no-useless-escape": "off",
   },
 }, {
-  // These two workspaces intentionally synchronize remote data from effects.
-  // Keep the new cascading-render guard scoped away from this imperative
-  // fetch lifecycle rather than disabling it across the application.
-  files: [
-    "src/components/admin/AdminApartmentsWorkspace.tsx",
-    "src/components/admin/AdminProjectsWorkspace.tsx"
-  ],
-  rules: {
-    "react-hooks/set-state-in-effect": "off"
-  }
-}, {
   ignores: [
     "node_modules/**",
     ".next/**",
