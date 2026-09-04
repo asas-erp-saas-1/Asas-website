@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getAdminRoute } from '@/lib/admin-route';
 
 const TAB_LABELS: Record<string, string> = {
   dashboard: 'Tableau de Bord',
@@ -15,18 +16,6 @@ const TAB_LABELS: Record<string, string> = {
   settings: 'Paramètres',
 };
 
-function getActiveTab(): string {
-  if (typeof window === 'undefined') return 'dashboard';
-
-  const hash = window.location.hash.replace(/^#\/?/, '');
-  const hashMatch = hash.match(/^admin(?:\/([^/]+))?/i);
-  if (hashMatch?.[1] && TAB_LABELS[hashMatch[1]]) return hashMatch[1];
-  if (/^admin(?:\/|$)/i.test(hash)) return 'dashboard';
-
-  const pathMatch = window.location.pathname.match(/\/admin(?:\/([^/]+))?/i);
-  return pathMatch?.[1] && TAB_LABELS[pathMatch[1]] ? pathMatch[1] : 'dashboard';
-}
-
 /**
  * Workspace-level accessibility and context layer.
  *
@@ -34,10 +23,10 @@ function getActiveTab(): string {
  * it can improve the legacy admin experience without changing API contracts.
  */
 export function AdminWorkspaceAssist({ activeTab }: { activeTab?: string }) {
-  const [routeTab, setRouteTab] = useState(getActiveTab);
+  const [routeTab, setRouteTab] = useState(() => getAdminRoute().workspace);
 
   useEffect(() => {
-    const sync = () => setRouteTab(getActiveTab());
+    const sync = () => setRouteTab(getAdminRoute().workspace);
 
     window.addEventListener('hashchange', sync);
     window.addEventListener('popstate', sync);
