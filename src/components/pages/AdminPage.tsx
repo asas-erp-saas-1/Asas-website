@@ -4130,8 +4130,8 @@ export default function AdminPage() {
 
   useEffect(() => {
     const syncFromUrl = () => {
-      const hash = window.location.hash.replace(/^#\\/?/, '');
-      const match = hash.match(/^admin(?:\\/([^/]+))?/i);
+      const hash = window.location.hash.replace(/^#\/?/, '');
+      const match = hash.match(/^admin(?:\/([^/]+))?/i);
       const candidate = match?.[1]?.toLowerCase();
       if (candidate && SIDEBAR_ITEMS.some((item) => item.id === candidate)) {
         setActiveTab(candidate as TabId);
