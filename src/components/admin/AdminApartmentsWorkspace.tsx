@@ -112,17 +112,35 @@ export function AdminApartmentsWorkspace() {
 
   useEffect(() => {
     const controller = new AbortController();
-    getJson<{ data?: ProjectOption[] }>('/api/admin/projects', { signal: controller.signal })
-      .then((json) => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setProjects(json.data ?? []);
-      })
-      .catch((err: unknown) => {
-        if (!(err instanceof DOMException && err.name === 'AbortError')) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setProjects([]);
+
+    (async () => {
+      try {
+        const first = await getJson<{ data?: ProjectOption[]; meta?: { totalPages?: number } }>(
+          '/api/admin/projects?limit=100&page=1',
+          { signal: controller.signal },
+        );
+        const pages = Math.max(1, first.meta?.totalPages ?? 1);
+        const all = [...(first.data ?? [])];
+
+        for (let currentPage = 2; currentPage <= pages; currentPage += 1) {
+          const next = await getJson<{ data?: ProjectOption[] }>(
+            `/api/admin/projects?limit=100&page=${currentPage}`,
+            { signal: controller.signal },
+          );
+          all.push(...(next.data ?? []));
         }
-      });
+
+        if (!controller.signal.aborted) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setProjects(all);
+        }
+      } catch (err: unknown) {
+        if (controller.signal.aborted) return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setProjects([]);
+      }
+    })();
+
     return () => controller.abort();
   }, []);
 
