@@ -9,6 +9,8 @@ import { logAudit } from '@/lib/audit';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 /**
  * GET /api/admin/apartments/[slug]
  * Get single apartment with images and building.
@@ -27,6 +29,9 @@ export async function GET(
   try {
     const { slug } = await params;
     const id = request.nextUrl.searchParams.get('id')?.trim();
+    if (id && !UUID_RE.test(id)) {
+      return withSecurityHeaders(NextResponse.json({ error: 'Identifiant d’appartement invalide' }, { status: 400 }));
+    }
     const apartment = id
       ? await db.apartment.findUnique({
           where: { id },
@@ -90,6 +95,9 @@ export async function PUT(
     const body = await request.json();
 
     const id = request.nextUrl.searchParams.get('id')?.trim();
+    if (id && !UUID_RE.test(id)) {
+      return withSecurityHeaders(NextResponse.json({ error: 'Identifiant d’appartement invalide' }, { status: 400 }));
+    }
     const existing = id ? await db.apartment.findUnique({ where: { id } }) : await db.apartment.findFirst({ where: { slug } });
     if (!existing) {
       return withSecurityHeaders(NextResponse.json(
