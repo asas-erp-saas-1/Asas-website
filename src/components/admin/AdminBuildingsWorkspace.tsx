@@ -119,7 +119,7 @@ export default function AdminBuildingsWorkspace() {
       });
 
     return () => controller.abort();
-  }, [roleRetryKey]);
+  }, [projectRetryKey, roleRetryKey]);
 
   useEffect(() => {
     const controller = new AbortController();
