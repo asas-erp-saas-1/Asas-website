@@ -12,8 +12,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const params = request.nextUrl.searchParams;
-    const page = Math.max(1, Number.parseInt(params.get('page') ?? '1', 10) || 1);
-    const limit = Math.min(MAX_LIMIT, Math.max(1, Number.parseInt(params.get('limit') ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT));
+    const rawPage = Number(params.get('page') ?? '1');
+    const rawLimit = Number(params.get('limit') ?? String(DEFAULT_LIMIT));
+    const page = Number.isSafeInteger(rawPage) && rawPage >= 1 ? rawPage : 1;
+    const limit = Number.isSafeInteger(rawLimit) && rawLimit >= 1 ? Math.min(MAX_LIMIT, rawLimit) : DEFAULT_LIMIT;
     const search = params.get('search')?.trim() ?? '';
     const status = params.get('status')?.trim() ?? '';
 
@@ -33,22 +35,21 @@ export async function GET(request: NextRequest) {
         : {}),
     };
 
-    const [total, projects] = await Promise.all([
-      db.project.count({ where }),
-      db.project.findMany({
+    const total = await db.project.count({ where });
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const effectivePage = Math.min(page, totalPages);
+
+    const projects = await db.project.findMany({
         where,
-        skip: (page - 1) * limit,
+        skip: (effectivePage - 1) * limit,
         take: limit,
-        orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+        orderBy: [{ order: 'asc' }, { createdAt: 'desc' }, { id: 'asc' }],
         include: {
           _count: { select: { apartments: true } },
           developer: { select: { id: true, name: true, slug: true } },
           imagesRelation: { where: { type: 'hero' }, take: 1 },
         },
-      }),
-    ]);
-
-    const totalPages = Math.max(1, Math.ceil(total / limit));
+      });
     const result = projects.map((p) => ({
       id: p.id, slug: p.slug, name: p.name, nameAr: p.nameAr, city: p.city, district: p.district,
       projectType: p.projectType, status: p.status, published: p.published, featured: p.featured,
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
       createdAt: p.createdAt, updatedAt: p.updatedAt,
     }));
 
-    return withSecurityHeaders(NextResponse.json({ data: result, meta: { page, limit, total, totalPages } }));
+    return withSecurityHeaders(NextResponse.json({ data: result, meta: { page: effectivePage, limit, total, totalPages } }));
   } catch (error) {
     console.error('[API /admin/projects] GET error:', error instanceof Error ? error.message : error);
     return withSecurityHeaders(NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 }));
