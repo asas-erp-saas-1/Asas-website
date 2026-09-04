@@ -99,6 +99,11 @@ export function AdminLeadsPremiumWorkspace() {
   const notesRequestRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams({ page: String(page), limit: '20' });
     const query = deferredSearch.trim();
@@ -130,7 +135,7 @@ export function AdminLeadsPremiumWorkspace() {
   useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
   useEffect(() => { if (page > meta.totalPages) setPage(Math.max(1, meta.totalPages)); }, [meta.totalPages, page]);
 
-  const hasFilters = useMemo(() => status !== 'all' || intent !== 'all' || source.trim() !== '' || search.trim() !== '', [status, intent, source, search]);
+  const hasFilters = useMemo(() => status !== 'all' || intent !== 'all' || source.trim() !== '' || debouncedSearch !== '', [status, intent, source, search]);
   const firstResult = meta.total === 0 ? 0 : (meta.page - 1) * meta.limit + 1;
   const lastResult = Math.min(meta.page * meta.limit, meta.total);
 
