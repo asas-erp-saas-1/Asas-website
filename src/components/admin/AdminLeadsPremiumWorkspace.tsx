@@ -35,6 +35,11 @@ const STATUS_OPTIONS = [
   ['NEGOTIATION', 'Négociation'], ['SOLD', 'Vendu'], ['LOST', 'Perdu'],
 ] as const;
 
+const CUSTOMER_OPERATIONS = {
+  lifecycle: ['NEW', 'CONTACTED', 'QUALIFIED', 'VISIT', 'NEGOTIATION', 'SOLD', 'LOST'] as const,
+  context: ['projectName', 'apartmentName', 'assignedTo', 'followUpDate', 'source', 'intent'] as const,
+} as const;
+
 const INTENT_OPTIONS = [
   ['REQUEST_INFORMATION', 'Information'], ['REQUEST_PRICE', 'Prix'], ['REQUEST_FLOOR_PLAN', 'Plan'],
   ['BOOK_VISIT', 'Visite'], ['WHATSAPP', 'WhatsApp'], ['CALL', 'Appel'], ['RESERVATION', 'Réservation'],
