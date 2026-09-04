@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   LayoutDashboard, Building2, Home, Building, Users, Settings,
   ChevronRight, Eye, EyeOff, Star, StarOff, Trash2, RefreshCw,
-  Plus, Filter, ArrowUpDown, Loader2, Image as ImageIcon, Upload, X, Search, Menu, LogOut, PanelLeftClose, PanelLeftOpen,
+  Plus, Filter, ArrowUpDown, Loader2, Image as ImageIcon, Upload, X, Search,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,12 +25,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/constants';
-import { adminRouteHref, getAdminRoute, type AdminWorkspaceId } from '@/lib/admin-route';
-import { getAdminDomain } from '@/lib/admin-information-architecture';
-import AdminApartmentsWorkspace from '@/components/admin/AdminApartmentsWorkspace';
-import AdminProjectsWorkspace from '@/components/admin/AdminProjectsWorkspace';
-import AdminLeadsPremiumWorkspace from '@/components/admin/AdminLeadsPremiumWorkspace';
-import AdminBuildingsWorkspace from '@/components/admin/AdminBuildingsWorkspace';
 
 /* ─── Types ─── */
 
@@ -121,24 +115,10 @@ function formatDate(dateStr: string): string {
 /* ─── API Fetch Helpers ─── */
 
 async function fetchAdminProjects(): Promise<AdminProject[]> {
-  const limit = 100;
-  const firstRes = await fetch(`/api/admin/projects?page=1&limit=${limit}`, { credentials: 'include' });
-  if (!firstRes.ok) throw new Error('Failed to fetch projects');
-  const firstJson = await firstRes.json() as { data?: AdminProject[]; meta?: { totalPages?: number } };
-  const firstPage = firstJson.data ?? [];
-  const totalPages = Math.max(1, firstJson.meta?.totalPages ?? 1);
-  if (totalPages === 1) return firstPage;
-
-  const remaining = await Promise.all(
-    Array.from({ length: totalPages - 1 }, (_, index) => index + 2).map(async (page) => {
-      const res = await fetch(`/api/admin/projects?page=${page}&limit=${limit}`, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to fetch projects');
-      const json = await res.json() as { data?: AdminProject[] };
-      return json.data ?? [];
-    }),
-  );
-
-  return [...firstPage, ...remaining.flat()];
+  const res = await fetch('/api/admin/projects');
+  if (!res.ok) throw new Error('Failed to fetch projects');
+  const json = await res.json();
+  return json.data ?? [];
 }
 
 async function fetchAdminApartments(filters: { projectSlug?: string; status?: string; type?: string }): Promise<AdminApartment[]> {
@@ -190,7 +170,6 @@ function StatusBadge({ status }: { status: string }) {
     LOST: { label: 'Perdu', className: 'bg-red-100 text-red-800 border-red-200' },
   };
   const c = config[status] ?? { label: status, className: 'bg-gray-100 text-gray-600 border-gray-200' };
-  const activeDomain = getAdminDomain(activeTab);
   return (
     <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${c.className}`}>
       {c.label}
@@ -223,21 +202,29 @@ interface SidebarGroup { label: string; items: SidebarItem[] }
 const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     label: '',
-    items: [{ id: 'dashboard', label: 'Tableau de Bord', icon: LayoutDashboard }],
-  },
-  {
-    label: 'GESTION DU SITE',
     items: [
-      { id: 'projects', label: 'Projets', icon: Building2 },
-      { id: 'buildings', label: 'Bâtiments', icon: Building },
-      { id: 'apartments', label: 'Appartements', icon: Home },
-      { id: 'media', label: 'Médiathèque', icon: ImageIcon },
-      { id: 'videos', label: 'Vidéos', icon: ImageIcon },
+      { id: 'dashboard', label: 'Tableau de Bord', icon: LayoutDashboard },
     ],
   },
   {
-    label: 'GESTION DES CLIENTS',
-    items: [{ id: 'leads', label: 'Leads & suivi commercial', icon: Users }],
+    label: 'CATALOGUE',
+    items: [
+      { id: 'projects', label: 'Projets', icon: Building2 },
+      { id: 'apartments', label: 'Appartements', icon: Home },
+      { id: 'buildings', label: 'Bâtiments', icon: Building },
+    ],
+  },
+  {
+    label: 'MÉDIAS',
+    items: [
+      { id: 'media', label: 'Médiathèque', icon: ImageIcon },
+    ],
+  },
+  {
+    label: 'VENTES',
+    items: [
+      { id: 'leads', label: 'Leads', icon: Users },
+    ],
   },
   {
     label: 'SYSTÈME',
@@ -271,7 +258,6 @@ function DashboardTab({
     soldCount: number;
     totalLeads: number;
     newLeadsCount: number;
-    intentBreakdown: Record<string, number>;
   };
   leads: AdminLead[];
   projects: AdminProject[];
@@ -283,7 +269,13 @@ function DashboardTab({
   const qc = useQueryClient();
 
   // Lead intent breakdown (WhatsApp / Call / Form / Other)
-  const intentBreakdown = stats.intentBreakdown;
+  const intentBreakdown = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const l of leads) {
+      counts[l.intent] = (counts[l.intent] ?? 0) + 1;
+    }
+    return counts;
+  }, [leads]);
 
   const intentLabels: Record<string, string> = {
     REQUEST_INFORMATION: 'Demande d\'infos',
@@ -681,8 +673,7 @@ function ProjectsTab({
       ) : (
         <Card>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-            <Table className="min-w-[900px]">
+            <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Projet</TableHead>
@@ -712,8 +703,6 @@ function ProjectsTab({
                     <TableCell><StatusBadge status={project.status} /></TableCell>
                     <TableCell>
                       <button
-                        type="button"
-                        disabled={togglePublished.isPending || archive.isPending}
                         onClick={() => togglePublished.mutate({ slug: project.slug, published: !project.published })}
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${
                           project.published
@@ -728,7 +717,7 @@ function ProjectsTab({
                     </TableCell>
                     <TableCell className="text-center text-sm font-medium">{project.apartmentCount}</TableCell>
                     <TableCell>
-                      <button type="button" disabled={toggleFeatured.isPending || archive.isPending} onClick={() => toggleFeatured.mutate({ slug: project.slug, featured: !project.featured })} className="text-muted-foreground hover:text-amber-500 transition-colors" title={project.featured ? 'Retirer des favoris' : 'Mettre en avant'}>
+                      <button onClick={() => toggleFeatured.mutate({ slug: project.slug, featured: !project.featured })} className="text-muted-foreground hover:text-amber-500 transition-colors" title={project.featured ? 'Retirer des favoris' : 'Mettre en avant'}>
                         {project.featured ? <Star className="h-4 w-4 text-amber-500 fill-amber-500" /> : <StarOff className="h-4 w-4" />}
                       </button>
                     </TableCell>
@@ -740,10 +729,9 @@ function ProjectsTab({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => window.open(`/#/projects/${project.slug}`, '_blank', 'noopener,noreferrer')}
-                          className="h-9 w-9 px-0"
+                          onClick={() => window.open(`/#/projects/${project.slug}`, '_blank')}
+                          className="h-7 px-2"
                           title="Aperçu sur le site"
-                          aria-label={`Aperçu de ${project.name} sur le site`}
                         >
                           <Eye className="h-3.5 w-3.5" />
                         </Button>
@@ -755,7 +743,6 @@ function ProjectsTab({
                 ))}
               </TableBody>
             </Table>
-            </div>
           </CardContent>
         </Card>
       )}
@@ -2070,7 +2057,6 @@ function UsersTab() {
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<AdminUser | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<AdminUser | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
 
   const usersQuery = useQuery({
     queryKey: ['admin', 'users'],
@@ -2085,7 +2071,6 @@ function UsersTab() {
   const users = usersQuery.data ?? [];
 
   async function toggleActive(user: AdminUser) {
-    setActionError(null);
     try {
       const res = await fetch(`/api/admin/users/${user.id}`, {
         method: 'PATCH',
@@ -2095,13 +2080,12 @@ function UsersTab() {
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({ error: 'Échec' }));
-        setActionError(j.error ?? 'Échec de la mise à jour.');
+        alert(j.error ?? 'Échec');
         return;
       }
       qc.invalidateQueries({ queryKey: ['admin', 'users'] });
-      window.dispatchEvent(new Event('asas-admin-data-changed'));
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Échec de la mise à jour.');
+      alert(err instanceof Error ? err.message : 'Échec');
     }
   }
 
@@ -2121,8 +2105,6 @@ function UsersTab() {
           </Button>
         </div>
       </div>
-
-      {actionError && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div>}
 
       {usersQuery.isLoading ? (
         <div className="flex items-center justify-center h-32"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
@@ -2169,7 +2151,7 @@ function UsersTab() {
                         size="sm"
                         variant="outline"
                         className="h-7 text-xs"
-                        onClick={() => setConfirmDelete(u)}
+                        onClick={() => toggleActive(u)}
                         title={u.active ? 'Désactiver' : 'Activer'}
                       >
                         {u.active ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -2182,28 +2164,6 @@ function UsersTab() {
           </Table>
         </Card>
       )}
-
-      <Dialog open={!!confirmDelete} onOpenChange={(open) => { if (!open) setConfirmDelete(null); }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle>{confirmDelete?.active ? 'Désactiver cet utilisateur ?' : 'Activer cet utilisateur ?'}</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            {confirmDelete?.active
-              ? 'Le compte ne pourra plus se connecter tant qu’il reste désactivé.'
-              : 'Le compte pourra à nouveau se connecter après activation.'}
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmDelete(null)}>Annuler</Button>
-            <Button variant={confirmDelete?.active ? 'destructive' : 'default'} onClick={async () => {
-              if (!confirmDelete) return;
-              const user = confirmDelete;
-              setConfirmDelete(null);
-              await toggleActive(user);
-            }}>
-              {confirmDelete?.active ? 'Désactiver' : 'Activer'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Create user dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
@@ -3090,14 +3050,12 @@ function ProjectCreateForm({ onClose }: { onClose: () => void }) {
   const [deliveryYear, setDeliveryYear] = useState(String(new Date().getFullYear() + 1));
   const [deliveryQuarter, setDeliveryQuarter] = useState('Q4');
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const slug = useMemo(() => slugify(name), [name]);
   // Smart auto-fill is handled in onChange handlers, not useEffect (to avoid lint warnings)
 
   const save = async () => {
-    if (!name.trim() || !district.trim()) { setError('Le nom du projet et le quartier sont obligatoires.'); return; }
+    if (!name || !district) { alert('Nom et quartier requis'); return; }
     setSaving(true);
-    setError(null);
     try {
       const res = await fetch('/api/admin/projects', {
         method: 'POST',
@@ -3119,10 +3077,10 @@ function ProjectCreateForm({ onClose }: { onClose: () => void }) {
         onClose();
       } else {
         const err = await res.json();
-        setError(err.error ?? 'Impossible de créer le projet.');
+        alert(err.error ?? 'Failed to create project');
       }
     } catch {
-      setError('Impossible de créer le projet. Vérifiez votre connexion puis réessayez.');
+      alert('Failed to create project');
     }
     setSaving(false);
   };
@@ -3227,10 +3185,9 @@ function ProjectCreateForm({ onClose }: { onClose: () => void }) {
         Complétez les détails via le formulaire d'édition (6 onglets) puis publiez.
       </p>
 
-      {error && <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
       <DialogFooter>
-        <Button variant="outline" onClick={onClose} disabled={saving}>Annuler</Button>
-        <Button onClick={save} disabled={saving || !name.trim() || !district.trim()} className="bg-forest hover:bg-forest/90">
+        <Button variant="outline" onClick={onClose}>Annuler</Button>
+        <Button onClick={save} disabled={saving || !name || !district} className="bg-forest hover:bg-forest/90">
           {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />} Créer le projet
         </Button>
       </DialogFooter>
@@ -3831,7 +3788,6 @@ function ApartmentCreateForm({ projects, onClose }: { projects: AdminProject[]; 
   const [floor, setFloor] = useState('1');
   const [status, setStatus] = useState('AVAILABLE');
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const slug = useMemo(() => slugify(`${typeName}-${surface || ''}`), [typeName, surface]);
 
   // Smart defaults: when type changes, auto-fill bedrooms + typeName + suggested surface
@@ -3872,9 +3828,8 @@ function ApartmentCreateForm({ projects, onClose }: { projects: AdminProject[]; 
   const pricePerM2 = price && surface ? Math.round(parseInt(price, 10) / parseInt(surface, 10)) : null;
 
   const save = async () => {
-    if (!projectId || !typeName.trim() || !surface || Number(surface) <= 0) { setError('Projet, nom du type et surface valide sont obligatoires.'); return; }
+    if (!projectId || !typeName || !surface) { alert('Projet, nom type et surface requis'); return; }
     setSaving(true);
-    setError(null);
     try {
       const res = await fetch('/api/admin/apartments', {
         method: 'POST',
@@ -3897,10 +3852,10 @@ function ApartmentCreateForm({ projects, onClose }: { projects: AdminProject[]; 
         onClose();
       } else {
         const err = await res.json();
-        setError(err.error ?? 'Impossible de créer l’appartement.');
+        alert(err.error ?? 'Failed to create apartment');
       }
     } catch {
-      setError('Impossible de créer l’appartement. Vérifiez votre connexion puis réessayez.');
+      alert('Failed to create apartment');
     }
     setSaving(false);
   };
@@ -3997,10 +3952,9 @@ function ApartmentCreateForm({ projects, onClose }: { projects: AdminProject[]; 
         (orientation, plan, galerie, SEO) via le formulaire d'édition (7 onglets) puis publiez.
       </p>
 
-      {error && <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
       <DialogFooter>
-        <Button variant="outline" onClick={onClose} disabled={saving}>Annuler</Button>
-        <Button onClick={save} disabled={saving || !projectId || !typeName.trim() || !surface || Number(surface) <= 0} className="bg-forest hover:bg-forest/90">
+        <Button variant="outline" onClick={onClose}>Annuler</Button>
+        <Button onClick={save} disabled={saving || !projectId || !typeName || !surface} className="bg-forest hover:bg-forest/90">
           {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />} Créer l'appartement
         </Button>
       </DialogFooter>
@@ -4141,36 +4095,8 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<AdminWorkspaceId>(() => getAdminRoute().workspace);
+  const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-
-  function navigateTab(tab: AdminWorkspaceId) {
-    const nextHref = adminRouteHref(tab);
-    setActiveTab(tab);
-    window.history.pushState(null, '', nextHref);
-    if (window.innerWidth < 768) setMobileSidebarOpen(false);
-  }
-
-  useEffect(() => {
-    const syncFromUrl = () => setActiveTab(getAdminRoute().workspace);
-    window.addEventListener('popstate', syncFromUrl);
-    window.addEventListener('hashchange', syncFromUrl);
-    syncFromUrl();
-    return () => {
-      window.removeEventListener('popstate', syncFromUrl);
-      window.removeEventListener('hashchange', syncFromUrl);
-    };
-  }, []);
-
-  useEffect(() => {
-    const invalidateAdminData = () => {
-      queryClient.invalidateQueries({ queryKey: ['admin'] });
-    };
-    window.addEventListener('asas-admin-data-changed', invalidateAdminData);
-    return () => window.removeEventListener('asas-admin-data-changed', invalidateAdminData);
-  }, [queryClient]);
-
 
   // Filter state
   const [projectFilter, setProjectFilter] = useState<string>('all');
@@ -4189,7 +4115,7 @@ export default function AdminPage() {
   const projectsQuery = useQuery({
     queryKey: ['admin', 'projects'],
     queryFn: fetchAdminProjects,
-    enabled: isAuthenticated && (activeTab === 'dashboard' || activeTab === 'media'),
+    enabled: isAuthenticated,
   });
 
   const apartmentsQuery = useQuery({
@@ -4199,57 +4125,41 @@ export default function AdminPage() {
       status: statusFilter !== 'all' ? statusFilter : undefined,
       type: typeFilter !== 'all' ? typeFilter : undefined,
     }),
-    enabled: isAuthenticated && (activeTab === 'dashboard' || activeTab === 'media'),
+    enabled: isAuthenticated,
   });
 
   const buildingsQuery = useQuery({
     queryKey: ['admin', 'buildings'],
     queryFn: fetchAdminBuildings,
-    enabled: isAuthenticated && activeTab === 'dashboard',
+    enabled: isAuthenticated,
   });
 
   const leadsQuery = useQuery({
     queryKey: ['admin', 'leads', leadStatusFilter],
     queryFn: () => fetchAdminLeads(leadStatusFilter !== 'all' ? leadStatusFilter : undefined),
-    enabled: isAuthenticated && activeTab === 'dashboard',
+    enabled: isAuthenticated,
   });
 
-  // Dashboard KPIs come from database aggregates, never from paginated/list datasets.
+  // Stats derived from queries
   const projects = projectsQuery.data ?? [];
   const apartments = apartmentsQuery.data ?? [];
   const leads = leadsQuery.data ?? [];
 
-  const dashboardStatsQuery = useQuery({
-    queryKey: ['admin', 'dashboard', 'stats'],
-    queryFn: async () => {
-      const res = await fetch('/api/admin/dashboard/stats', { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to fetch dashboard stats');
-      const json = await res.json() as { data: {
-        totalProjects: number;
-        totalApartments: number;
-        availableCount: number;
-        reservedCount: number;
-        soldCount: number;
-        totalLeads: number;
-        newLeadsCount: number;
-        intentBreakdown: Record<string, number>;
-      }};
-      return json.data;
-    },
-    enabled: isAuthenticated && activeTab === 'dashboard',
-    staleTime: 30_000,
-  });
+  const stats = useMemo(() => ({
+    totalProjects: projects.length,
+    totalApartments: apartments.length,
+    availableCount: apartments.filter((a) => a.status === 'AVAILABLE').length,
+    reservedCount: apartments.filter((a) => a.status === 'RESERVED').length,
+    soldCount: apartments.filter((a) => a.status === 'SOLD').length,
+    totalLeads: leads.length,
+    newLeadsCount: leads.filter((l) => l.status === 'NEW').length,
+  }), [projects, apartments, leads]);
 
-  const stats = dashboardStatsQuery.data ?? {
-    totalProjects: 0,
-    totalApartments: 0,
-    availableCount: 0,
-    reservedCount: 0,
-    soldCount: 0,
-    totalLeads: 0,
-    newLeadsCount: 0,
-    intentBreakdown: {},
-  };
+  const activeLoading = activeTab === 'projects' ? projectsQuery.isLoading
+    : activeTab === 'apartments' ? apartmentsQuery.isLoading
+    : activeTab === 'buildings' ? buildingsQuery.isLoading
+    : activeTab === 'leads' ? leadsQuery.isLoading
+    : false;
 
   /* ─── Render ─── */
 
@@ -4266,30 +4176,9 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="admin-page-shell min-h-screen bg-ivory flex">
-      {/* Mobile navigation */}
-      <div className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 shadow-sm backdrop-blur md:hidden">
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-forest text-sm font-bold text-white">A</div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-charcoal">ASAS Admin</p>
-            <p className="truncate text-[10px] text-muted-foreground">{SIDEBAR_GROUPS.flatMap((group) => group.items).find((item) => item.id === activeTab)?.label ?? 'Tableau de bord'}</p>
-          </div>
-        </div>
-        <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={() => setMobileSidebarOpen(true)} aria-label="Ouvrir le menu d’administration" aria-expanded={mobileSidebarOpen}>
-          <Menu className="h-5 w-5" />
-        </Button>
-      </div>
-      {mobileSidebarOpen && (
-        <button
-          type="button"
-          aria-label="Fermer le menu d’administration"
-          className="fixed inset-0 z-40 bg-charcoal/50 backdrop-blur-[1px] md:hidden"
-          onClick={() => setMobileSidebarOpen(false)}
-        />
-      )}
+    <div className="min-h-screen bg-ivory flex">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col bg-charcoal text-white shadow-2xl transition-transform duration-200 md:sticky md:top-0 md:z-30 md:h-screen md:shadow-none translate-x-0 ${sidebarOpen ? 'md:w-56' : 'md:w-16'}`} data-mobile-open={mobileSidebarOpen}>
+      <aside className={`${sidebarOpen ? 'w-56' : 'w-16'} bg-charcoal text-white flex flex-col transition-all duration-200 shrink-0`}>
         <div className="p-4 border-b border-white/10 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-forest flex items-center justify-center shrink-0">
             <span className="text-white font-bold text-sm">A</span>
@@ -4301,7 +4190,7 @@ export default function AdminPage() {
             </div>
           )}
         </div>
-        <nav className="flex-1 space-y-3 overflow-y-auto px-2 py-4">
+        <nav className="flex-1 py-4 space-y-3 px-2 overflow-y-auto">
           {SIDEBAR_GROUPS.map((group, gi) => (
             <div key={gi} className="space-y-1">
               {sidebarOpen && group.label && (
@@ -4312,7 +4201,7 @@ export default function AdminPage() {
               {group.items.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => navigateTab(item.id)}
+                  onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
                     activeTab === item.id
                       ? 'bg-forest text-white shadow-lg shadow-forest/20'
@@ -4340,45 +4229,65 @@ export default function AdminPage() {
           {sidebarOpen && <span>Déconnexion</span>}
         </button>
         <button
-          onClick={() => { if (window.innerWidth < 768) setMobileSidebarOpen(false); else setSidebarOpen(!sidebarOpen); }}
-          className="flex items-center justify-center border-t border-white/10 p-3 text-sand/60 transition-colors hover:text-white"
-          aria-label={sidebarOpen ? 'Réduire le menu' : 'Développer le menu'} aria-expanded={sidebarOpen}
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-3 border-t border-white/10 text-sand/60 hover:text-white transition-colors flex items-center justify-center"
         >
-          {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+          <ArrowUpDown className="h-4 w-4" />
         </button>
       </aside>
 
       {/* Main Content */}
-      <main className="min-w-0 flex-1 overflow-y-auto px-4 pb-6 pt-20 sm:px-6 md:p-6 lg:p-8">
+      <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
         {activeTab === 'dashboard' && (
           <DashboardTab
             stats={stats}
             leads={leads}
             projects={projects}
             apartments={apartments}
-            onNavigate={(tab) => navigateTab(tab)}
+            onNavigate={(tab) => setActiveTab(tab)}
             onCreateProject={() => setShowCreateProject(true)}
             onCreateApartment={() => setShowCreateApartment(true)}
           />
         )}
         {activeTab === 'projects' && (
-          <section data-admin-domain="site-operations" aria-label="Gestion du site">
-            <AdminProjectsWorkspace />
-          </section>
+          <ProjectsTab
+            projects={projects}
+            isLoading={projectsQuery.isLoading}
+            onEdit={setEditProject}
+            onCreate={() => setShowCreateProject(true)}
+          />
         )}
         {activeTab === 'apartments' && (
-          <AdminApartmentsWorkspace />
+          <ApartmentsTab
+            apartments={apartments}
+            projects={projects}
+            isLoading={apartmentsQuery.isLoading}
+            projectFilter={projectFilter}
+            statusFilter={statusFilter}
+            typeFilter={typeFilter}
+            onProjectFilterChange={setProjectFilter}
+            onStatusFilterChange={setStatusFilter}
+            onTypeFilterChange={setTypeFilter}
+            onEdit={setEditApartment}
+            onCreate={() => setShowCreateApartment(true)}
+          />
         )}
         {activeTab === 'buildings' && (
-          <AdminBuildingsWorkspace />
+          <BuildingsTab
+            buildings={buildingsQuery.data ?? []}
+            isLoading={buildingsQuery.isLoading}
+          />
         )}
         {activeTab === 'media' && (
           <MediaTab projects={projects} apartments={apartments} />
         )}
         {activeTab === 'leads' && (
-          <section data-admin-domain="customer-operations" aria-label="Gestion des clients">
-            <AdminLeadsPremiumWorkspace />
-          </section>
+          <LeadsTab
+            leads={leads}
+            isLoading={leadsQuery.isLoading}
+            leadStatusFilter={leadStatusFilter}
+            onStatusFilterChange={setLeadStatusFilter}
+          />
         )}
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'audit' && <AuditLogTab />}
