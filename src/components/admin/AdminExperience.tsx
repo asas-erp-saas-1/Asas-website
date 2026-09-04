@@ -38,15 +38,7 @@ export function AdminExperience({ children }: AdminExperienceProps) {
     };
   }, []);
 
-  const content = section === 'apartments'
-    ? <AdminApartmentsWorkspace />
-    : section === 'projects'
-      ? <AdminProjectsWorkspace />
-      : section === 'leads'
-        ? <AdminLeadsPremiumWorkspace />
-        : section === 'buildings'
-          ? <AdminBuildingsWorkspace />
-          : children ?? <AdminPage />;
+  const content = children ?? <AdminPage />;
 
   return (
     <div className="admin-workspace" data-admin-workspace="true">
