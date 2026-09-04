@@ -42,7 +42,7 @@ export function AdminExperience({ children }: AdminExperienceProps) {
 
   return (
     <div className="admin-workspace" data-admin-workspace="true">
-      <AdminWorkspaceAssist />
+      <AdminWorkspaceAssist activeTab={section} />
       <AdminOperationStatus />
       <a className="admin-skip-link" href="#admin-workspace-content">Aller directement au contenu d’administration</a>
       <div id="admin-workspace-content" tabIndex={-1} role="region" aria-label="Espace d’administration ASAS">
