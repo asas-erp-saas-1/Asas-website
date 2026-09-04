@@ -26,6 +26,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/constants';
 import { adminRouteHref, getAdminRoute, type AdminWorkspaceId } from '@/lib/admin-route';
+import { getAdminDomain } from '@/lib/admin-information-architecture';
 import AdminApartmentsWorkspace from '@/components/admin/AdminApartmentsWorkspace';
 import AdminProjectsWorkspace from '@/components/admin/AdminProjectsWorkspace';
 import AdminLeadsPremiumWorkspace from '@/components/admin/AdminLeadsPremiumWorkspace';
@@ -189,6 +190,8 @@ function StatusBadge({ status }: { status: string }) {
     LOST: { label: 'Perdu', className: 'bg-red-100 text-red-800 border-red-200' },
   };
   const c = config[status] ?? { label: status, className: 'bg-gray-100 text-gray-600 border-gray-200' };
+  const activeDomain = getAdminDomain(activeTab);
+
   return (
     <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${c.className}`}>
       {c.label}
@@ -4360,7 +4363,9 @@ export default function AdminPage() {
           />
         )}
         {activeTab === 'projects' && (
-          <AdminProjectsWorkspace />
+          <section data-admin-domain="site-operations" aria-label="Gestion du site">
+            <AdminProjectsWorkspace />
+          </section>
         )}
         {activeTab === 'apartments' && (
           <AdminApartmentsWorkspace />
@@ -4372,7 +4377,9 @@ export default function AdminPage() {
           <MediaTab projects={projects} apartments={apartments} />
         )}
         {activeTab === 'leads' && (
-          <AdminLeadsPremiumWorkspace />
+          <section data-admin-domain="customer-operations" aria-label="Gestion des clients">
+            <AdminLeadsPremiumWorkspace />
+          </section>
         )}
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'audit' && <AuditLogTab />}
