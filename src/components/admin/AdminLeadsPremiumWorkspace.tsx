@@ -78,6 +78,7 @@ export function AdminLeadsPremiumWorkspace() {
   const [meta, setMeta] = useState<LeadMeta>({ page: 1, limit: 20, total: 0, totalPages: 1 });
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [intent, setIntent] = useState('all');
   const [source, setSource] = useState('');
