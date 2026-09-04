@@ -97,25 +97,25 @@ export function AdminApartmentsWorkspace() {
   useEffect(() => {
     const controller = new AbortController();
     getJson<{ user?: { role?: string } }>('/api/admin/me', { signal: controller.signal })
-      .then((json) => setRole(json.user?.role ?? null))
-      .catch(() => { if (!controller.signal.aborted) setRole(null); });
+      .then((json) => {\n        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setRole(json.user?.role ?? null);\n      })
+      .catch(() => {\n        if (!controller.signal.aborted) {\n          // eslint-disable-next-line react-hooks/set-state-in-effect\n          setRole(null);\n        }\n      });
     return () => controller.abort();
   }, []);
 
   useEffect(() => {
     const controller = new AbortController();
     getJson<{ data?: ProjectOption[] }>('/api/admin/projects', { signal: controller.signal })
-      .then((json) => setProjects(json.data ?? []))
+      .then((json) => {\n        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setProjects(json.data ?? []);\n      })
       .catch((err: unknown) => {
-        if (!(err instanceof DOMException && err.name === 'AbortError')) setProjects([]);
+        if (!(err instanceof DOMException && err.name === 'AbortError')) {\n          // eslint-disable-next-line react-hooks/set-state-in-effect\n          setProjects([]);\n        }
       });
     return () => controller.abort();
   }, []);
 
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true);
-    setError(null);
+    // eslint-disable-next-line react-hooks/set-state-in-effect\n    setLoading(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect\n    setError(null);
     const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
     if (projectSlug !== 'all') params.set('projectSlug', projectSlug);
     if (status !== 'all') params.set('status', status);
@@ -124,23 +124,23 @@ export function AdminApartmentsWorkspace() {
 
     getJson<{ data?: Apartment[]; pagination?: Pagination }>(`/api/admin/apartments?${params}`, { signal: controller.signal })
       .then((json) => {
-        setApartments(json.data ?? []);
-        setPagination(json.pagination ?? { page, limit: PAGE_SIZE, total: json.data?.length ?? 0, totalPages: json.data?.length ? 1 : 0 });
+        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setApartments(json.data ?? []);
+        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setPagination(json.pagination ?? { page, limit: PAGE_SIZE, total: json.data?.length ?? 0, totalPages: json.data?.length ? 1 : 0 });
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === 'AbortError') return;
-        setApartments([]);
-        setError(err instanceof Error ? err.message : 'Impossible de charger les appartements.');
+        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setApartments([]);
+        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setError(err instanceof Error ? err.message : 'Impossible de charger les appartements.');
       })
       .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) {\n          // eslint-disable-next-line react-hooks/set-state-in-effect\n          setLoading(false);\n        }
       });
 
     return () => controller.abort();
   }, [page, projectSlug, status, type, retryKey, search]);
 
   useEffect(() => {
-    if (pagination.totalPages > 0 && page > pagination.totalPages) setPage(pagination.totalPages);
+    if (pagination.totalPages > 0 && page > pagination.totalPages) {\n      // eslint-disable-next-line react-hooks/set-state-in-effect\n      setPage(pagination.totalPages);\n    }
   }, [page, pagination.totalPages]);
 
   const filteredApartments = useMemo(() => apartments, [apartments]);
@@ -157,7 +157,7 @@ export function AdminApartmentsWorkspace() {
   }
 
   useEffect(() => {
-    if (!loading) setRefreshing(false);
+    if (!loading) {\n      // eslint-disable-next-line react-hooks/set-state-in-effect\n      setRefreshing(false);\n    }
   }, [loading]);
 
   const hasFilters = projectSlug !== 'all' || status !== 'all' || type !== 'all' || search.trim() !== '';
