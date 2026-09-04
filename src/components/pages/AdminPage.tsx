@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   LayoutDashboard, Building2, Home, Building, Users, Settings,
   ChevronRight, Eye, EyeOff, Star, StarOff, Trash2, RefreshCw,
-  Plus, Filter, ArrowUpDown, Loader2, Image as ImageIcon, Upload, X, Search,
+  Plus, Filter, ArrowUpDown, Loader2, Image as ImageIcon, Upload, X, Search, Menu, LogOut, PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -4201,8 +4201,29 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-ivory flex">
+      {/* Mobile navigation */}
+      <div className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 shadow-sm backdrop-blur md:hidden">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-forest text-sm font-bold text-white">A</div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold text-charcoal">ASAS Admin</p>
+            <p className="truncate text-[10px] text-muted-foreground">{SIDEBAR_GROUPS.flatMap((group) => group.items).find((item) => item.id === activeTab)?.label ?? 'Tableau de bord'}</p>
+          </div>
+        </div>
+        <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={() => setSidebarOpen(true)} aria-label="Ouvrir le menu d’administration" aria-expanded={sidebarOpen}>
+          <Menu className="h-5 w-5" />
+        </Button>
+      </div>
+      {sidebarOpen && (
+        <button
+          type="button"
+          aria-label="Fermer le menu d’administration"
+          className="fixed inset-0 z-40 bg-charcoal/50 backdrop-blur-[1px] md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-56' : 'w-16'} bg-charcoal text-white flex flex-col transition-all duration-200 shrink-0`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col bg-charcoal text-white shadow-2xl transition-transform duration-200 md:sticky md:top-0 md:z-30 md:h-screen md:shadow-none ${sidebarOpen ? 'translate-x-0 md:w-56' : '-translate-x-full md:w-16'}`}>
         <div className="p-4 border-b border-white/10 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-forest flex items-center justify-center shrink-0">
             <span className="text-white font-bold text-sm">A</span>
@@ -4214,7 +4235,7 @@ export default function AdminPage() {
             </div>
           )}
         </div>
-        <nav className="flex-1 py-4 space-y-3 px-2 overflow-y-auto">
+        <nav className="flex-1 space-y-3 overflow-y-auto px-2 py-4">
           {SIDEBAR_GROUPS.map((group, gi) => (
             <div key={gi} className="space-y-1">
               {sidebarOpen && group.label && (
@@ -4228,6 +4249,7 @@ export default function AdminPage() {
                   onClick={() => {
                     setActiveTab(item.id);
                     window.location.hash = item.id === 'dashboard' ? '#/admin' : `#/admin/${item.id}`;
+                    if (window.innerWidth < 768) setSidebarOpen(false);
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
                     activeTab === item.id
@@ -4257,14 +4279,15 @@ export default function AdminPage() {
         </button>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-3 border-t border-white/10 text-sand/60 hover:text-white transition-colors flex items-center justify-center"
+          className="flex items-center justify-center border-t border-white/10 p-3 text-sand/60 transition-colors hover:text-white"
+          aria-label={sidebarOpen ? 'Réduire le menu' : 'Développer le menu'}
         >
-          <ArrowUpDown className="h-4 w-4" />
+          {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
         </button>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
+      <main className="min-w-0 flex-1 overflow-y-auto px-4 pb-6 pt-20 sm:px-6 md:p-6 lg:p-8">
         {activeTab === 'dashboard' && (
           <DashboardTab
             stats={stats}
