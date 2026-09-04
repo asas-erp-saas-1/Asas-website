@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       }),
       db.apartmentImage.findMany({
         where: apartmentWhere,
-        orderBy: { order: 'asc' },
+        orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
         include: {
           apartment: {
             select: {
