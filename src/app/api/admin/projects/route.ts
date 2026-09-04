@@ -3,21 +3,24 @@ import { db } from '@/lib/db';
 import { withSecurityHeaders } from '@/lib/with-security-headers';
 import { verifyAdminAuth, sessionHasRole } from '@/lib/admin-auth';
 import { logAudit } from '@/lib/audit';
+import { z } from 'zod';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
+const projectQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(MAX_LIMIT).default(DEFAULT_LIMIT),
+  search: z.string().trim().max(200).default(''),
+  status: z.string().trim().default(''),
+});
 
 export async function GET(request: NextRequest) {
   if (!(await verifyAdminAuth(request))) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
   try {
-    const params = request.nextUrl.searchParams;
-    const rawPage = Number(params.get('page') ?? '1');
-    const rawLimit = Number(params.get('limit') ?? String(DEFAULT_LIMIT));
-    const page = Number.isSafeInteger(rawPage) && rawPage >= 1 ? rawPage : 1;
-    const limit = Number.isSafeInteger(rawLimit) && rawLimit >= 1 ? Math.min(MAX_LIMIT, rawLimit) : DEFAULT_LIMIT;
-    const search = params.get('search')?.trim() ?? '';
-    const status = params.get('status')?.trim() ?? '';
+    const parsed = projectQuerySchema.safeParse(Object.fromEntries(request.nextUrl.searchParams.entries()));
+    if (!parsed.success) return withSecurityHeaders(NextResponse.json({ error: 'Paramètres de requête invalides' }, { status: 400 }));
+    const { page, limit, search, status } = parsed.data;
 
     const where = {
       archived: false,
