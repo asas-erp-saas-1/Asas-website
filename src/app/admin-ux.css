@@ -265,7 +265,7 @@ body.admin-mode :focus:not(:focus-visible) {
 
   body.admin-mode .admin-page-shell > main {
     min-width: 0;
-    width: calc(100vw - 4rem);
+    width: 100%;
     padding: 1rem;
   }
 
