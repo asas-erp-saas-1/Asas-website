@@ -1,12 +1,13 @@
 'use client';
 
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Loader2, Mail, Phone, RefreshCw, Search, UserRound, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, Loader2, Mail, Phone, RefreshCw, Search, UserRound, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface Lead {
@@ -26,6 +27,7 @@ interface Lead {
 }
 
 interface LeadMeta { page: number; limit: number; total: number; totalPages: number }
+interface LeadNote { id: string; authorEmail: string; body: string; createdAt: string }
 type StatusRequest = { lead: Lead; nextStatus: string } | null;
 
 const STATUS_OPTIONS = [
@@ -88,6 +90,12 @@ export function AdminLeadsPremiumWorkspace() {
   const [statusRequest, setStatusRequest] = useState<StatusRequest>(null);
   const [mutationBusy, setMutationBusy] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [notesLead, setNotesLead] = useState<Lead | null>(null);
+  const [notes, setNotes] = useState<LeadNote[]>([]);
+  const [noteDraft, setNoteDraft] = useState('');
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [noteSaving, setNoteSaving] = useState(false);
+  const [notesError, setNotesError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -129,6 +137,42 @@ export function AdminLeadsPremiumWorkspace() {
   function clearFilters() { setSearch(''); setStatus('all'); setIntent('all'); setSource(''); resetPage(); }
   function refresh() { setRefreshing(true); setRetryKey((value) => value + 1); }
 
+  async function openNotes(lead: Lead) {
+    setNotesLead(lead);
+    setNotes([]);
+    setNoteDraft('');
+    setNotesError(null);
+    setNotesLoading(true);
+    try {
+      const json = await getJson<{ data?: LeadNote[] }>(`/api/admin/leads/${encodeURIComponent(lead.id)}/notes`);
+      setNotes(json.data ?? []);
+    } catch (err) {
+      setNotesError(err instanceof Error ? err.message : 'Impossible de charger les notes.');
+    } finally {
+      setNotesLoading(false);
+    }
+  }
+
+  async function addNote() {
+    if (!notesLead || !noteDraft.trim()) return;
+    setNoteSaving(true);
+    setNotesError(null);
+    try {
+      const json = await getJson<{ data?: LeadNote }>(`/api/admin/leads/${encodeURIComponent(notesLead.id)}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: noteDraft.trim() }),
+      });
+      if (json.data) setNotes((current) => [json.data!, ...current]);
+      setNoteDraft('');
+      setFeedback({ type: 'success', text: `Note ajoutée à « ${notesLead.name} ».` });
+    } catch (err) {
+      setNotesError(err instanceof Error ? err.message : 'Impossible d’ajouter la note.');
+    } finally {
+      setNoteSaving(false);
+    }
+  }
+
   async function updateStatus() {
     if (!statusRequest) return;
     const request = statusRequest;
@@ -143,7 +187,7 @@ export function AdminLeadsPremiumWorkspace() {
       setFeedback({ type: 'success', text: `« ${request.lead.name} » est maintenant « ${labelOf(STATUS_OPTIONS, request.nextStatus)} ».` });
       setStatusRequest(null);
       setSelectedLead((current) => current ? { ...current, status: request.nextStatus } : current);
-      setLeads((current) => current.map((lead) => lead.id === request.lead.id ? { ...lead, status: request.nextStatus } : lead));
+      setRetryKey((value) => value + 1);
     } catch (err) {
       setFeedback({ type: 'error', text: err instanceof Error ? err.message : 'La mise à jour a échoué.' });
     } finally { setMutationBusy(false); }
@@ -183,11 +227,13 @@ export function AdminLeadsPremiumWorkspace() {
           <TableCell><div className="min-w-[140px]">{lead.projectName ?? lead.apartmentName ?? '—'}{lead.projectName && lead.apartmentName && <div className="text-xs text-muted-foreground">{lead.apartmentName}</div>}</div></TableCell>
           <TableCell className="text-sm">{lead.source ?? '—'}</TableCell>
           <TableCell><select aria-label={`Statut de ${lead.name}`} value={lead.status} onChange={(event) => { if (event.target.value !== lead.status) setStatusRequest({ lead, nextStatus: event.target.value }); }} disabled={mutationBusy} className="h-9 rounded-md border border-input bg-background px-2 text-sm">{STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></TableCell>
-          <TableCell className="whitespace-nowrap text-sm">{formatDate(lead.createdAt)}</TableCell><TableCell className="text-right"><Button variant="outline" size="sm" onClick={() => setSelectedLead(lead)}>Détails</Button></TableCell>
+          <TableCell className="whitespace-nowrap text-sm">{formatDate(lead.createdAt)}</TableCell><TableCell className="text-right"><div className="flex justify-end gap-1"><Button variant="outline" size="sm" onClick={() => setSelectedLead(lead)}>Détails</Button><Button variant="ghost" size="sm" className="gap-1" onClick={() => openNotes(lead)} aria-label={`Notes de ${lead.name}`}><FileText className="h-4 w-4" /><span className="sr-only">Notes</span></Button></div></TableCell>
         </TableRow>)}</TableBody></Table></div><div className="flex flex-col gap-3 border-t p-3 sm:flex-row sm:items-center sm:justify-between"><span className="text-xs text-muted-foreground">Page {meta.page} sur {meta.totalPages}</span><nav aria-label="Pagination des leads" className="flex items-center gap-1"><Button variant="outline" size="sm" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={loading || page <= 1} aria-label="Page précédente" className="gap-1"><ChevronLeft className="h-4 w-4" /> Précédente</Button><Button variant="outline" size="sm" onClick={() => setPage((value) => Math.min(meta.totalPages, value + 1))} disabled={loading || page >= meta.totalPages} aria-label="Page suivante" className="gap-1">Suivante <ChevronRight className="h-4 w-4" /></Button></nav></div></Card>}
       </div>
 
       <Dialog open={selectedLead !== null} onOpenChange={(open) => { if (!open) setSelectedLead(null); }}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl"><DialogHeader><DialogTitle>Détails du lead{selectedLead ? ` — ${selectedLead.name}` : ''}</DialogTitle><DialogDescription>Contexte commercial et coordonnées disponibles pour traiter le prospect.</DialogDescription></DialogHeader>{selectedLead && <div className="grid gap-4 text-sm"><div className="flex flex-wrap gap-2"><Badge variant="secondary">{labelOf(STATUS_OPTIONS, selectedLead.status)}</Badge><Badge variant="outline">{labelOf(INTENT_OPTIONS, selectedLead.intent)}</Badge></div><div className="grid gap-3 sm:grid-cols-2"><div><p className="text-xs font-medium text-muted-foreground">Téléphone</p><a className="inline-flex min-h-11 items-center gap-2 hover:underline" href={`tel:${selectedLead.phone}`}><Phone className="h-4 w-4" />{selectedLead.phone}</a></div><div><p className="text-xs font-medium text-muted-foreground">Email</p>{selectedLead.email ? <a className="inline-flex min-h-11 items-center gap-2 break-all hover:underline" href={`mailto:${selectedLead.email}`}><Mail className="h-4 w-4" />{selectedLead.email}</a> : <p className="mt-2">—</p>}</div><div><p className="text-xs font-medium text-muted-foreground">Projet</p><p className="mt-1">{selectedLead.projectName ?? '—'}</p></div><div><p className="text-xs font-medium text-muted-foreground">Lot / appartement</p><p className="mt-1">{selectedLead.apartmentName ?? '—'}</p></div><div><p className="text-xs font-medium text-muted-foreground">Source</p><p className="mt-1">{selectedLead.source ?? '—'}</p></div><div><p className="text-xs font-medium text-muted-foreground">Assigné à</p><p className="mt-1">{selectedLead.assignedTo ?? 'Non assigné'}</p></div><div><p className="text-xs font-medium text-muted-foreground">Prochain suivi</p><p className="mt-1">{formatDate(selectedLead.followUpDate)}</p></div><div><p className="text-xs font-medium text-muted-foreground">Créé le</p><p className="mt-1">{formatDateTime(selectedLead.createdAt)}</p></div></div><div className="rounded-md border bg-muted/20 p-3"><p className="mb-1 text-xs font-medium text-muted-foreground">Message</p><p className="whitespace-pre-wrap leading-6">{selectedLead.message?.trim() || 'Aucun message fourni.'}</p></div></div>}<DialogFooter>{selectedLead && <Button variant="outline" onClick={() => openStatusForLead(selectedLead)}>Changer le statut</Button>}<Button variant="outline" onClick={() => setSelectedLead(null)}>Fermer</Button></DialogFooter></DialogContent></Dialog>
+
+      <Dialog open={notesLead !== null} onOpenChange={(open) => { if (!open && !noteSaving) setNotesLead(null); }}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl"><DialogHeader><DialogTitle>Notes — {notesLead?.name ?? ''}</DialogTitle><DialogDescription>Notes internes de suivi commercial. Elles ne sont jamais publiées sur le site.</DialogDescription></DialogHeader><div className="space-y-4"><div className="space-y-2"><label htmlFor="lead-note" className="text-sm font-medium">Ajouter une note</label><Textarea id="lead-note" value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} placeholder="Compte rendu d’appel, prochaine action, objection, rendez-vous…" rows={4} disabled={noteSaving} /><div className="flex justify-end"><Button onClick={addNote} disabled={noteSaving || !noteDraft.trim()} className="gap-2">{noteSaving && <Loader2 className="h-4 w-4 animate-spin" />} Ajouter la note</Button></div></div>{notesError && <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{notesError}</div>}<div className="space-y-3"><div className="flex items-center justify-between"><h3 className="text-sm font-semibold">Historique</h3>{notesLoading && <Loader2 className="h-4 w-4 animate-spin" aria-label="Chargement" />}</div>{!notesLoading && notes.length === 0 ? <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">Aucune note pour le moment.</p> : <div className="space-y-3">{notes.map((note) => <article key={note.id} className="rounded-lg border bg-muted/20 p-3"><div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground"><span>{note.authorEmail}</span><time dateTime={note.createdAt}>{formatDateTime(note.createdAt)}</time></div><p className="whitespace-pre-wrap text-sm leading-6">{note.body}</p></article>)}</div>}</div></div><DialogFooter><Button variant="outline" onClick={() => setNotesLead(null)} disabled={noteSaving}>Fermer</Button></DialogFooter></DialogContent></Dialog>
 
       <Dialog open={statusRequest !== null} onOpenChange={(open) => { if (!open && !mutationBusy) setStatusRequest(null); }}><DialogContent className="sm:max-w-md"><DialogHeader><DialogTitle>Mettre à jour le statut</DialogTitle><DialogDescription>{statusRequest ? `Choisissez le nouveau statut de « ${statusRequest.lead.name} ».` : 'Choisissez un nouveau statut.'}</DialogDescription></DialogHeader>{statusRequest && <label className="space-y-2 text-sm font-medium"><span>Nouveau statut</span><select autoFocus value={statusRequest.nextStatus} onChange={(event) => setStatusRequest((current) => current ? { ...current, nextStatus: event.target.value } : current)} disabled={mutationBusy} className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">{STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>}<DialogFooter><Button variant="outline" onClick={() => setStatusRequest(null)} disabled={mutationBusy}>Annuler</Button><Button onClick={updateStatus} disabled={mutationBusy || !statusRequest || statusRequest.nextStatus === statusRequest.lead.status} className="gap-2">{mutationBusy && <Loader2 className="h-4 w-4 animate-spin" />} Enregistrer</Button></DialogFooter></DialogContent></Dialog>
     </section>
