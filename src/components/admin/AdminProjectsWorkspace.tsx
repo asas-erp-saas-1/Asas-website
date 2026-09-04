@@ -85,14 +85,14 @@ export function AdminProjectsWorkspace() {
         setProjects([]);
         setError(err instanceof Error ? err.message : 'Impossible de charger les projets.');
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [page, search, status, retryKey]);
 
   useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
 
   useEffect(() => {
-    if (meta.totalPages > 1 && page > meta.totalPages) setPage(meta.totalPages);
+    if (meta.totalPages > 0 && page > meta.totalPages) setPage(meta.totalPages);
   }, [meta.totalPages, page]);
 
   const normalizedSearch = search.trim();
@@ -132,7 +132,7 @@ export function AdminProjectsWorkspace() {
       <div className="mx-auto max-w-[1400px] space-y-5">
         <header className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest">Catalogue</p><h1 id="projects-workspace-title" className="text-2xl font-bold text-charcoal sm:text-3xl">Projets</h1><p className="mt-1 text-sm text-muted-foreground">Vue opérationnelle du portefeuille immobilier avec recherche, pagination et actions sécurisées.</p></div>
-          <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => { window.location.hash = '#admin'; }} className="gap-2"><ChevronLeft className="h-4 w-4" /> Retour au tableau de bord</Button><Button variant="outline" size="sm" onClick={refresh} disabled={loading || refreshing} className="gap-2" aria-label="Actualiser les projets"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Actualiser</Button></div>
+          <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => { window.location.hash = '#/admin'; }} className="gap-2"><ChevronLeft className="h-4 w-4" /> Retour au tableau de bord</Button><Button variant="outline" size="sm" onClick={refresh} disabled={loading || refreshing} className="gap-2" aria-label="Actualiser les projets"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Actualiser</Button></div>
         </header>
 
         {mutationError && <div role="alert" className="flex flex-col gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 sm:flex-row sm:items-center sm:justify-between"><span>{mutationError}</span><Button variant="outline" size="sm" onClick={() => setMutationError(null)}>Fermer</Button></div>}
