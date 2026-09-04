@@ -4194,7 +4194,7 @@ export default function AdminPage() {
   const projectsQuery = useQuery({
     queryKey: ['admin', 'projects'],
     queryFn: fetchAdminProjects,
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && (activeTab === 'dashboard' || activeTab === 'media'),
   });
 
   const apartmentsQuery = useQuery({
@@ -4204,19 +4204,19 @@ export default function AdminPage() {
       status: statusFilter !== 'all' ? statusFilter : undefined,
       type: typeFilter !== 'all' ? typeFilter : undefined,
     }),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && (activeTab === 'dashboard' || activeTab === 'media'),
   });
 
   const buildingsQuery = useQuery({
     queryKey: ['admin', 'buildings'],
     queryFn: fetchAdminBuildings,
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && activeTab === 'dashboard',
   });
 
   const leadsQuery = useQuery({
     queryKey: ['admin', 'leads', leadStatusFilter],
     queryFn: () => fetchAdminLeads(leadStatusFilter !== 'all' ? leadStatusFilter : undefined),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && activeTab === 'dashboard',
   });
 
   // Dashboard KPIs come from database aggregates, never from paginated/list datasets.
@@ -4255,12 +4255,6 @@ export default function AdminPage() {
     newLeadsCount: 0,
     intentBreakdown: {},
   };
-
-  const activeLoading = activeTab === 'projects' ? projectsQuery.isLoading
-    : activeTab === 'apartments' ? apartmentsQuery.isLoading
-    : activeTab === 'buildings' ? buildingsQuery.isLoading
-    : activeTab === 'leads' ? leadsQuery.isLoading
-    : false;
 
   /* ─── Render ─── */
 
