@@ -87,20 +87,12 @@ export default function AdminBuildingsWorkspace() {
 
     (async () => {
       try {
-        const first = await getJson<{ data?: Project[]; meta?: { totalPages?: number } }>(
-          '/api/admin/projects?limit=100&page=1',
+        const first = await getJson<{ data?: Project[] }>(
+          '/api/admin/projects?limit=100&status=all',
           { signal: controller.signal },
         );
-        const pages = Math.max(1, first.meta?.totalPages ?? 1);
         const all = [...(first.data ?? [])];
 
-        for (let page = 2; page <= pages; page += 1) {
-          const next = await getJson<{ data?: Project[] }>(
-            `/api/admin/projects?limit=100&page=${page}`,
-            { signal: controller.signal },
-          );
-          all.push(...(next.data ?? []));
-        }
         if (!controller.signal.aborted) setProjects(all);
       } catch (err: unknown) {
         if (controller.signal.aborted) return;
