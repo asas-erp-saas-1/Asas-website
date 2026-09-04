@@ -189,7 +189,7 @@ export function AdminApartmentsWorkspace() {
   const mutationBusy = pendingAction !== null && mutationError === null && mutationSuccess === null;
 
   return (
-    <section className="admin-apartments-workspace min-h-screen bg-ivory p-4 sm:p-6 lg:p-8" aria-labelledby="apartments-workspace-title">
+    <section className="admin-apartments-workspace w-full" aria-labelledby="apartments-workspace-title">
       <div className="mx-auto max-w-[1400px] space-y-5">
         <header className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
