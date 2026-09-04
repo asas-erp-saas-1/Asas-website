@@ -10,7 +10,7 @@ export function AdminOperationStatus() {
 
   return (
     <div
-      className="fixed bottom-3 right-3 z-[90] flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-medium shadow-lg backdrop-blur"
+      className="pointer-events-none fixed bottom-3 right-3 z-[90] flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-medium shadow-lg backdrop-blur"
       role="status"
       aria-live="polite"
       aria-atomic="true"
