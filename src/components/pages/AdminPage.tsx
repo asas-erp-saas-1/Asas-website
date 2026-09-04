@@ -4115,8 +4115,8 @@ export default function AdminPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     if (typeof window === 'undefined') return 'dashboard';
-    const hash = window.location.hash.replace(/^#\\/?/, '');
-    const match = hash.match(/^admin(?:\\/([^/]+))?/i);
+    const hash = window.location.hash.replace(/^#\/?/, '');
+    const match = hash.match(/^admin(?:\/([^/]+))?/i);
     const candidate = match?.[1]?.toLowerCase();
     return candidate && SIDEBAR_ITEMS.some((item) => item.id === candidate) ? candidate as TabId : 'dashboard';
   });
