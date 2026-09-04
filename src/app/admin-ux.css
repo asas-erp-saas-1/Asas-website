@@ -34,7 +34,7 @@ body.admin-mode .admin-workspace {
   min-height: 100dvh;
 }
 
-body.admin-mode .admin-workspace > main {
+body.admin-mode .admin-page-shell > main {
   min-width: 0;
 }
 
@@ -45,14 +45,14 @@ body.admin-mode [data-admin-operation-status='true'] {
 }
 
 @media (min-width: 768px) {
-  body.admin-mode .admin-workspace > aside {
+  body.admin-mode .admin-page-shell > aside {
     position: sticky;
     top: 0;
     height: 100dvh;
     max-height: 100dvh;
   }
 
-  body.admin-mode .admin-workspace > aside nav {
+  body.admin-mode .admin-page-shell > aside nav {
     scrollbar-width: thin;
     scrollbar-color: oklch(1 0 0 / 18%) transparent;
   }
@@ -222,7 +222,7 @@ body.admin-mode :focus:not(:focus-visible) {
     overflow-x: hidden;
   }
 
-  body.admin-mode .admin-workspace > aside {
+  body.admin-mode .admin-page-shell > aside {
     transform: translateX(-100%);
     width: 18rem !important;
     min-width: 18rem !important;
@@ -232,38 +232,38 @@ body.admin-mode :focus:not(:focus-visible) {
     max-height: 100dvh;
   }
 
-  body.admin-mode .admin-workspace > aside[data-mobile-open='true'] {
+  body.admin-mode .admin-page-shell > aside[data-mobile-open='true'] {
     transform: translateX(0);
   }
 
-  body.admin-mode .admin-workspace > aside > div:first-child {
+  body.admin-mode .admin-page-shell > aside > div:first-child {
     justify-content: flex-start;
     padding-inline: 1rem;
   }
 
-  body.admin-mode .admin-workspace > aside nav button {
+  body.admin-mode .admin-page-shell > aside nav button {
     justify-content: flex-start;
   }
 
-  body.admin-mode .admin-workspace > aside nav button span,
-  body.admin-mode .admin-workspace > aside nav p {
+  body.admin-mode .admin-page-shell > aside nav button span,
+  body.admin-mode .admin-page-shell > aside nav p {
     display: inline;
   }
 
-  body.admin-mode .admin-workspace > aside nav {
+  body.admin-mode .admin-page-shell > aside nav {
     padding-inline: 0.45rem;
   }
 
-  body.admin-mode .admin-workspace > aside nav button {
+  body.admin-mode .admin-page-shell > aside nav button {
     justify-content: flex-start;
     padding-inline: 0.75rem;
   }
 
-  body.admin-mode .admin-workspace > aside > button {
+  body.admin-mode .admin-page-shell > aside > button {
     padding-inline: 0.75rem;
   }
 
-  body.admin-mode .admin-workspace > main {
+  body.admin-mode .admin-page-shell > main {
     min-width: 0;
     width: calc(100vw - 4rem);
     padding: 1rem;
