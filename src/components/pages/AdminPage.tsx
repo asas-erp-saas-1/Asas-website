@@ -691,7 +691,8 @@ function ProjectsTab({
       ) : (
         <Card>
           <CardContent className="p-0">
-            <Table>
+            <div className="overflow-x-auto">
+            <Table className="min-w-[900px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Projet</TableHead>
@@ -721,6 +722,8 @@ function ProjectsTab({
                     <TableCell><StatusBadge status={project.status} /></TableCell>
                     <TableCell>
                       <button
+                        type="button"
+                        disabled={togglePublished.isPending || archive.isPending}
                         onClick={() => togglePublished.mutate({ slug: project.slug, published: !project.published })}
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${
                           project.published
@@ -735,7 +738,7 @@ function ProjectsTab({
                     </TableCell>
                     <TableCell className="text-center text-sm font-medium">{project.apartmentCount}</TableCell>
                     <TableCell>
-                      <button onClick={() => toggleFeatured.mutate({ slug: project.slug, featured: !project.featured })} className="text-muted-foreground hover:text-amber-500 transition-colors" title={project.featured ? 'Retirer des favoris' : 'Mettre en avant'}>
+                      <button type="button" disabled={toggleFeatured.isPending || archive.isPending} onClick={() => toggleFeatured.mutate({ slug: project.slug, featured: !project.featured })} className="text-muted-foreground hover:text-amber-500 transition-colors" title={project.featured ? 'Retirer des favoris' : 'Mettre en avant'}>
                         {project.featured ? <Star className="h-4 w-4 text-amber-500 fill-amber-500" /> : <StarOff className="h-4 w-4" />}
                       </button>
                     </TableCell>
@@ -747,9 +750,10 @@ function ProjectsTab({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => window.open(`/#/projects/${project.slug}`, '_blank')}
-                          className="h-7 px-2"
+                          onClick={() => window.open(`/#/projects/${project.slug}`, '_blank', 'noopener,noreferrer')}
+                          className="h-9 w-9 px-0"
                           title="Aperçu sur le site"
+                          aria-label={`Aperçu de ${project.name} sur le site`}
                         >
                           <Eye className="h-3.5 w-3.5" />
                         </Button>
@@ -761,6 +765,7 @@ function ProjectsTab({
                 ))}
               </TableBody>
             </Table>
+            </div>
           </CardContent>
         </Card>
       )}
