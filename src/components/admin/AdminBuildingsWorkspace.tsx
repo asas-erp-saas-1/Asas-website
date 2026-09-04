@@ -76,6 +76,8 @@ export default function AdminBuildingsWorkspace() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [projectError, setProjectError] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [roleError, setRoleError] = useState<string | null>(null);
+  const [roleRetryKey, setRoleRetryKey] = useState(0);
   const [projectRetryKey, setProjectRetryKey] = useState(0);
 
   useEffect(() => {
@@ -106,12 +108,18 @@ export default function AdminBuildingsWorkspace() {
       }
     })();
 
+    setRoleError(null);
     getJson<{ user?: { role?: string } }>('/api/admin/me', { signal: controller.signal })
-      .then((json) => setRole(json.user?.role ?? null))
-      .catch(() => { if (!controller.signal.aborted) setRole(null); });
+      .then((json) => { if (!controller.signal.aborted) setRole(json.user?.role ?? null); })
+      .catch((err: unknown) => {
+        if (!controller.signal.aborted) {
+          setRole(null);
+          setRoleError(err instanceof Error ? err.message : 'Impossible de vérifier vos privilèges.');
+        }
+      });
 
     return () => controller.abort();
-  }, [projectRetryKey]);
+  }, [roleRetryKey]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -154,7 +162,7 @@ export default function AdminBuildingsWorkspace() {
     const floors = Number(form.floors);
     const order = Number(form.order);
     if (!form.projectId || !name || !code || !Number.isInteger(floors) || floors < 1 || !Number.isInteger(order)) {
-      setCreateError('Projet, nom, code et nombre d’étages valide sont obligatoires.');
+      setCreateError('Projet, nom, code, nombre d’étages valide et ordre entier sont obligatoires.');
       return;
     }
 
@@ -195,6 +203,8 @@ export default function AdminBuildingsWorkspace() {
         {feedback && <div role={feedback.type === 'error' ? 'alert' : 'status'} className="flex flex-col gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 sm:flex-row sm:items-center sm:justify-between"><span>{feedback.text}</span><Button variant="outline" size="sm" onClick={() => setFeedback(null)}>Fermer</Button></div>}
 
         <Card><CardHeader className="pb-3"><div className="flex items-center justify-between gap-3"><CardTitle className="flex items-center gap-2 text-base"><Search className="h-4 w-4" /> Recherche et filtres</CardTitle>{hasFilters && <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2">Effacer</Button>}</div></CardHeader><CardContent><div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1.5 text-sm font-medium"><span>Recherche</span><Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Nom, code, slug ou projet…" /></label><label className="space-y-1.5 text-sm font-medium"><span>Projet</span>{projectError && <span role="alert" className="block text-xs font-normal text-red-700">{projectError} <button type="button" className="underline" onClick={() => setProjectRetryKey((value) => value + 1)}>Réessayer</button></span>}<select value={projectId} onChange={(event) => { setProjectId(event.target.value); setPage(1); }} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="all">Tous les projets</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label></div></CardContent></Card>
+
+        {roleError && <div role="alert" className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><span>Vérification des privilèges impossible. La création reste désactivée jusqu’à confirmation de votre rôle.</span><Button variant="outline" size="sm" onClick={() => setRoleRetryKey((value) => value + 1)}>Réessayer</Button></div>}
 
         <div aria-live="polite" className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground"><span>{meta.total > 0 ? `${firstResult.toLocaleString('fr-FR')}–${lastResult.toLocaleString('fr-FR')} sur ${meta.total.toLocaleString('fr-FR')} bâtiment${meta.total > 1 ? 's' : ''}` : '0 bâtiment'}</span>{loading && <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Chargement…</span>}</div>
 
