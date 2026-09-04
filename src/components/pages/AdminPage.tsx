@@ -4149,9 +4149,6 @@ export default function AdminPage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (window.innerWidth < 768) setSidebarOpen(false);
-  }, []);
 
   // Filter state
   const [projectFilter, setProjectFilter] = useState<string>('all');
