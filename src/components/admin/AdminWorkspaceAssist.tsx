@@ -33,11 +33,11 @@ function getActiveTab(): string {
  * It deliberately stays independent from AdminPage's data/mutation state so
  * it can improve the legacy admin experience without changing API contracts.
  */
-export function AdminWorkspaceAssist() {
-  const [activeTab, setActiveTab] = useState(getActiveTab);
+export function AdminWorkspaceAssist({ activeTab }: { activeTab?: string }) {
+  const [routeTab, setRouteTab] = useState(getActiveTab);
 
   useEffect(() => {
-    const sync = () => setActiveTab(getActiveTab());
+    const sync = () => setRouteTab(getActiveTab());
 
     window.addEventListener('hashchange', sync);
     window.addEventListener('popstate', sync);
@@ -50,12 +50,13 @@ export function AdminWorkspaceAssist() {
   }, []);
 
   useEffect(() => {
-    const label = TAB_LABELS[activeTab] ?? TAB_LABELS.dashboard;
+    const currentTab = activeTab && TAB_LABELS[activeTab] ? activeTab : routeTab;
+    const label = TAB_LABELS[currentTab] ?? TAB_LABELS.dashboard;
     const previousTitle = document.title;
     const previousHtmlSection = document.documentElement.dataset.adminSection;
 
     document.title = `${label} — ASAS Administration`;
-    document.documentElement.dataset.adminSection = activeTab;
+    document.documentElement.dataset.adminSection = currentTab;
 
     return () => {
       document.title = previousTitle;
@@ -65,9 +66,10 @@ export function AdminWorkspaceAssist() {
         delete document.documentElement.dataset.adminSection;
       }
     };
-  }, [activeTab]);
+  }, [activeTab, routeTab]);
 
-  const label = TAB_LABELS[activeTab] ?? TAB_LABELS.dashboard;
+  const currentTab = activeTab && TAB_LABELS[activeTab] ? activeTab : routeTab;
+  const label = TAB_LABELS[currentTab] ?? TAB_LABELS.dashboard;
 
   return (
     <div
