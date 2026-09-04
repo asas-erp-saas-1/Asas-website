@@ -3095,12 +3095,14 @@ function ProjectCreateForm({ onClose }: { onClose: () => void }) {
   const [deliveryYear, setDeliveryYear] = useState(String(new Date().getFullYear() + 1));
   const [deliveryQuarter, setDeliveryQuarter] = useState('Q4');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const slug = useMemo(() => slugify(name), [name]);
   // Smart auto-fill is handled in onChange handlers, not useEffect (to avoid lint warnings)
 
   const save = async () => {
-    if (!name || !district) { alert('Nom et quartier requis'); return; }
+    if (!name.trim() || !district.trim()) { setError('Le nom du projet et le quartier sont obligatoires.'); return; }
     setSaving(true);
+    setError(null);
     try {
       const res = await fetch('/api/admin/projects', {
         method: 'POST',
@@ -3122,10 +3124,10 @@ function ProjectCreateForm({ onClose }: { onClose: () => void }) {
         onClose();
       } else {
         const err = await res.json();
-        alert(err.error ?? 'Failed to create project');
+        setError(err.error ?? 'Impossible de créer le projet.');
       }
     } catch {
-      alert('Failed to create project');
+      setError('Impossible de créer le projet. Vérifiez votre connexion puis réessayez.');
     }
     setSaving(false);
   };
@@ -3230,9 +3232,10 @@ function ProjectCreateForm({ onClose }: { onClose: () => void }) {
         Complétez les détails via le formulaire d'édition (6 onglets) puis publiez.
       </p>
 
+      {error && <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
       <DialogFooter>
-        <Button variant="outline" onClick={onClose}>Annuler</Button>
-        <Button onClick={save} disabled={saving || !name || !district} className="bg-forest hover:bg-forest/90">
+        <Button variant="outline" onClick={onClose} disabled={saving}>Annuler</Button>
+        <Button onClick={save} disabled={saving || !name.trim() || !district.trim()} className="bg-forest hover:bg-forest/90">
           {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />} Créer le projet
         </Button>
       </DialogFooter>
@@ -3833,6 +3836,7 @@ function ApartmentCreateForm({ projects, onClose }: { projects: AdminProject[]; 
   const [floor, setFloor] = useState('1');
   const [status, setStatus] = useState('AVAILABLE');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const slug = useMemo(() => slugify(`${typeName}-${surface || ''}`), [typeName, surface]);
 
   // Smart defaults: when type changes, auto-fill bedrooms + typeName + suggested surface
@@ -3873,8 +3877,9 @@ function ApartmentCreateForm({ projects, onClose }: { projects: AdminProject[]; 
   const pricePerM2 = price && surface ? Math.round(parseInt(price, 10) / parseInt(surface, 10)) : null;
 
   const save = async () => {
-    if (!projectId || !typeName || !surface) { alert('Projet, nom type et surface requis'); return; }
+    if (!projectId || !typeName.trim() || !surface || Number(surface) <= 0) { setError('Projet, nom du type et surface valide sont obligatoires.'); return; }
     setSaving(true);
+    setError(null);
     try {
       const res = await fetch('/api/admin/apartments', {
         method: 'POST',
@@ -3897,10 +3902,10 @@ function ApartmentCreateForm({ projects, onClose }: { projects: AdminProject[]; 
         onClose();
       } else {
         const err = await res.json();
-        alert(err.error ?? 'Failed to create apartment');
+        setError(err.error ?? 'Impossible de créer l’appartement.');
       }
     } catch {
-      alert('Failed to create apartment');
+      setError('Impossible de créer l’appartement. Vérifiez votre connexion puis réessayez.');
     }
     setSaving(false);
   };
@@ -3997,9 +4002,10 @@ function ApartmentCreateForm({ projects, onClose }: { projects: AdminProject[]; 
         (orientation, plan, galerie, SEO) via le formulaire d'édition (7 onglets) puis publiez.
       </p>
 
+      {error && <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
       <DialogFooter>
-        <Button variant="outline" onClick={onClose}>Annuler</Button>
-        <Button onClick={save} disabled={saving || !projectId || !typeName || !surface} className="bg-forest hover:bg-forest/90">
+        <Button variant="outline" onClick={onClose} disabled={saving}>Annuler</Button>
+        <Button onClick={save} disabled={saving || !projectId || !typeName.trim() || !surface || Number(surface) <= 0} className="bg-forest hover:bg-forest/90">
           {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />} Créer l'appartement
         </Button>
       </DialogFooter>
