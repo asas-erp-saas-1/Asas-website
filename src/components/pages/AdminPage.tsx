@@ -136,7 +136,7 @@ async function fetchAdminProjects(): Promise<AdminProject[]> {
     }),
   );
 
-  return [firstPage, ...remaining.flat()];
+  return [...firstPage, ...remaining.flat()];
 }
 
 async function fetchAdminApartments(filters: { projectSlug?: string; status?: string; type?: string }): Promise<AdminApartment[]> {
