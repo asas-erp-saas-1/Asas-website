@@ -144,7 +144,7 @@ export default function AdminBuildingsWorkspace() {
       })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [page, projectId, retryKey, search]);
+  }, [page, projectId, retryKey, debouncedSearch]);
 
   useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
   useEffect(() => { if (meta.totalPages > 0 && page > meta.totalPages) setPage(meta.totalPages); }, [meta.totalPages, page]);
