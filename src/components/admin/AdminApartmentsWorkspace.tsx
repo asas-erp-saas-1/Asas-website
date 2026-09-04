@@ -84,6 +84,7 @@ export function AdminApartmentsWorkspace() {
   const [status, setStatus] = useState('all');
   const [type, setType] = useState('all');
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -145,6 +146,11 @@ export function AdminApartmentsWorkspace() {
   }, []);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
     const controller = new AbortController();
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
@@ -154,7 +160,7 @@ export function AdminApartmentsWorkspace() {
     if (projectSlug !== 'all') params.set('projectSlug', projectSlug);
     if (status !== 'all') params.set('status', status);
     if (type !== 'all') params.set('type', type);
-    if (search.trim()) params.set('search', search.trim());
+    if (debouncedSearch) params.set('search', debouncedSearch);
 
     getJson<{ data?: Apartment[]; pagination?: Pagination }>(`/api/admin/apartments?${params}`, { signal: controller.signal })
       .then((json) => {
@@ -178,7 +184,7 @@ export function AdminApartmentsWorkspace() {
       });
 
     return () => controller.abort();
-  }, [page, projectSlug, status, type, retryKey, search]);
+  }, [page, projectSlug, status, type, retryKey, debouncedSearch]);
 
   useEffect(() => {
     if (pagination.totalPages > 0 && page > pagination.totalPages) {
@@ -193,7 +199,7 @@ export function AdminApartmentsWorkspace() {
 
   function resetPage() { setPage(1); }
   function clearFilters() {
-    setProjectSlug('all'); setStatus('all'); setType('all'); setSearch(''); resetPage();
+    setProjectSlug('all'); setStatus('all'); setType('all'); setSearch(''); setDebouncedSearch(''); resetPage();
   }
   function refresh() {
     setRefreshing(true);
