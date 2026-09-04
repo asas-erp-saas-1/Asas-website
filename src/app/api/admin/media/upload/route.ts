@@ -70,8 +70,9 @@ export async function POST(request: NextRequest) {
     if (typeof typeValue !== 'string' || !MEDIA_TYPES.has(typeValue)) return errorResponse('Type de média non supporté', 400);
     if (typeof altValue !== 'string' || !altValue.trim()) return errorResponse('Le texte alt est obligatoire', 400);
     if (altValue.trim().length > MAX_ALT_LENGTH) return errorResponse(`Le texte alt ne peut pas dépasser ${MAX_ALT_LENGTH} caractères`, 400);
-    if (typeof captionValue !== 'string') return errorResponse('Légende invalide', 400);
-    if (captionValue.length > MAX_CAPTION_LENGTH) return errorResponse(`La légende ne peut pas dépasser ${MAX_CAPTION_LENGTH} caractères`, 400);
+    if (captionValue !== null && typeof captionValue !== 'string') return errorResponse('Légende invalide', 400);
+    const caption = typeof captionValue === 'string' ? captionValue : '';
+    if (caption.length > MAX_CAPTION_LENGTH) return errorResponse(`La légende ne peut pas dépasser ${MAX_CAPTION_LENGTH} caractères`, 400);
     if (!MIME_TYPES.has(fileValue.type)) return errorResponse('Type MIME non supporté', 415);
     if (fileValue.size <= 0) return errorResponse('Le fichier est vide', 400);
     if (fileValue.size > MAX_FILE_SIZE) return errorResponse('Le fichier dépasse la limite de 8 Mo', 413);
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
     try {
       const created = entityType === 'project'
         ? await db.projectImage.create({
-            data: { projectId: entity.id, url: publicUrl, alt: altValue.trim(), caption: captionValue.trim() || null, type: typeValue, order, width: metadata.width ?? null, height: metadata.height ?? null },
+            data: { projectId: entity.id, url: publicUrl, alt: altValue.trim(), caption: caption.trim() || null, type: typeValue, order, width: metadata.width ?? null, height: metadata.height ?? null },
             select: { id: true, url: true, alt: true, caption: true, type: true, order: true, width: true, height: true, createdAt: true },
           })
         : await db.apartmentImage.create({
