@@ -120,6 +120,7 @@ export function AdminProjectsWorkspace() {
       }
       setPendingAction(null);
       setRetryKey((value) => value + 1);
+      window.dispatchEvent(new Event('asas-admin-data-changed'));
     } catch (err) { setMutationError(err instanceof Error ? err.message : 'L’opération a échoué.'); }
   }
 
