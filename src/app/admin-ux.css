@@ -223,12 +223,17 @@ body.admin-mode :focus:not(:focus-visible) {
   }
 
   body.admin-mode .admin-workspace > aside {
+    transform: translateX(-100%);
     width: 18rem !important;
     min-width: 18rem !important;
     position: fixed;
     top: 0;
     height: 100dvh;
     max-height: 100dvh;
+  }
+
+  body.admin-mode .admin-workspace > aside[data-mobile-open='true'] {
+    transform: translateX(0);
   }
 
   body.admin-mode .admin-workspace > aside > div:first-child {
