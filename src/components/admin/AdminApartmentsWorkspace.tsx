@@ -116,21 +116,10 @@ export function AdminApartmentsWorkspace() {
 
     (async () => {
       try {
-        const first = await getJson<{ data?: ProjectOption[]; meta?: { totalPages?: number } }>(
-          '/api/admin/projects?limit=100&page=1',
+        const first = await getJson<{ data?: ProjectOption[] }>(
+          '/api/admin/projects?limit=100&status=all',
           { signal: controller.signal },
         );
-        const pages = Math.max(1, first.meta?.totalPages ?? 1);
-        const all = [...(first.data ?? [])];
-
-        for (let currentPage = 2; currentPage <= pages; currentPage += 1) {
-          const next = await getJson<{ data?: ProjectOption[] }>(
-            `/api/admin/projects?limit=100&page=${currentPage}`,
-            { signal: controller.signal },
-          );
-          all.push(...(next.data ?? []));
-        }
-
         if (!controller.signal.aborted) {
           // eslint-disable-next-line react-hooks/set-state-in-effect
           setProjects(all);
