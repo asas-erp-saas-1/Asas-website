@@ -47,7 +47,7 @@ export class AdminErrorBoundary extends Component<
     if (!this.state.hasError) return this.props.children;
 
     return (
-      <main
+      <div
         className="min-h-[100dvh] bg-ivory p-6 flex items-center justify-center"
         aria-labelledby="admin-render-error-title"
       >
@@ -64,8 +64,8 @@ export class AdminErrorBoundary extends Component<
                 L’espace d’administration a rencontré un problème
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                L’interface n’a pas pu afficher correctement cette vue. Vos données serveur ne sont pas
-                modifiées par cette erreur d’affichage.
+                L’interface n’a pas pu afficher correctement cette vue. Si une opération serveur vient d’être lancée, vérifiez son résultat avant de la relancer. Cette erreur concerne
+                l’affichage de l’interface.
               </p>
               {this.state.errorMessage ? (
                 <details className="mt-3 rounded-md bg-muted/50 p-2 text-xs text-muted-foreground">
@@ -84,7 +84,7 @@ export class AdminErrorBoundary extends Component<
             </div>
           </div>
         </section>
-      </main>
+      </div>
     );
   }
 }
