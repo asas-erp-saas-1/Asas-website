@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
             select: { id: true, url: true, alt: true, caption: true, type: true, order: true, width: true, height: true, createdAt: true },
           })
         : await db.apartmentImage.create({
-            data: { apartmentId: entity.id, url: publicUrl, alt: altValue.trim(), caption: captionValue.trim() || null, type: typeValue, order, width: metadata.width ?? null, height: metadata.height ?? null },
+            data: { apartmentId: entity.id, url: publicUrl, alt: altValue.trim(), caption: caption.trim() || null, type: typeValue, order, width: metadata.width ?? null, height: metadata.height ?? null },
             select: { id: true, url: true, alt: true, caption: true, type: true, order: true, width: true, height: true, createdAt: true },
           });
 
