@@ -4116,8 +4116,9 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     if (typeof window === 'undefined') return 'dashboard';
     const hash = window.location.hash.replace(/^#\/?/, '');
-    const match = hash.match(/^admin(?:\/([^/]+))?/i);
-    const candidate = match?.[1]?.toLowerCase();
+    const hashMatch = hash.match(/^admin(?:\/([^/]+))?/i);
+    const pathMatch = window.location.pathname.match(/^\/admin(?:\/([^/]+))?/i);
+    const candidate = (hashMatch?.[1] ?? pathMatch?.[1])?.toLowerCase();
     return candidate && SIDEBAR_ITEMS.some((item) => item.id === candidate) ? candidate as TabId : 'dashboard';
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -4134,21 +4135,31 @@ export default function AdminPage() {
   useEffect(() => {
     const syncFromUrl = () => {
       const hash = window.location.hash.replace(/^#\/?/, '');
-      const match = hash.match(/^admin(?:\/([^/]+))?/i);
-      const candidate = match?.[1]?.toLowerCase();
+      const hashMatch = hash.match(/^admin(?:\/([^/]+))?/i);
+      const pathMatch = window.location.pathname.match(/^\/admin(?:\/([^/]+))?/i);
+      const candidate = (hashMatch?.[1] ?? pathMatch?.[1])?.toLowerCase();
       if (candidate && SIDEBAR_ITEMS.some((item) => item.id === candidate)) {
         setActiveTab(candidate as TabId);
-      } else if (!candidate) {
+      } else {
         setActiveTab('dashboard');
       }
     };
     window.addEventListener('hashchange', syncFromUrl);
     window.addEventListener('popstate', syncFromUrl);
+    syncFromUrl();
     return () => {
       window.removeEventListener('hashchange', syncFromUrl);
       window.removeEventListener('popstate', syncFromUrl);
     };
   }, []);
+
+  useEffect(() => {
+    const invalidateAdminData = () => {
+      queryClient.invalidateQueries({ queryKey: ['admin'] });
+    };
+    window.addEventListener('asas-admin-data-changed', invalidateAdminData);
+    return () => window.removeEventListener('asas-admin-data-changed', invalidateAdminData);
+  }, [queryClient]);
 
 
   // Filter state
