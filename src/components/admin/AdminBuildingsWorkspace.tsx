@@ -185,7 +185,7 @@ export default function AdminBuildingsWorkspace() {
   }
 
   return (
-    <section className="min-h-screen bg-ivory p-4 sm:p-6 lg:p-8" aria-labelledby="buildings-workspace-title">
+    <section className="admin-buildings-workspace w-full" aria-labelledby="buildings-workspace-title">
       <div className="mx-auto max-w-[1500px] space-y-5">
         <header className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest">Catalogue</p><h1 id="buildings-workspace-title" className="text-2xl font-bold text-charcoal sm:text-3xl">Bâtiments</h1><p className="mt-1 text-sm text-muted-foreground">Vue opérationnelle des bâtiments, de leur projet et du nombre de lots associés.</p></div>
