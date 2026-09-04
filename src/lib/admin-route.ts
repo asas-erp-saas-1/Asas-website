@@ -50,7 +50,11 @@ export function parseAdminRoute(input: {
 
   const pathMatch = pathname.match(/^\/admin(?:\/([^/]+))?/i);
   const workspace = normalizeCandidate(pathMatch?.[1]) ?? 'dashboard';
-  const query = hashValue.includes('?') ? hashValue.slice(hashValue.indexOf('?') + 1) : '';
+  const query = pathname.includes('?')
+    ? pathname.slice(pathname.indexOf('?') + 1)
+    : hashValue.includes('?')
+      ? hashValue.slice(hashValue.indexOf('?') + 1)
+      : '';
   const params = new URLSearchParams(query);
   const filters: Record<string, string> = {};
   params.forEach((value, key) => {
