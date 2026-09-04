@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
+import { getAdminRoute } from '@/lib/admin-route';
 import AdminPage from '@/components/pages/AdminPage';
 import AdminErrorBoundary from '@/components/admin/AdminErrorBoundary';
 import AdminOperationStatus from '@/components/admin/AdminOperationStatus';
@@ -13,22 +14,11 @@ import AdminBuildingsWorkspace from '@/components/admin/AdminBuildingsWorkspace'
 
 interface AdminExperienceProps { children?: ReactNode; }
 
-function getAdminSection(): string {
-  if (typeof window === 'undefined') return 'dashboard';
-
-  const hash = window.location.hash.replace(/^#\/?/, '');
-  const hashMatch = hash.match(/^admin(?:\/([^/]+))?/i);
-  if (hashMatch?.[1]) return hashMatch[1].toLowerCase();
-
-  const pathMatch = window.location.pathname.match(/^\/admin(?:\/([^/]+))?/i);
-  return pathMatch?.[1]?.toLowerCase() ?? 'dashboard';
-}
-
 export function AdminExperience({ children }: AdminExperienceProps) {
-  const [section, setSection] = useState(getAdminSection);
+  const [section, setSection] = useState(() => getAdminRoute().workspace);
 
   useEffect(() => {
-    const sync = () => setSection(getAdminSection());
+    const sync = () => setSection(getAdminRoute().workspace);
     window.addEventListener('hashchange', sync);
     window.addEventListener('popstate', sync);
     sync();
