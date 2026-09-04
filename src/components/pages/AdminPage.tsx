@@ -4146,43 +4146,25 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<TabId>(() => {
-    if (typeof window === 'undefined') return 'dashboard';
-    const hash = window.location.hash.replace(/^#\/?/, '');
-    const hashMatch = hash.match(/^admin(?:\/([^/]+))?/i);
-    const pathMatch = window.location.pathname.match(/^\/admin(?:\/([^/]+))?/i);
-    const candidate = (hashMatch?.[1] ?? pathMatch?.[1])?.toLowerCase();
-    return candidate && SIDEBAR_ITEMS.some((item) => item.id === candidate) ? candidate as TabId : 'dashboard';
-  });
+  const [activeTab, setActiveTab] = useState<AdminWorkspaceId>(() => getAdminRoute().workspace);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  function navigateTab(tab: TabId) {
+  function navigateTab(tab: AdminWorkspaceId) {
+    const nextHref = adminRouteHref(tab);
     setActiveTab(tab);
-    const hash = tab === 'dashboard' ? '#/admin' : `#/admin/${tab}`;
-    window.history.pushState(null, '', hash);
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    window.history.pushState(null, '', nextHref);
     if (window.innerWidth < 768) setMobileSidebarOpen(false);
   }
 
   useEffect(() => {
-    const syncFromUrl = () => {
-      const hash = window.location.hash.replace(/^#\/?/, '');
-      const hashMatch = hash.match(/^admin(?:\/([^/]+))?/i);
-      const pathMatch = window.location.pathname.match(/^\/admin(?:\/([^/]+))?/i);
-      const candidate = (hashMatch?.[1] ?? pathMatch?.[1])?.toLowerCase();
-      if (candidate && SIDEBAR_ITEMS.some((item) => item.id === candidate)) {
-        setActiveTab(candidate as TabId);
-      } else {
-        setActiveTab('dashboard');
-      }
-    };
-    window.addEventListener('hashchange', syncFromUrl);
+    const syncFromUrl = () => setActiveTab(getAdminRoute().workspace);
     window.addEventListener('popstate', syncFromUrl);
+    window.addEventListener('hashchange', syncFromUrl);
     syncFromUrl();
     return () => {
-      window.removeEventListener('hashchange', syncFromUrl);
       window.removeEventListener('popstate', syncFromUrl);
+      window.removeEventListener('hashchange', syncFromUrl);
     };
   }, []);
 
