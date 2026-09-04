@@ -223,17 +223,26 @@ body.admin-mode :focus:not(:focus-visible) {
   }
 
   body.admin-mode .admin-workspace > aside {
-    width: 4rem !important;
-    min-width: 4rem !important;
-    position: sticky;
+    width: 18rem !important;
+    min-width: 18rem !important;
+    position: fixed;
     top: 0;
     height: 100dvh;
     max-height: 100dvh;
   }
 
   body.admin-mode .admin-workspace > aside > div:first-child {
-    justify-content: center;
-    padding-inline: 0.75rem;
+    justify-content: flex-start;
+    padding-inline: 1rem;
+  }
+
+  body.admin-mode .admin-workspace > aside nav button {
+    justify-content: flex-start;
+  }
+
+  body.admin-mode .admin-workspace > aside nav button span,
+  body.admin-mode .admin-workspace > aside nav p {
+    display: inline;
   }
 
   body.admin-mode .admin-workspace > aside nav {
@@ -241,17 +250,12 @@ body.admin-mode :focus:not(:focus-visible) {
   }
 
   body.admin-mode .admin-workspace > aside nav button {
-    justify-content: center;
-    padding-inline: 0.55rem;
-  }
-
-  body.admin-mode .admin-workspace > aside nav button span,
-  body.admin-mode .admin-workspace > aside nav p {
-    display: none;
+    justify-content: flex-start;
+    padding-inline: 0.75rem;
   }
 
   body.admin-mode .admin-workspace > aside > button {
-    padding-inline: 0.5rem;
+    padding-inline: 0.75rem;
   }
 
   body.admin-mode .admin-workspace > main {
