@@ -4124,7 +4124,9 @@ export default function AdminPage() {
 
   function navigateTab(tab: TabId) {
     setActiveTab(tab);
-    window.location.hash = tab === 'dashboard' ? '#/admin' : `#/admin/${tab}`;
+    const hash = tab === 'dashboard' ? '#/admin' : `#/admin/${tab}`;
+    window.history.pushState(null, '', hash);
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
     if (window.innerWidth < 768) setSidebarOpen(false);
   }
 
