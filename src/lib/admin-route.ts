@@ -15,6 +15,11 @@ export type AdminWorkspaceId = (typeof ADMIN_WORKSPACES)[number];
 
 export interface AdminRouteModel {
   workspace: AdminWorkspaceId;
+  search?: string;
+  filters: Record<string, string>;
+  sort?: string;
+  page?: number;
+  subview?: string;
 }
 
 const WORKSPACE_SET = new Set<string>(ADMIN_WORKSPACES);
@@ -35,15 +40,35 @@ export function parseAdminRoute(input: {
   const hashMatch = hashValue.match(/^admin(?:\/([^/]+))?/i);
   const hashWorkspace = normalizeCandidate(hashMatch?.[1]);
   if (hashMatch && /^admin(?:\/|$)/i.test(hashValue)) {
-    return { workspace: hashWorkspace ?? 'dashboard' };
+    const query = hashValue.includes('?') ? hashValue.slice(hashValue.indexOf('?') + 1) : '';
+    const params = new URLSearchParams(query);
+    const filters: Record<string, string> = {};
+    params.forEach((value, key) => { if (!['search', 'sort', 'page', 'subview'].includes(key)) filters[key] = value; });
+    const rawPage = Number(params.get('page'));
+    return { workspace: hashWorkspace ?? 'dashboard', search: params.get('search') ?? undefined, filters, sort: params.get('sort') ?? undefined, page: Number.isInteger(rawPage) && rawPage > 0 ? rawPage : undefined, subview: params.get('subview') ?? undefined };
   }
 
   const pathMatch = pathname.match(/^\/admin(?:\/([^/]+))?/i);
-  return { workspace: normalizeCandidate(pathMatch?.[1]) ?? 'dashboard' };
+  const workspace = normalizeCandidate(pathMatch?.[1]) ?? 'dashboard';
+  const query = hashValue.includes('?') ? hashValue.slice(hashValue.indexOf('?') + 1) : '';
+  const params = new URLSearchParams(query);
+  const filters: Record<string, string> = {};
+  params.forEach((value, key) => {
+    if (key !== 'search' && key !== 'sort' && key !== 'page' && key !== 'subview') filters[key] = value;
+  });
+  const rawPage = Number(params.get('page'));
+  return {
+    workspace,
+    search: params.get('search') ?? undefined,
+    filters,
+    sort: params.get('sort') ?? undefined,
+    page: Number.isInteger(rawPage) && rawPage > 0 ? rawPage : undefined,
+    subview: params.get('subview') ?? undefined,
+  };
 }
 
 export function getAdminRoute(): AdminRouteModel {
-  if (typeof window === 'undefined') return { workspace: 'dashboard' };
+  if (typeof window === 'undefined') return { workspace: 'dashboard', filters: {} };
   return parseAdminRoute({ pathname: window.location.pathname, hash: window.location.hash });
 }
 
