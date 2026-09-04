@@ -47,7 +47,7 @@ export class AdminErrorBoundary extends Component<
     if (!this.state.hasError) return this.props.children;
 
     return (
-      <div
+      <main
         className="min-h-[100dvh] bg-ivory p-6 flex items-center justify-center"
         aria-labelledby="admin-render-error-title"
       >
@@ -84,7 +84,7 @@ export class AdminErrorBoundary extends Component<
             </div>
           </div>
         </section>
-      </div>
+      </main>
     );
   }
 }
