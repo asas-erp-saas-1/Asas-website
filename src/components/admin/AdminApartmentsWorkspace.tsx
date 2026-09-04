@@ -97,25 +97,41 @@ export function AdminApartmentsWorkspace() {
   useEffect(() => {
     const controller = new AbortController();
     getJson<{ user?: { role?: string } }>('/api/admin/me', { signal: controller.signal })
-      .then((json) => {\n        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setRole(json.user?.role ?? null);\n      })
-      .catch(() => {\n        if (!controller.signal.aborted) {\n          // eslint-disable-next-line react-hooks/set-state-in-effect\n          setRole(null);\n        }\n      });
-    return () => controller.abort();
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    getJson<{ data?: ProjectOption[] }>('/api/admin/projects', { signal: controller.signal })
-      .then((json) => {\n        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setProjects(json.data ?? []);\n      })
-      .catch((err: unknown) => {
-        if (!(err instanceof DOMException && err.name === 'AbortError')) {\n          // eslint-disable-next-line react-hooks/set-state-in-effect\n          setProjects([]);\n        }
+      .then((json) => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setRole(json.user?.role ?? null);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setRole(null);
+        }
       });
     return () => controller.abort();
   }, []);
 
   useEffect(() => {
     const controller = new AbortController();
-    // eslint-disable-next-line react-hooks/set-state-in-effect\n    setLoading(true);
-    // eslint-disable-next-line react-hooks/set-state-in-effect\n    setError(null);
+    getJson<{ data?: ProjectOption[] }>('/api/admin/projects', { signal: controller.signal })
+      .then((json) => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setProjects(json.data ?? []);
+      })
+      .catch((err: unknown) => {
+        if (!(err instanceof DOMException && err.name === 'AbortError')) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setProjects([]);
+        }
+      });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setError(null);
     const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
     if (projectSlug !== 'all') params.set('projectSlug', projectSlug);
     if (status !== 'all') params.set('status', status);
@@ -124,23 +140,33 @@ export function AdminApartmentsWorkspace() {
 
     getJson<{ data?: Apartment[]; pagination?: Pagination }>(`/api/admin/apartments?${params}`, { signal: controller.signal })
       .then((json) => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setApartments(json.data ?? []);
-        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setPagination(json.pagination ?? { page, limit: PAGE_SIZE, total: json.data?.length ?? 0, totalPages: json.data?.length ? 1 : 0 });
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setApartments(json.data ?? []);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setPagination(json.pagination ?? { page, limit: PAGE_SIZE, total: json.data?.length ?? 0, totalPages: json.data?.length ? 1 : 0 });
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === 'AbortError') return;
-        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setApartments([]);
-        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setError(err instanceof Error ? err.message : 'Impossible de charger les appartements.');
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setApartments([]);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setError(err instanceof Error ? err.message : 'Impossible de charger les appartements.');
       })
       .finally(() => {
-        if (!controller.signal.aborted) {\n          // eslint-disable-next-line react-hooks/set-state-in-effect\n          setLoading(false);\n        }
+        if (!controller.signal.aborted) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setLoading(false);
+        }
       });
 
     return () => controller.abort();
   }, [page, projectSlug, status, type, retryKey, search]);
 
   useEffect(() => {
-    if (pagination.totalPages > 0 && page > pagination.totalPages) {\n      // eslint-disable-next-line react-hooks/set-state-in-effect\n      setPage(pagination.totalPages);\n    }
+    if (pagination.totalPages > 0 && page > pagination.totalPages) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPage(pagination.totalPages);
+    }
   }, [page, pagination.totalPages]);
 
   const filteredApartments = useMemo(() => apartments, [apartments]);
@@ -157,7 +183,10 @@ export function AdminApartmentsWorkspace() {
   }
 
   useEffect(() => {
-    if (!loading) {\n      // eslint-disable-next-line react-hooks/set-state-in-effect\n      setRefreshing(false);\n    }
+    if (!loading) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRefreshing(false);
+    }
   }, [loading]);
 
   const hasFilters = projectSlug !== 'all' || status !== 'all' || type !== 'all' || search.trim() !== '';
