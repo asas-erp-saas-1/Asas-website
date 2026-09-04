@@ -16,9 +16,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = request.nextUrl;
     const projectId = searchParams.get('projectId') ?? undefined;
     const search = searchParams.get('search')?.trim() ?? '';
-    const page = Math.max(1, Number(searchParams.get('page') ?? '1') || 1);
-    const requestedLimit = Number(searchParams.get('limit') ?? String(DEFAULT_LIMIT)) || DEFAULT_LIMIT;
-    const limit = Math.min(MAX_LIMIT, Math.max(1, requestedLimit));
+    const rawPage = Number(searchParams.get('page') ?? '1');
+    const rawLimit = Number(searchParams.get('limit') ?? String(DEFAULT_LIMIT));
+    const page = Number.isSafeInteger(rawPage) && rawPage >= 1 ? rawPage : 1;
+    const limit = Number.isSafeInteger(rawLimit) && rawLimit >= 1 ? Math.min(MAX_LIMIT, rawLimit) : DEFAULT_LIMIT;
 
     const where = {
       ...(projectId ? { projectId } : {}),
@@ -35,21 +36,20 @@ export async function GET(request: NextRequest) {
         : {}),
     };
 
-    const [total, buildings] = await Promise.all([
-      db.building.count({ where }),
-      db.building.findMany({
+    const total = await db.building.count({ where });
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const effectivePage = Math.min(page, totalPages);
+
+    const buildings = await db.building.findMany({
         where,
-        orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
-        skip: (page - 1) * limit,
+        orderBy: [{ order: 'asc' }, { createdAt: 'desc' }, { id: 'asc' }],
+        skip: (effectivePage - 1) * limit,
         take: limit,
         include: {
           project: { select: { id: true, slug: true, name: true } },
           _count: { select: { apartments: true } },
         },
-      }),
-    ]);
-
-    const totalPages = Math.max(1, Math.ceil(total / limit));
+      });
     const result = buildings.map((b) => ({
       id: b.id,
       slug: b.slug,
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     return withSecurityHeaders(
       NextResponse.json({
         data: result,
-        meta: { page: Math.min(page, totalPages), limit, total, totalPages },
+        meta: { page: effectivePage, limit, total, totalPages },
       }),
     );
   } catch (error) {
