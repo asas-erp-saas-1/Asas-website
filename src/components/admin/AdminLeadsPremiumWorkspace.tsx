@@ -201,6 +201,7 @@ export function AdminLeadsPremiumWorkspace() {
       setStatusRequest(null);
       setSelectedLead((current) => current ? { ...current, status: request.nextStatus } : current);
       setRetryKey((value) => value + 1);
+      window.dispatchEvent(new Event('asas-admin-data-changed'));
     } catch (err) {
       setFeedback({ type: 'error', text: err instanceof Error ? err.message : 'La mise à jour a échoué.' });
     } finally { setMutationBusy(false); }
