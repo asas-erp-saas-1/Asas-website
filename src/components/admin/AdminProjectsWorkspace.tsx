@@ -128,7 +128,7 @@ export function AdminProjectsWorkspace() {
   const lastResult = Math.min(meta.page * meta.limit, meta.total);
 
   return (
-    <section className="admin-projects-workspace min-h-screen bg-ivory p-4 sm:p-6 lg:p-8" aria-labelledby="projects-workspace-title">
+    <section className="admin-projects-workspace w-full" aria-labelledby="projects-workspace-title">
       <div className="mx-auto max-w-[1400px] space-y-5">
         <header className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest">Catalogue</p><h1 id="projects-workspace-title" className="text-2xl font-bold text-charcoal sm:text-3xl">Projets</h1><p className="mt-1 text-sm text-muted-foreground">Vue opérationnelle du portefeuille immobilier avec recherche, pagination et actions sécurisées.</p></div>
