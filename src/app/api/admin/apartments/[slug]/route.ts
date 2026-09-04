@@ -38,7 +38,7 @@ export async function GET(
           include: {
             building: true,
             project: { select: { id: true, slug: true, name: true, city: true, district: true } },
-            imagesRelation: { orderBy: { order: 'asc' } },
+            imagesRelation: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] },
           },
         })
       : await db.apartment.findFirst({
@@ -54,7 +54,7 @@ export async function GET(
             district: true,
           },
         },
-        imagesRelation: { orderBy: { order: 'asc' } },
+        imagesRelation: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] },
       },
     });
 
