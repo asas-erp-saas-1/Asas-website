@@ -92,6 +92,15 @@ export function AdminApartmentsWorkspace() {
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [mutationSuccess, setMutationSuccess] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    getJson<{ user?: { role?: string } }>('/api/admin/me', { signal: controller.signal })
+      .then((json) => setRole(json.user?.role ?? null))
+      .catch(() => { if (!controller.signal.aborted) setRole(null); });
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -123,7 +132,9 @@ export function AdminApartmentsWorkspace() {
         setApartments([]);
         setError(err instanceof Error ? err.message : 'Impossible de charger les appartements.');
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
 
     return () => controller.abort();
   }, [page, projectSlug, status, type, retryKey, search]);
@@ -158,7 +169,7 @@ export function AdminApartmentsWorkspace() {
     setMutationSuccess(null);
     try {
       if (kind === 'publish') {
-        await getJson(`/api/admin/apartments/${encodeURIComponent(apartment.slug)}`, {
+        await getJson(`/api/admin/apartments/${encodeURIComponent(apartment.slug)}?id=${encodeURIComponent(apartment.id)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ published: !apartment.published }),
@@ -187,7 +198,7 @@ export function AdminApartmentsWorkspace() {
             <p className="mt-1 text-sm text-muted-foreground">Espace de gestion paginé, filtrable et stable pour le catalogue.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => { window.location.hash = '#admin'; }} className="gap-2"><ChevronLeft className="h-4 w-4" /> Retour au tableau de bord</Button>
+            <Button variant="outline" size="sm" onClick={() => { window.location.hash = '#/admin'; }} className="gap-2"><ChevronLeft className="h-4 w-4" /> Retour au tableau de bord</Button>
             <Button variant="outline" size="sm" onClick={refresh} disabled={loading || refreshing} className="gap-2" aria-label="Actualiser les appartements"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Actualiser</Button>
           </div>
         </header>
@@ -211,7 +222,7 @@ export function AdminApartmentsWorkspace() {
             <label className="space-y-1.5 text-sm font-medium"><span>Recherche</span><div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(e) => { setSearch(e.target.value); resetPage(); }} placeholder="N° unité, type, projet…" className="pl-9" /></div></label>
             <label className="space-y-1.5 text-sm font-medium"><span>Projet</span><Select value={projectSlug} onValueChange={(value) => { setProjectSlug(value); resetPage(); }}><SelectTrigger><SelectValue placeholder="Tous les projets" /></SelectTrigger><SelectContent><SelectItem value="all">Tous les projets</SelectItem>{projects.map((p) => <SelectItem key={p.id} value={p.slug}>{p.name}</SelectItem>)}</SelectContent></Select></label>
             <label className="space-y-1.5 text-sm font-medium"><span>Statut</span><Select value={status} onValueChange={(value) => { setStatus(value); resetPage(); }}><SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger><SelectContent><SelectItem value="all">Tous les statuts</SelectItem>{STATUS_OPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></label>
-            <label className="space-y-1.5 text-sm font-medium"><span>Type</span><Select value={type} onValueChange={(value) => { setType(value); resetPage(); }}><SelectTrigger><SelectValue placeholder="Tous les types" /></SelectTrigger><SelectContent><SelectItem value="all">Tous les types</SelectItem><SelectItem value="F1">F1</SelectItem><SelectItem value="F2">F2</SelectItem><SelectItem value="F3">F3</SelectItem><SelectItem value="F4">F4</SelectItem><SelectItem value="F5">F5+</SelectItem></SelectContent></Select></label>
+            <label className="space-y-1.5 text-sm font-medium"><span>Type</span><Select value={type} onValueChange={(value) => { setType(value); resetPage(); }}><SelectTrigger><SelectValue placeholder="Tous les types" /></SelectTrigger><SelectContent><SelectItem value="all">Tous les types</SelectItem><SelectItem value="F1">F1</SelectItem><SelectItem value="F2">F2</SelectItem><SelectItem value="F3">F3</SelectItem><SelectItem value="F4">F4</SelectItem><SelectItem value="F5">F5+</SelectItem><SelectItem value="Duplex">Duplex</SelectItem><SelectItem value="Studio">Studio</SelectItem><SelectItem value="Villa">Villa</SelectItem></SelectContent></Select></label>
           </div></CardContent>
         </Card>
 
@@ -229,10 +240,10 @@ export function AdminApartmentsWorkspace() {
           <TableCell><span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${statusClass(a.status)}`}>{statusLabel(a.status)}</span></TableCell>
           <TableCell><Badge variant={a.published ? 'default' : 'secondary'}>{a.published ? 'Publié' : 'Brouillon'}</Badge></TableCell>
           <TableCell><div className="flex justify-end gap-1">
-            <Button variant="ghost" size="sm" className="h-8 gap-1 px-2" onClick={() => { setMutationError(null); setMutationSuccess(null); setPendingAction({ kind: 'publish', apartment: a }); }} disabled={loading || pendingAction !== null} title={a.published ? 'Retirer de la publication' : 'Publier'} aria-label={a.published ? `Retirer ${a.typeName} de la publication` : `Publier ${a.typeName}`}>
+            <Button variant="ghost" size="sm" className="h-8 gap-1 px-2" onClick={() => { setMutationError(null); setMutationSuccess(null); setPendingAction({ kind: 'publish', apartment: a }); }} disabled={loading || pendingAction !== null || !role || !['ADMIN', 'EDITOR'].includes(role)} title={!role || !['ADMIN', 'EDITOR'].includes(role) ? 'Privilèges insuffisants' : (a.published ? 'Retirer de la publication' : 'Publier')} aria-label={a.published ? `Retirer ${a.typeName} de la publication` : `Publier ${a.typeName}`}>
               {a.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}<span className="sr-only">{a.published ? 'Retirer de la publication' : 'Publier'}</span>
             </Button>
-            <Button variant="ghost" size="sm" className="h-8 gap-1 px-2 text-red-600 hover:text-red-700" onClick={() => { setMutationError(null); setMutationSuccess(null); setPendingAction({ kind: 'archive', apartment: a }); }} disabled={loading || pendingAction !== null} title="Archiver" aria-label={`Archiver ${a.typeName}`}>
+            <Button variant="ghost" size="sm" className="h-8 gap-1 px-2 text-red-600 hover:text-red-700" onClick={() => { setMutationError(null); setMutationSuccess(null); setPendingAction({ kind: 'archive', apartment: a }); }} disabled={loading || pendingAction !== null || role !== 'ADMIN'} title={role !== 'ADMIN' ? 'Réservé aux administrateurs' : 'Archiver'} aria-label={`Archiver ${a.typeName}`}>
               <Archive className="h-4 w-4" /><span className="sr-only">Archiver</span>
             </Button>
           </div></TableCell>
