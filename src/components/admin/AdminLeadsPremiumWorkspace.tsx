@@ -199,7 +199,7 @@ export function AdminLeadsPremiumWorkspace() {
   }
 
   return (
-    <section className="admin-leads-workspace min-h-screen bg-ivory p-4 sm:p-6 lg:p-8" aria-labelledby="leads-workspace-title">
+    <section className="admin-leads-workspace w-full" aria-labelledby="leads-workspace-title">
       <div className="mx-auto max-w-[1500px] space-y-5">
         <header className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest">Ventes</p><h1 id="leads-workspace-title" className="text-2xl font-bold text-charcoal sm:text-3xl">Leads</h1><p className="mt-1 max-w-3xl text-sm text-muted-foreground">Pipeline commercial opérationnel. Recherchez, qualifiez et suivez chaque prospect sans perdre le contexte.</p></div>
