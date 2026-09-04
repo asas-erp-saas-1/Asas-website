@@ -2075,6 +2075,7 @@ function UsersTab() {
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<AdminUser | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<AdminUser | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const usersQuery = useQuery({
     queryKey: ['admin', 'users'],
@@ -2089,6 +2090,7 @@ function UsersTab() {
   const users = usersQuery.data ?? [];
 
   async function toggleActive(user: AdminUser) {
+    setActionError(null);
     try {
       const res = await fetch(`/api/admin/users/${user.id}`, {
         method: 'PATCH',
@@ -2098,12 +2100,13 @@ function UsersTab() {
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({ error: 'Échec' }));
-        alert(j.error ?? 'Échec');
+        setActionError(j.error ?? 'Échec de la mise à jour.');
         return;
       }
       qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+      window.dispatchEvent(new Event('asas-admin-data-changed'));
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Échec');
+      setActionError(err instanceof Error ? err.message : 'Échec de la mise à jour.');
     }
   }
 
@@ -2123,6 +2126,8 @@ function UsersTab() {
           </Button>
         </div>
       </div>
+
+      {actionError && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div>}
 
       {usersQuery.isLoading ? (
         <div className="flex items-center justify-center h-32"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
@@ -2169,7 +2174,7 @@ function UsersTab() {
                         size="sm"
                         variant="outline"
                         className="h-7 text-xs"
-                        onClick={() => toggleActive(u)}
+                        onClick={() => setConfirmDelete(u)}
                         title={u.active ? 'Désactiver' : 'Activer'}
                       >
                         {u.active ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -2182,6 +2187,28 @@ function UsersTab() {
           </Table>
         </Card>
       )}
+
+      <Dialog open={!!confirmDelete} onOpenChange={(open) => { if (!open) setConfirmDelete(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>{confirmDelete?.active ? 'Désactiver cet utilisateur ?' : 'Activer cet utilisateur ?'}</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {confirmDelete?.active
+              ? 'Le compte ne pourra plus se connecter tant qu’il reste désactivé.'
+              : 'Le compte pourra à nouveau se connecter après activation.'}
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDelete(null)}>Annuler</Button>
+            <Button variant={confirmDelete?.active ? 'destructive' : 'default'} onClick={async () => {
+              if (!confirmDelete) return;
+              const user = confirmDelete;
+              setConfirmDelete(null);
+              await toggleActive(user);
+            }}>
+              {confirmDelete?.active ? 'Désactiver' : 'Activer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Create user dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
