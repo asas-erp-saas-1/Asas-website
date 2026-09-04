@@ -17,10 +17,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           orderBy: { order: 'asc' },
           include: {
             building: { select: { id: true, name: true, code: true } },
-            imagesRelation: { orderBy: { order: 'asc' } },
+            imagesRelation: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] },
           },
         },
-        imagesRelation: { orderBy: { order: 'asc' } },
+        imagesRelation: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] },
         amenities: { orderBy: { name: 'asc' } },
         developer: true,
       },
