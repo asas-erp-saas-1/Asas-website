@@ -220,29 +220,21 @@ interface SidebarGroup { label: string; items: SidebarItem[] }
 const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     label: '',
-    items: [
-      { id: 'dashboard', label: 'Tableau de Bord', icon: LayoutDashboard },
-    ],
+    items: [{ id: 'dashboard', label: 'Tableau de Bord', icon: LayoutDashboard }],
   },
   {
-    label: 'CATALOGUE',
+    label: 'GESTION DU SITE',
     items: [
       { id: 'projects', label: 'Projets', icon: Building2 },
-      { id: 'apartments', label: 'Appartements', icon: Home },
       { id: 'buildings', label: 'Bâtiments', icon: Building },
-    ],
-  },
-  {
-    label: 'MÉDIAS',
-    items: [
+      { id: 'apartments', label: 'Appartements', icon: Home },
       { id: 'media', label: 'Médiathèque', icon: ImageIcon },
+      { id: 'videos', label: 'Vidéos', icon: ImageIcon },
     ],
   },
   {
-    label: 'VENTES',
-    items: [
-      { id: 'leads', label: 'Leads', icon: Users },
-    ],
+    label: 'GESTION DES CLIENTS',
+    items: [{ id: 'leads', label: 'Leads & suivi commercial', icon: Users }],
   },
   {
     label: 'SYSTÈME',
