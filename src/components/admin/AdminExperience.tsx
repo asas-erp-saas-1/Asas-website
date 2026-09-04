@@ -38,13 +38,13 @@ export function AdminExperience({ children }: AdminExperienceProps) {
     };
   }, []);
 
-  const content = !children && section === 'apartments'
+  const content = section === 'apartments'
     ? <AdminApartmentsWorkspace />
-    : !children && section === 'projects'
+    : section === 'projects'
       ? <AdminProjectsWorkspace />
-      : !children && section === 'leads'
+      : section === 'leads'
         ? <AdminLeadsPremiumWorkspace />
-        : !children && section === 'buildings'
+        : section === 'buildings'
           ? <AdminBuildingsWorkspace />
           : children ?? <AdminPage />;
 
