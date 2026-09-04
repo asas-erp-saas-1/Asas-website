@@ -4242,20 +4242,42 @@ export default function AdminPage() {
     enabled: isAuthenticated,
   });
 
-  // Stats derived from queries
+  // Dashboard KPIs come from database aggregates, never from paginated/list datasets.
   const projects = projectsQuery.data ?? [];
   const apartments = apartmentsQuery.data ?? [];
   const leads = leadsQuery.data ?? [];
 
-  const stats = useMemo(() => ({
-    totalProjects: projects.length,
-    totalApartments: apartments.length,
-    availableCount: apartments.filter((a) => a.status === 'AVAILABLE').length,
-    reservedCount: apartments.filter((a) => a.status === 'RESERVED').length,
-    soldCount: apartments.filter((a) => a.status === 'SOLD').length,
-    totalLeads: leads.length,
-    newLeadsCount: leads.filter((l) => l.status === 'NEW').length,
-  }), [projects, apartments, leads]);
+  const dashboardStatsQuery = useQuery({
+    queryKey: ['admin', 'dashboard', 'stats'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/dashboard/stats', { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch dashboard stats');
+      const json = await res.json() as { data: {
+        totalProjects: number;
+        totalApartments: number;
+        availableCount: number;
+        reservedCount: number;
+        soldCount: number;
+        totalLeads: number;
+        newLeadsCount: number;
+        intentBreakdown: Record<string, number>;
+      }};
+      return json.data;
+    },
+    enabled: isAuthenticated,
+    staleTime: 30_000,
+  });
+
+  const stats = dashboardStatsQuery.data ?? {
+    totalProjects: 0,
+    totalApartments: 0,
+    availableCount: 0,
+    reservedCount: 0,
+    soldCount: 0,
+    totalLeads: 0,
+    newLeadsCount: 0,
+    intentBreakdown: {},
+  };
 
   const activeLoading = activeTab === 'projects' ? projectsQuery.isLoading
     : activeTab === 'apartments' ? apartmentsQuery.isLoading
