@@ -1,12 +1,16 @@
 'use client';
 
-import { useIsFetching } from '@tanstack/react-query';
+import { useIsFetching, useIsMutating } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 
 export function AdminOperationStatus() {
   const fetching = useIsFetching({ queryKey: ['admin'] });
+  const mutating = useIsMutating({ mutationKey: ['admin'] });
+  const active = fetching + mutating;
 
-  if (fetching === 0) return null;
+  if (active === 0) return null;
+
+  const message = mutating > 0 ? 'Enregistrement en cours…' : 'Mise à jour des données…';
 
   return (
     <div
@@ -17,7 +21,7 @@ export function AdminOperationStatus() {
       data-admin-operation-status="true"
     >
       <RefreshCw className="h-3.5 w-3.5 animate-spin text-forest" aria-hidden="true" />
-      <span>Mise à jour des données…</span>
+      <span>{message}</span>
     </div>
   );
 }
