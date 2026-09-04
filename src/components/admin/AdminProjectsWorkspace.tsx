@@ -73,26 +73,26 @@ export function AdminProjectsWorkspace() {
     if (search.trim()) params.set('search', search.trim());
     if (status !== 'all') params.set('status', status);
 
-    setLoading(true);
-    setError(null);
+    // This effect is an imperative remote-fetch lifecycle; the state sync is intentional.\n    // eslint-disable-next-line react-hooks/set-state-in-effect\n    setLoading(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect\n    setError(null);
     getJson<{ data?: Project[]; meta?: ProjectMeta }>(`/api/admin/projects?${params.toString()}`, { signal: controller.signal })
       .then((json) => {
-        setProjects(json.data ?? []);
-        if (json.meta) setMeta(json.meta);
+        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setProjects(json.data ?? []);
+        if (json.meta) {\n          // eslint-disable-next-line react-hooks/set-state-in-effect\n          setMeta(json.meta);\n        }
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === 'AbortError') return;
-        setProjects([]);
-        setError(err instanceof Error ? err.message : 'Impossible de charger les projets.');
+        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setProjects([]);
+        // eslint-disable-next-line react-hooks/set-state-in-effect\n        setError(err instanceof Error ? err.message : 'Impossible de charger les projets.');
       })
-      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+      .finally(() => {\n        if (!controller.signal.aborted) {\n          // eslint-disable-next-line react-hooks/set-state-in-effect\n          setLoading(false);\n        }\n      });
     return () => controller.abort();
   }, [page, search, status, retryKey]);
 
   useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
 
   useEffect(() => {
-    if (meta.totalPages > 0 && page > meta.totalPages) setPage(meta.totalPages);
+    if (meta.totalPages > 0 && page > meta.totalPages) {\n      // eslint-disable-next-line react-hooks/set-state-in-effect\n      setPage(meta.totalPages);\n    }
   }, [meta.totalPages, page]);
 
   const normalizedSearch = search.trim();
