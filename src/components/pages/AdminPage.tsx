@@ -4122,6 +4122,35 @@ export default function AdminPage() {
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  function navigateTab(tab: TabId) {
+    setActiveTab(tab);
+    window.location.hash = tab === 'dashboard' ? '#/admin' : `#/admin/${tab}`;
+    if (window.innerWidth < 768) setSidebarOpen(false);
+  }
+
+  useEffect(() => {
+    const syncFromUrl = () => {
+      const hash = window.location.hash.replace(/^#\\/?/, '');
+      const match = hash.match(/^admin(?:\\/([^/]+))?/i);
+      const candidate = match?.[1]?.toLowerCase();
+      if (candidate && SIDEBAR_ITEMS.some((item) => item.id === candidate)) {
+        setActiveTab(candidate as TabId);
+      } else if (!candidate) {
+        setActiveTab('dashboard');
+      }
+    };
+    window.addEventListener('hashchange', syncFromUrl);
+    window.addEventListener('popstate', syncFromUrl);
+    return () => {
+      window.removeEventListener('hashchange', syncFromUrl);
+      window.removeEventListener('popstate', syncFromUrl);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (window.innerWidth < 768) setSidebarOpen(false);
+  }, []);
+
   // Filter state
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -4246,11 +4275,7 @@ export default function AdminPage() {
               {group.items.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    window.location.hash = item.id === 'dashboard' ? '#/admin' : `#/admin/${item.id}`;
-                    if (window.innerWidth < 768) setSidebarOpen(false);
-                  }}
+                  onClick={() => navigateTab(item.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
                     activeTab === item.id
                       ? 'bg-forest text-white shadow-lg shadow-forest/20'
@@ -4280,7 +4305,7 @@ export default function AdminPage() {
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="flex items-center justify-center border-t border-white/10 p-3 text-sand/60 transition-colors hover:text-white"
-          aria-label={sidebarOpen ? 'Réduire le menu' : 'Développer le menu'}
+          aria-label={sidebarOpen ? 'Réduire le menu' : 'Développer le menu'} aria-expanded={sidebarOpen}
         >
           {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
         </button>
@@ -4294,7 +4319,7 @@ export default function AdminPage() {
             leads={leads}
             projects={projects}
             apartments={apartments}
-            onNavigate={(tab) => setActiveTab(tab)}
+            onNavigate={(tab) => navigateTab(tab)}
             onCreateProject={() => setShowCreateProject(true)}
             onCreateApartment={() => setShowCreateApartment(true)}
           />
