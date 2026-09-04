@@ -74,12 +74,41 @@ export default function AdminBuildingsWorkspace() {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [projectError, setProjectError] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
-    getJson<{ data?: Project[] }>('/api/admin/projects?limit=100&page=1', { signal: controller.signal })
-      .then((json) => setProjects(json.data ?? []))
-      .catch((err: unknown) => { if (!(err instanceof DOMException && err.name === 'AbortError')) setProjects([]); });
+    setProjectError(null);
+
+    (async () => {
+      try {
+        const first = await getJson<{ data?: Project[]; meta?: { totalPages?: number } }>(
+          '/api/admin/projects?limit=100&page=1',
+          { signal: controller.signal },
+        );
+        const pages = Math.max(1, first.meta?.totalPages ?? 1);
+        const all = [...(first.data ?? [])];
+
+        for (let page = 2; page <= pages; page += 1) {
+          const next = await getJson<{ data?: Project[] }>(
+            `/api/admin/projects?limit=100&page=${page}`,
+            { signal: controller.signal },
+          );
+          all.push(...(next.data ?? []));
+        }
+        if (!controller.signal.aborted) setProjects(all);
+      } catch (err: unknown) {
+        if (controller.signal.aborted) return;
+        setProjects([]);
+        setProjectError(err instanceof Error ? err.message : 'Impossible de charger les projets.');
+      }
+    })();
+
+    getJson<{ user?: { role?: string } }>('/api/admin/me', { signal: controller.signal })
+      .then((json) => setRole(json.user?.role ?? null))
+      .catch(() => { if (!controller.signal.aborted) setRole(null); });
+
     return () => controller.abort();
   }, []);
 
@@ -98,12 +127,12 @@ export default function AdminBuildingsWorkspace() {
         setBuildings([]);
         setError(err instanceof Error ? err.message : 'Impossible de charger les bâtiments.');
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [page, projectId, retryKey, search]);
 
   useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
-  useEffect(() => { if (meta.totalPages > 1 && page > meta.totalPages) setPage(meta.totalPages); }, [meta.totalPages, page]);
+  useEffect(() => { if (meta.totalPages > 0 && page > meta.totalPages) setPage(meta.totalPages); }, [meta.totalPages, page]);
 
   const hasFilters = useMemo(() => Boolean(search.trim()) || projectId !== 'all', [projectId, search]);
   const firstResult = meta.total === 0 ? 0 : (meta.page - 1) * meta.limit + 1;
@@ -123,7 +152,7 @@ export default function AdminBuildingsWorkspace() {
     const code = form.code.trim();
     const floors = Number(form.floors);
     const order = Number(form.order);
-    if (!form.projectId || !name || !code || !Number.isInteger(floors) || floors < 1) {
+    if (!form.projectId || !name || !code || !Number.isInteger(floors) || floors < 1 || !Number.isInteger(order)) {
       setCreateError('Projet, nom, code et nombre d’étages valide sont obligatoires.');
       return;
     }
@@ -141,8 +170,8 @@ export default function AdminBuildingsWorkspace() {
           code,
           floors,
           hasElevator: form.hasElevator,
-          order: Number.isFinite(order) ? order : 0,
-          slug: slugify(`${form.code}-${name}`),
+          order,
+          slug: slugify(`${projects.find((project) => project.id === form.projectId)?.slug ?? 'project'}-${form.code}-${name}`),
         }),
       });
       setCreateOpen(false);
@@ -159,12 +188,12 @@ export default function AdminBuildingsWorkspace() {
       <div className="mx-auto max-w-[1500px] space-y-5">
         <header className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest">Catalogue</p><h1 id="buildings-workspace-title" className="text-2xl font-bold text-charcoal sm:text-3xl">Bâtiments</h1><p className="mt-1 text-sm text-muted-foreground">Vue opérationnelle des bâtiments, de leur projet et du nombre de lots associés.</p></div>
-          <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => { window.location.hash = '#admin'; }} className="gap-2"><X className="h-4 w-4" /> Retour</Button><Button variant="outline" size="sm" onClick={refresh} disabled={loading || refreshing} className="gap-2"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Actualiser</Button><Button size="sm" onClick={openCreate} className="gap-2"><Plus className="h-4 w-4" /> Nouveau bâtiment</Button></div>
+          <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => { window.location.hash = '#/admin'; }} className="gap-2"><X className="h-4 w-4" /> Retour</Button><Button variant="outline" size="sm" onClick={refresh} disabled={loading || refreshing} className="gap-2"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Actualiser</Button><Button size="sm" onClick={openCreate} disabled={role !== 'ADMIN' && role !== 'EDITOR'} title={role ? undefined : 'Vérification des privilèges…'} className="gap-2"><Plus className="h-4 w-4" /> Nouveau bâtiment</Button></div>
         </header>
 
         {feedback && <div role={feedback.type === 'error' ? 'alert' : 'status'} className="flex flex-col gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 sm:flex-row sm:items-center sm:justify-between"><span>{feedback.text}</span><Button variant="outline" size="sm" onClick={() => setFeedback(null)}>Fermer</Button></div>}
 
-        <Card><CardHeader className="pb-3"><div className="flex items-center justify-between gap-3"><CardTitle className="flex items-center gap-2 text-base"><Search className="h-4 w-4" /> Recherche et filtres</CardTitle>{hasFilters && <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2">Effacer</Button>}</div></CardHeader><CardContent><div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1.5 text-sm font-medium"><span>Recherche</span><Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Nom, code, slug ou projet…" /></label><label className="space-y-1.5 text-sm font-medium"><span>Projet</span><select value={projectId} onChange={(event) => { setProjectId(event.target.value); setPage(1); }} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="all">Tous les projets</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label></div></CardContent></Card>
+        <Card><CardHeader className="pb-3"><div className="flex items-center justify-between gap-3"><CardTitle className="flex items-center gap-2 text-base"><Search className="h-4 w-4" /> Recherche et filtres</CardTitle>{hasFilters && <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2">Effacer</Button>}</div></CardHeader><CardContent><div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1.5 text-sm font-medium"><span>Recherche</span><Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Nom, code, slug ou projet…" /></label><label className="space-y-1.5 text-sm font-medium"><span>Projet</span>{projectError && <span role="alert" className="block text-xs font-normal text-red-700">{projectError} <button type="button" className="underline" onClick={() => window.location.reload()}>Réessayer</button></span>}<select value={projectId} onChange={(event) => { setProjectId(event.target.value); setPage(1); }} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="all">Tous les projets</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label></div></CardContent></Card>
 
         <div aria-live="polite" className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground"><span>{meta.total > 0 ? `${firstResult.toLocaleString('fr-FR')}–${lastResult.toLocaleString('fr-FR')} sur ${meta.total.toLocaleString('fr-FR')} bâtiment${meta.total > 1 ? 's' : ''}` : '0 bâtiment'}</span>{loading && <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Chargement…</span>}</div>
 
