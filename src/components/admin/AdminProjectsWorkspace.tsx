@@ -57,6 +57,7 @@ export function AdminProjectsWorkspace() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [meta, setMeta] = useState<ProjectMeta>({ page: 1, limit: 20, total: 0, totalPages: 1 });
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -70,7 +71,7 @@ export function AdminProjectsWorkspace() {
   useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams({ page: String(page), limit: '20' });
-    if (search.trim()) params.set('search', search.trim());
+    if (debouncedSearch) params.set('search', debouncedSearch);
     if (status !== 'all') params.set('status', status);
 
     // This effect is an imperative remote-fetch lifecycle; the state sync is intentional.
@@ -101,7 +102,7 @@ export function AdminProjectsWorkspace() {
         }
       });
     return () => controller.abort();
-  }, [page, search, status, retryKey]);
+  }, [page, debouncedSearch, status, retryKey]);
 
   useEffect(() => {
     if (!loading) {
@@ -117,7 +118,7 @@ export function AdminProjectsWorkspace() {
     }
   }, [meta.totalPages, page]);
 
-  const normalizedSearch = search.trim();
+  const normalizedSearch = debouncedSearch;
   const hasFilters = status !== 'all' || normalizedSearch !== '';
 
   function refresh() { setRefreshing(true); setRetryKey((value) => value + 1); }
