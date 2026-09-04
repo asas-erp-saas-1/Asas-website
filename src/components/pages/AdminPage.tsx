@@ -276,6 +276,7 @@ function DashboardTab({
     soldCount: number;
     totalLeads: number;
     newLeadsCount: number;
+    intentBreakdown: Record<string, number>;
   };
   leads: AdminLead[];
   projects: AdminProject[];
@@ -287,13 +288,7 @@ function DashboardTab({
   const qc = useQueryClient();
 
   // Lead intent breakdown (WhatsApp / Call / Form / Other)
-  const intentBreakdown = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const l of leads) {
-      counts[l.intent] = (counts[l.intent] ?? 0) + 1;
-    }
-    return counts;
-  }, [leads]);
+  const intentBreakdown = stats.intentBreakdown;
 
   const intentLabels: Record<string, string> = {
     REQUEST_INFORMATION: 'Demande d\'infos',
