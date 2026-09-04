@@ -25,6 +25,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/constants';
+import AdminApartmentsWorkspace from '@/components/admin/AdminApartmentsWorkspace';
+import AdminProjectsWorkspace from '@/components/admin/AdminProjectsWorkspace';
+import AdminLeadsPremiumWorkspace from '@/components/admin/AdminLeadsPremiumWorkspace';
+import AdminBuildingsWorkspace from '@/components/admin/AdminBuildingsWorkspace';
 
 /* ─── Types ─── */
 
@@ -4273,44 +4277,19 @@ export default function AdminPage() {
           />
         )}
         {activeTab === 'projects' && (
-          <ProjectsTab
-            projects={projects}
-            isLoading={projectsQuery.isLoading}
-            onEdit={setEditProject}
-            onCreate={() => setShowCreateProject(true)}
-          />
+          <AdminProjectsWorkspace />
         )}
         {activeTab === 'apartments' && (
-          <ApartmentsTab
-            apartments={apartments}
-            projects={projects}
-            isLoading={apartmentsQuery.isLoading}
-            projectFilter={projectFilter}
-            statusFilter={statusFilter}
-            typeFilter={typeFilter}
-            onProjectFilterChange={setProjectFilter}
-            onStatusFilterChange={setStatusFilter}
-            onTypeFilterChange={setTypeFilter}
-            onEdit={setEditApartment}
-            onCreate={() => setShowCreateApartment(true)}
-          />
+          <AdminApartmentsWorkspace />
         )}
         {activeTab === 'buildings' && (
-          <BuildingsTab
-            buildings={buildingsQuery.data ?? []}
-            isLoading={buildingsQuery.isLoading}
-          />
+          <AdminBuildingsWorkspace />
         )}
         {activeTab === 'media' && (
           <MediaTab projects={projects} apartments={apartments} />
         )}
         {activeTab === 'leads' && (
-          <LeadsTab
-            leads={leads}
-            isLoading={leadsQuery.isLoading}
-            leadStatusFilter={leadStatusFilter}
-            onStatusFilterChange={setLeadStatusFilter}
-          />
+          <AdminLeadsPremiumWorkspace />
         )}
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'audit' && <AuditLogTab />}
