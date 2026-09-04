@@ -3,10 +3,21 @@ import { db } from '@/lib/db';
 import { withSecurityHeaders } from '@/lib/with-security-headers';
 import { verifyAdminAuth } from '@/lib/admin-auth';
 import type { Prisma } from '@/generated/prisma-postgres';
+import { z } from 'zod';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 const SORT_FIELDS = ['createdAt', 'name', 'status', 'intent', 'source'] as const;
+const leadQuerySchema = z.object({
+  status: z.string().trim().optional(),
+  intent: z.string().trim().optional(),
+  source: z.string().trim().optional(),
+  search: z.string().trim().max(200).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(MAX_LIMIT).default(DEFAULT_LIMIT),
+  sortBy: z.enum(SORT_FIELDS).default('createdAt'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+});
 type SortField = (typeof SORT_FIELDS)[number];
 type SortOrder = Prisma.SortOrder;
 
@@ -20,16 +31,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { searchParams } = request.nextUrl;
-    const status = searchParams.get('status') ?? undefined;
-    const intent = searchParams.get('intent') ?? undefined;
-    const source = searchParams.get('source') ?? undefined;
-    const search = searchParams.get('search')?.trim() ?? '';
-    const page = Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10) || 1);
-    const limit = Math.min(MAX_LIMIT, Math.max(1, Number.parseInt(searchParams.get('limit') ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT));
-    const requestedSort = searchParams.get('sortBy') as SortField | null;
-    const sortBy: SortField = requestedSort && SORT_FIELDS.includes(requestedSort) ? requestedSort : 'createdAt';
-    const sortOrder: SortOrder = searchParams.get('sortOrder') === 'asc' ? 'asc' : 'desc';
+    const parsed = leadQuerySchema.safeParse(Object.fromEntries(request.nextUrl.searchParams.entries()));
+    if (!parsed.success) return withSecurityHeaders(NextResponse.json({ error: 'Paramètres de requête invalides' }, { status: 400 }));
+    const { status, intent, source, search = '', page, limit, sortBy, sortOrder } = parsed.data;
 
     const where: Prisma.LeadWhereInput = {};
     if (status) where.status = status;
