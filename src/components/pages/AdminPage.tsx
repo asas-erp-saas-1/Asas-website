@@ -115,10 +115,24 @@ function formatDate(dateStr: string): string {
 /* ─── API Fetch Helpers ─── */
 
 async function fetchAdminProjects(): Promise<AdminProject[]> {
-  const res = await fetch('/api/admin/projects');
-  if (!res.ok) throw new Error('Failed to fetch projects');
-  const json = await res.json();
-  return json.data ?? [];
+  const limit = 100;
+  const firstRes = await fetch(`/api/admin/projects?page=1&limit=${limit}`, { credentials: 'include' });
+  if (!firstRes.ok) throw new Error('Failed to fetch projects');
+  const firstJson = await firstRes.json() as { data?: AdminProject[]; meta?: { totalPages?: number } };
+  const firstPage = firstJson.data ?? [];
+  const totalPages = Math.max(1, firstJson.meta?.totalPages ?? 1);
+  if (totalPages === 1) return firstPage;
+
+  const remaining = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) => index + 2).map(async (page) => {
+      const res = await fetch(`/api/admin/projects?page=${page}&limit=${limit}`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch projects');
+      const json = await res.json() as { data?: AdminProject[] };
+      return json.data ?? [];
+    }),
+  );
+
+  return [firstPage, ...remaining.flat()];
 }
 
 async function fetchAdminApartments(filters: { projectSlug?: string; status?: string; type?: string }): Promise<AdminApartment[]> {
