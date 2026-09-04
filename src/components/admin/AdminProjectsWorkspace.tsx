@@ -103,7 +103,12 @@ export function AdminProjectsWorkspace() {
     return () => controller.abort();
   }, [page, search, status, retryKey]);
 
-  useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
+  useEffect(() => {
+    if (!loading) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRefreshing(false);
+    }
+  }, [loading]);
 
   useEffect(() => {
     if (meta.totalPages > 0 && page > meta.totalPages) {
