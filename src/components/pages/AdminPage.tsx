@@ -4121,13 +4121,14 @@ export default function AdminPage() {
     return candidate && SIDEBAR_ITEMS.some((item) => item.id === candidate) ? candidate as TabId : 'dashboard';
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   function navigateTab(tab: TabId) {
     setActiveTab(tab);
     const hash = tab === 'dashboard' ? '#/admin' : `#/admin/${tab}`;
     window.history.pushState(null, '', hash);
     window.dispatchEvent(new HashChangeEvent('hashchange'));
-    if (window.innerWidth < 768) setSidebarOpen(false);
+    if (window.innerWidth < 768) setMobileSidebarOpen(false);
   }
 
   useEffect(() => {
@@ -4238,11 +4239,11 @@ export default function AdminPage() {
             <p className="truncate text-[10px] text-muted-foreground">{SIDEBAR_GROUPS.flatMap((group) => group.items).find((item) => item.id === activeTab)?.label ?? 'Tableau de bord'}</p>
           </div>
         </div>
-        <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={() => setSidebarOpen(true)} aria-label="Ouvrir le menu d’administration" aria-expanded={sidebarOpen}>
+        <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={() => setMobileSidebarOpen(true)} aria-label="Ouvrir le menu d’administration" aria-expanded={mobileSidebarOpen}>
           <Menu className="h-5 w-5" />
         </Button>
       </div>
-      {sidebarOpen && (
+      {mobileSidebarOpen && (
         <button
           type="button"
           aria-label="Fermer le menu d’administration"
@@ -4251,7 +4252,7 @@ export default function AdminPage() {
         />
       )}
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col bg-charcoal text-white shadow-2xl transition-transform duration-200 md:sticky md:top-0 md:z-30 md:h-screen md:shadow-none ${sidebarOpen ? 'translate-x-0 md:w-56' : '-translate-x-full md:w-16'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col bg-charcoal text-white shadow-2xl transition-transform duration-200 md:sticky md:top-0 md:z-30 md:h-screen md:shadow-none translate-x-0 ${sidebarOpen ? 'md:w-56' : 'md:w-16'}`} data-mobile-open={mobileSidebarOpen}>
         <div className="p-4 border-b border-white/10 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-forest flex items-center justify-center shrink-0">
             <span className="text-white font-bold text-sm">A</span>
@@ -4302,7 +4303,7 @@ export default function AdminPage() {
           {sidebarOpen && <span>Déconnexion</span>}
         </button>
         <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
+          onClick={() => { if (window.innerWidth < 768) setMobileSidebarOpen(false); else setSidebarOpen(!sidebarOpen); }}
           className="flex items-center justify-center border-t border-white/10 p-3 text-sand/60 transition-colors hover:text-white"
           aria-label={sidebarOpen ? 'Réduire le menu' : 'Développer le menu'} aria-expanded={sidebarOpen}
         >
