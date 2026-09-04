@@ -107,7 +107,7 @@ export function AdminLeadsPremiumWorkspace() {
   useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams({ page: String(page), limit: '20' });
-    const query = deferredSearch.trim();
+    const query = debouncedSearch.trim();
     const sourceQuery = source.trim();
     if (query) params.set('search', query);
     if (status !== 'all') params.set('status', status);
@@ -131,7 +131,7 @@ export function AdminLeadsPremiumWorkspace() {
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [page, deferredSearch, status, intent, source, retryKey]);
+  }, [page, debouncedSearch, status, intent, source, retryKey]);
 
   useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
   useEffect(() => { if (page > meta.totalPages) setPage(Math.max(1, meta.totalPages)); }, [meta.totalPages, page]);
