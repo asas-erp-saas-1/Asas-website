@@ -692,3 +692,37 @@ Lead: Intake → Qualification → Assignment → Follow-up → Activity/Notes �
 Project → Building → Apartment → Availability → Lead Interest → Follow-up → Reservation.
 
 This is a behavioral/domain model, not merely navigation. Each operational unit must have explicit ownership, context, prerequisites, next actions, validation, mutation safety, failure recovery, permissions, and auditability. Do not implement a disconnected CRUD screen when the operation belongs to an existing entity lifecycle.
+
+
+## 17. GitHub Delivery Controls
+
+GitHub is the engineering evidence system for ASAS. The repository must enforce the following operational model:
+
+1. Every material change is delivered through one coherent branch and pull request.
+2. CI must run on pull requests targeting the protected integration branch and on branch pushes where execution evidence is useful.
+3. Required CI checks are the arbiter; never infer success from a commit alone.
+4. GitHub Actions use least-privilege permissions and immutable full-length commit SHA pins for third-party actions.
+5. Dependency maintenance is automated through Dependabot for GitHub Actions and application dependencies.
+6. Dependency Review runs on pull requests and is treated as a security gate when dependency manifests change.
+7. Protected integration/production branches must disable force-push and deletion, require pull requests, require the canonical CI checks, and enforce administrators where the repository policy permits.
+8. Production deployment is a separate controlled concern from pull-request CI. CI proves code quality; deployment evidence proves deployability; runtime evidence proves operational health.
+9. Required checks must be uniquely named. A required check must pass for the latest commit SHA; an earlier successful run is not sufficient.
+10. Never weaken a CI gate to obtain a green PR. Fix the underlying failure or document an explicit engineering decision.
+11. GitHub configuration changes that cannot be represented safely as repository files must be recorded as an administrative configuration task with evidence after application.
+12. Workflow changes themselves are security-sensitive and require the same observe → isolate → model → implement → verify discipline as application code.
+
+### GitHub configuration target
+
+For the protected integration/production branch:
+- pull request required
+- force-push disabled
+- branch deletion disabled
+- required status checks enabled
+- conversation resolution required
+- stale approvals dismissed when new commits materially change the review
+- required checks must come from the expected GitHub App/source where supported
+- administrator bypass disabled where operationally feasible
+- deployment success required before production merge when the deployment environment is configured
+- signed commits and linear history are considered according to the repository's collaboration model, not enabled blindly
+
+This section describes the target control plane; repository settings are only considered active after direct GitHub settings evidence exists.
