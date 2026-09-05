@@ -141,6 +141,18 @@ export function AdminLeadsPremiumWorkspace() {
   useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
   useEffect(() => { if (page > meta.totalPages) setPage(Math.max(1, meta.totalPages)); }, [meta.totalPages, page]);
 
+  const operationalReadiness = useMemo(() => leads.map((lead) => {
+    const signals: OperationalSignal[] = [
+      lead.name.trim() ? 'complete' : 'incomplete',
+      lead.phone.trim() ? 'complete' : 'incomplete',
+      lead.status ? 'complete' : 'incomplete',
+      lead.assignedTo?.trim() ? 'complete' : 'incomplete',
+      lead.projectName || lead.apartmentName ? 'complete' : 'unknown',
+      lead.followUpDate ? 'complete' : 'incomplete',
+    ];
+    return { id: lead.id, ...evaluateOperationalSignals(signals) };
+  }), [leads]);
+
   const hasFilters = useMemo(() => status !== 'all' || intent !== 'all' || source.trim() !== '' || debouncedSearch !== '', [status, intent, source, search]);
   const firstResult = meta.total === 0 ? 0 : (meta.page - 1) * meta.limit + 1;
   const lastResult = Math.min(meta.page * meta.limit, meta.total);
