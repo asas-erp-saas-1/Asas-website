@@ -4121,16 +4121,7 @@ export default function AdminPage() {
   // Route authority: the URL is the source of truth for workspace identity.
   // Hash navigation is retained for backward compatibility with the current admin
   // surface, while local activeTab becomes a derived/rendering concern.
-  useEffect(() => {
-    const syncFromUrl = () => setActiveTab(getAdminRoute().workspace as TabId);
-    window.addEventListener('hashchange', syncFromUrl);
-    window.addEventListener('popstate', syncFromUrl);
-    syncFromUrl();
-    return () => {
-      window.removeEventListener('hashchange', syncFromUrl);
-      window.removeEventListener('popstate', syncFromUrl);
-    };
-  }, []);
+  useEffect(() => subscribeToAdminRoute((route) => setActiveTab(route.workspace as TabId)), []);
 
   function navigateAdmin(workspace: TabId, patch: { search?: string; filters?: Record<string, string | undefined>; sort?: string; page?: number; cursor?: string; subview?: string; entity?: import('@/lib/admin-route').AdminEntity; entityId?: string } = {}) {
     const href = adminRouteHref({ workspace: workspace as AdminWorkspaceId, ...patch });
