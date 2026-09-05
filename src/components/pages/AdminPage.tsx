@@ -25,6 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/constants';
+import { getAdminRoute, adminRouteHref, type AdminWorkspaceId } from '@/lib/admin-route';
 
 /* ─── Types ─── */
 
@@ -4096,7 +4097,30 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<TabId>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabId>(() => getAdminRoute().workspace as TabId);
+
+  // Route authority: the URL is the source of truth for workspace identity.
+  // Hash navigation is retained for backward compatibility with the current admin
+  // surface, while local activeTab becomes a derived/rendering concern.
+  useEffect(() => {
+    const syncFromUrl = () => setActiveTab(getAdminRoute().workspace as TabId);
+    window.addEventListener('hashchange', syncFromUrl);
+    window.addEventListener('popstate', syncFromUrl);
+    syncFromUrl();
+    return () => {
+      window.removeEventListener('hashchange', syncFromUrl);
+      window.removeEventListener('popstate', syncFromUrl);
+    };
+  }, []);
+
+  function navigateAdmin(workspace: TabId) {
+    const href = adminRouteHref(workspace as AdminWorkspaceId);
+    if (window.location.hash === href.slice(1)) {
+      setActiveTab(workspace);
+      return;
+    }
+    window.location.hash = href.slice(1);
+  }
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Filter state
@@ -4203,7 +4227,7 @@ export default function AdminPage() {
               {group.items.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => navigateAdmin(item.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
                     activeTab === item.id
                       ? 'bg-forest text-white shadow-lg shadow-forest/20'
@@ -4246,7 +4270,7 @@ export default function AdminPage() {
             leads={leads}
             projects={projects}
             apartments={apartments}
-            onNavigate={(tab) => setActiveTab(tab)}
+            onNavigate={navigateAdmin}
             onCreateProject={() => setShowCreateProject(true)}
             onCreateApartment={() => setShowCreateApartment(true)}
           />
