@@ -4131,12 +4131,9 @@ export default function AdminPage() {
     };
   }, []);
 
-  function navigateAdmin(workspace: TabId) {
-    const href = adminRouteHref(workspace as AdminWorkspaceId);
-    if (window.location.hash === href.slice(1)) {
-      setActiveTab(workspace);
-      return;
-    }
+  function navigateAdmin(workspace: TabId, patch: { search?: string; filters?: Record<string, string | undefined>; sort?: string; page?: number; cursor?: string; subview?: string; entity?: import('@/lib/admin-route').AdminEntity; entityId?: string } = {}) {
+    const href = adminRouteHref({ workspace: workspace as AdminWorkspaceId, ...patch });
+    if (window.location.hash === href.slice(1)) return;
     window.location.hash = href.slice(1);
   }
   const [sidebarOpen, setSidebarOpen] = useState(true);
