@@ -3,6 +3,7 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, FileText, Loader2, Mail, Phone, RefreshCw, Search, UserRound, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
