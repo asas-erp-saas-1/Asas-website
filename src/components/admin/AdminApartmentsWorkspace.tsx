@@ -127,7 +127,6 @@ export function AdminApartmentsWorkspace() {
 
   useEffect(() => {
     const controller = new AbortController();
-    setError(null);
     const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
     if (projectSlug !== 'all') params.set('projectSlug', projectSlug);
     if (status !== 'all') params.set('status', status);
@@ -136,6 +135,7 @@ export function AdminApartmentsWorkspace() {
     getJson<{ data?: Apartment[]; pagination?: Pagination }>(`/api/admin/apartments?${params}`, { signal: controller.signal })
       .then((json) => {
         setApartments(json.data ?? []);
+        setError(null);
         setPagination(json.pagination ?? { page, limit: PAGE_SIZE, total: json.data?.length ?? 0, totalPages: json.data?.length ? 1 : 0 });
       })
       .catch((err: unknown) => {
