@@ -17,7 +17,8 @@ export type SiteOperationalUnit =
   | 'apartment-inventory'
   | 'availability-management'
   | 'media-management'
-  | 'publication-management';
+  | 'publication-management'
+  | 'completeness-monitoring';
 
 export type CustomerOperationalUnit =
   | 'lead-intake'
@@ -25,7 +26,9 @@ export type CustomerOperationalUnit =
   | 'lead-assignment'
   | 'follow-up-management'
   | 'property-interest'
-  | 'reservation-conversion';
+  | 'reservation-conversion'
+  | 'negotiation-management'
+  | 'conversion-loss';
 
 export type SystemOperationalUnit =
   | 'user-management'
@@ -56,6 +59,63 @@ export interface AdminOperationalContext {
  * backbone for contextual navigation and prevent the Admin from becoming a
  * collection of disconnected CRUD surfaces.
  */
+export const SITE_OPERATIONAL_UNITS = {
+  project: [
+    'create',
+    'complete-information',
+    'add-buildings',
+    'add-apartments',
+    'manage-inventory',
+    'manage-pricing',
+    'manage-media',
+    'manage-publication',
+    'monitor-completeness',
+  ],
+  building: [
+    'create',
+    'associate-project',
+    'define-structure',
+    'manage-apartments',
+    'monitor-inventory',
+  ],
+  apartment: [
+    'create',
+    'assign-project',
+    'assign-building',
+    'define-physical-specs',
+    'define-commercial-data',
+    'define-availability',
+    'upload-plans-media',
+    'publish',
+    'track-lifecycle',
+  ],
+} as const;
+
+/** Canonical commercial journey: inventory context becomes customer context. */
+export const ADMIN_OPERATIONAL_FLOW = [
+  'project',
+  'building',
+  'apartment',
+  'availability',
+  'lead-interest',
+  'follow-up',
+  'reservation',
+] as const;
+
+export const CUSTOMER_OPERATIONAL_UNITS = {
+  lead: [
+    'intake',
+    'qualification',
+    'assignment',
+    'follow-up',
+    'activity-notes',
+    'property-interest',
+    'negotiation',
+    'reservation',
+    'conversion-loss',
+  ],
+} as const;
+
 export const ADMIN_OPERATIONAL_RELATIONSHIPS = {
   site: {
     project: ['building', 'apartment', 'availability', 'media', 'publication'],
@@ -63,6 +123,6 @@ export const ADMIN_OPERATIONAL_RELATIONSHIPS = {
     apartment: ['project', 'building', 'availability', 'lead', 'reservation', 'contract', 'payment'],
   },
   customer: {
-    lead: ['project', 'apartment', 'follow-up', 'reservation'],
+    lead: ['project', 'building', 'apartment', 'property-interest', 'follow-up', 'reservation', 'conversion-loss'],
   },
 } as const;
