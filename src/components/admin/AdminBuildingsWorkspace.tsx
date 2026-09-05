@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Building2, ChevronLeft, ChevronRight, Loader2, Plus, RefreshCw, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -140,6 +141,17 @@ export default function AdminBuildingsWorkspace() {
 
   useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
   useEffect(() => { if (meta.totalPages > 0 && page > meta.totalPages) setPage(meta.totalPages); }, [meta.totalPages, page]);
+
+  const operationalReadiness = useMemo(() => buildings.map((building) => {
+    const signals: OperationalSignal[] = [
+      building.name.trim() ? 'complete' : 'incomplete',
+      building.project?.id ? 'complete' : 'incomplete',
+      building.code.trim() ? 'complete' : 'incomplete',
+      building.floors >= 1 ? 'complete' : 'incomplete',
+      building.apartmentCount >= 0 ? 'complete' : 'unknown',
+    ];
+    return { id: building.id, ...evaluateOperationalSignals(signals) };
+  }), [buildings]);
 
   const hasFilters = useMemo(() => Boolean(search.trim()) || projectId !== 'all', [projectId, search]);
   const firstResult = meta.total === 0 ? 0 : (meta.page - 1) * meta.limit + 1;
