@@ -1,5 +1,6 @@
 'use client';
 
+import { AdminApartmentsWorkspace } from '@/components/admin/AdminApartmentsWorkspace';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -4310,19 +4311,7 @@ export default function AdminPage() {
           />
         )}
         {activeTab === 'apartments' && (
-          <ApartmentsTab
-            apartments={apartments}
-            projects={projects}
-            isLoading={apartmentsQuery.isLoading}
-            projectFilter={projectFilter}
-            statusFilter={statusFilter}
-            typeFilter={typeFilter}
-            onProjectFilterChange={setProjectFilter}
-            onStatusFilterChange={setStatusFilter}
-            onTypeFilterChange={setTypeFilter}
-            onEdit={setEditApartment}
-            onCreate={() => setShowCreateApartment(true)}
-          />
+          <AdminApartmentsWorkspace />
         )}
         {activeTab === 'buildings' && (
           <BuildingsTab
