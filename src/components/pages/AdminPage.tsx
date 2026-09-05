@@ -4134,7 +4134,8 @@ export default function AdminPage() {
   function navigateAdmin(workspace: TabId, patch: { search?: string; filters?: Record<string, string | undefined>; sort?: string; page?: number; cursor?: string; subview?: string; entity?: import('@/lib/admin-route').AdminEntity; entityId?: string } = {}) {
     const href = adminRouteHref({ workspace: workspace as AdminWorkspaceId, ...patch });
     if (window.location.hash === href.slice(1)) return;
-    window.location.hash = href.slice(1);
+    window.history.pushState(null, '', href);
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
   }
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
