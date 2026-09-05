@@ -710,6 +710,7 @@ GitHub is the engineering evidence system for ASAS. The repository must enforce 
 10. Never weaken a CI gate to obtain a green PR. Fix the underlying failure or document an explicit engineering decision.
 11. GitHub configuration changes that cannot be represented safely as repository files must be recorded as an administrative configuration task with evidence after application.
 12. Workflow changes themselves are security-sensitive and require the same observe → isolate → model → implement → verify discipline as application code.
+13. Dependency Review is a target security gate but must not be treated as active until GitHub Dependency Graph is enabled for the repository; an unsupported check is configuration debt, not a green result.
 
 ### GitHub configuration target
 
