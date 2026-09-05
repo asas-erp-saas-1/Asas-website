@@ -669,3 +669,26 @@ During deployment waits, continue engineering from verified repository state: in
 Admin work must be reasoned about as operational units, not isolated CRUD screens. Site Operations cover project-management, building-management, apartment-inventory, availability-management, media-management and publication-management. Customer Operations cover lead-intake, qualification, assignment, follow-up-management, property-interest and reservation-conversion. System Operations cover users, permissions, settings and audit activity. Entity work must preserve the contextual relationship graph and expose appropriate next actions.
 
 For the real-estate catalog, the canonical operational chain is Project → Building → Apartment → Availability → Reservation → Contract → Payment. For commercial operations, it is Project/Apartment → Lead → Follow-up → Reservation. New Admin functionality must identify its operational unit, entity context, upstream/downstream relationships, mutation risks and recovery behavior before implementation.
+
+
+## 16. Canonical ASAS Admin Operational Model
+
+The following operational decomposition is authoritative for Admin engineering.
+
+### SITE OPERATIONS
+
+Project: Create → Complete information → Add buildings → Add apartments → Manage inventory → Manage pricing → Manage media → Manage publication → Monitor completeness.
+
+Building: Create → Associate Project → Define structure → Manage apartments → Monitor inventory.
+
+Apartment: Create → Assign Project → Assign Building → Define physical specs → Define commercial data → Define availability → Upload plans/media → Publish → Track lifecycle.
+
+### CUSTOMER OPERATIONS
+
+Lead: Intake → Qualification → Assignment → Follow-up → Activity/Notes → Property Interest → Negotiation → Reservation → Conversion/Loss.
+
+### CANONICAL RELATION
+
+Project → Building → Apartment → Availability → Lead Interest → Follow-up → Reservation.
+
+This is a behavioral/domain model, not merely navigation. Each operational unit must have explicit ownership, context, prerequisites, next actions, validation, mutation safety, failure recovery, permissions, and auditability. Do not implement a disconnected CRUD screen when the operation belongs to an existing entity lifecycle.
