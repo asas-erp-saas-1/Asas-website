@@ -76,30 +76,23 @@ export function AdminProjectsWorkspace() {
     if (status !== 'all') params.set('status', status);
 
     // This effect is an imperative remote-fetch lifecycle; the state sync is intentional.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setError(null);
     getJson<{ data?: Project[]; meta?: ProjectMeta }>(`/api/admin/projects?${params.toString()}`, { signal: controller.signal })
       .then((json) => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setProjects(json.data ?? []);
+            setProjects(json.data ?? []);
         if (json.meta) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setMeta(json.meta);
+                setMeta(json.meta);
         }
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === 'AbortError') return;
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setProjects([]);
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setError(err instanceof Error ? err.message : 'Impossible de charger les projets.');
+            setProjects([]);
+            setError(err instanceof Error ? err.message : 'Impossible de charger les projets.');
       })
       .finally(() => {
         if (!controller.signal.aborted) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setLoading(false);
+                setLoading(false);
         }
       });
     return () => controller.abort();
@@ -107,15 +100,13 @@ export function AdminProjectsWorkspace() {
 
   useEffect(() => {
     if (!loading) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setRefreshing(false);
+        setRefreshing(false);
     }
   }, [loading]);
 
   useEffect(() => {
     if (meta.totalPages > 0 && page > meta.totalPages) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPage(meta.totalPages);
+        setPage(meta.totalPages);
     }
   }, [meta.totalPages, page]);
 
