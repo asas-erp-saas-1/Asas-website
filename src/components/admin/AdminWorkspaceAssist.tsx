@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getAdminRoute } from '@/lib/admin-route';
+import { getAdminRoute, subscribeToAdminRoute } from '@/lib/admin-route';
 import { getAdminDomain, ADMIN_DOMAIN_GROUPS, type AdminDomainId } from '@/lib/admin-information-architecture';
 
 const TAB_LABELS: Record<string, string> = {
@@ -30,16 +30,7 @@ const DOMAIN_LABELS: Record<AdminDomainId, string> = {
 export function AdminWorkspaceAssist() {
   const [route, setRoute] = useState(() => getAdminRoute());
 
-  useEffect(() => {
-    const sync = () => setRoute(getAdminRoute());
-    window.addEventListener('hashchange', sync);
-    window.addEventListener('popstate', sync);
-    sync();
-    return () => {
-      window.removeEventListener('hashchange', sync);
-      window.removeEventListener('popstate', sync);
-    };
-  }, []);
+  useEffect(() => subscribeToAdminRoute(setRoute), []);
 
   const currentTab = route.workspace;
   const label = TAB_LABELS[currentTab] ?? TAB_LABELS.dashboard;
