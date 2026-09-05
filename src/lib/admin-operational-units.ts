@@ -220,3 +220,50 @@ export const ADMIN_OPERATIONAL_UNIT_DEFINITIONS: readonly AdminOperationalUnitDe
     completionSignals: ['owner explicit', 'qualification explicit', 'interest explicit', 'next follow-up explicit', 'commercial outcome explicit'],
   },
 ] as const;
+
+
+export type AdminOperationalState =
+  | 'not-started'
+  | 'incomplete'
+  | 'ready'
+  | 'in-progress'
+  | 'blocked'
+  | 'completed'
+  | 'failed';
+
+export type AdminOperationalNextAction = {
+  actionId: string;
+  reason: string;
+  blocked?: boolean;
+};
+
+export interface AdminOperationalStateSnapshot {
+  unitId: string;
+  state: AdminOperationalState;
+  completionRatio: number;
+  nextActions: readonly AdminOperationalNextAction[];
+  blockers: readonly string[];
+}
+
+/**
+ * These are intentionally deterministic, pure rules. UI components can consume
+ * them without owning business logic or duplicating readiness calculations.
+ */
+export function getOperationalState(
+  completionSignals: readonly boolean[],
+  inProgress = false,
+  failed = false,
+): AdminOperationalState {
+  if (failed) return 'failed';
+  if (inProgress) return 'in-progress';
+  if (completionSignals.length === 0) return 'not-started';
+  const complete = completionSignals.every(Boolean);
+  if (complete) return 'completed';
+  if (completionSignals.some(Boolean)) return 'incomplete';
+  return 'not-started';
+}
+
+export function getCompletionRatio(signals: readonly boolean[]): number {
+  if (signals.length === 0) return 0;
+  return Math.round((signals.filter(Boolean).length / signals.length) * 100);
+}
