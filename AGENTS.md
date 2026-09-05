@@ -547,3 +547,111 @@ Do not optimize for “looks good”.
 Optimize for:
 
 **Reliable → Understandable → Efficient → Safe → Recoverable → Accessible → Scalable → Consistent.**
+
+
+## 13. ASAS ADMIN — Deep Workspace Operating Standard
+
+This section is mandatory for all Admin work and extends the general protocol above. The Admin is an operational workspace, not a collection of dashboard screens.
+
+### 13.1 Workspace domains
+Treat Admin as three coordinated operational areas:
+- **Site Operations:** projects, buildings, apartments/units, media, videos, content, SEO, publication and availability.
+- **Customer Operations:** leads, qualification, assignment, follow-up, activities/notes, property interest, negotiation and conversion.
+- **System Operations:** users, roles/permissions, auditability, configuration and system state.
+
+The critical cross-domain flows are:
+- Project → Building → Apartment → Availability → Reservation → Contract → Payment
+- Project/Apartment → Lead → Follow-up → Reservation
+
+Do not leave these as isolated CRUD screens. Entity views must expose relevant relationships, ownership, status, activity/history and next actions.
+
+### 13.2 Project editor contract
+A project editor is an entity workspace with progressive disclosure, not a flat form. Audit and implement these conceptual sections:
+1. Identity — name, localized name, slug, type, developer/promoter.
+2. Location — city, district, address, coordinates and localized values.
+3. Commercial — starting price, price-on-request, apartment types, surface range and status.
+4. Delivery — date/year/quarter and related delivery information.
+5. Amenities — parking, elevator, garden, pool, security, climate and structured amenities.
+6. Buildings — project/building relationship and building inventory.
+7. Apartments — unit inventory and availability summary.
+8. Media — hero, gallery, plans/renders where applicable.
+9. Videos.
+10. Editorial content — localized descriptions/features.
+11. SEO — title, description, keywords, canonical, OG and indexing controls.
+12. Publication — draft/review/published/archive semantics where supported by the domain contract.
+
+Never invent persistence. If the UI needs a field that the live schema/contracts do not support, document the gap instead of faking it in client state.
+
+### 13.3 Apartment/unit editor contract
+Treat an apartment as a property entity, not a row. The editor must account for:
+1. Identity — project, building, apartment/unit number, slug and type.
+2. Physical characteristics — surface, floor, total floors, orientation, rooms, bedrooms and bathrooms.
+3. Outdoor areas — balconies/count/area, terrace/area, garden/area.
+4. Parking — availability and spots.
+5. Availability/status — through the authoritative lifecycle/state machine, never arbitrary status writes.
+6. Pricing — server-authoritative DZD amount semantics.
+7. Payment plan.
+8. Floor plan/furnished plan/renders.
+9. Gallery and video.
+10. Features.
+11. Localized editorial content.
+12. SEO.
+13. Publication/order.
+
+For every apartment list/detail, define mobile primary fields, secondary fields, hidden fields and the detail surface explicitly. Preserve property identity and project/building context during navigation.
+
+### 13.4 Every workspace receives the same deep audit
+For Dashboard, Projects, Buildings, Apartments, Leads, Users, Roles/Permissions, Settings, Site Content, Media, Videos, Newsletter, Audit Logs and future Admin workspaces, inspect all of the following before material implementation:
+- domain purpose and ownership
+- entity lifecycle and legal state transitions
+- relationships and contextual navigation
+- permissions and visibility
+- URL/deep-link/history contract
+- server/URL/workspace/UI/form/mutation/session state ownership
+- fetch, cache, invalidation, cancellation and race behavior
+- search/filter/sort/pagination semantics
+- table/card/detail strategy
+- form semantics and validation
+- dialog/drawer/focus/scroll behavior
+- loading/error/empty/recovery states
+- mutation safety and audit trail
+- responsive interaction model at every required viewport
+- keyboard/touch/screen-reader behavior
+- RTL/LTR and Arabic/French/English expansion
+- long names, addresses and content
+- number, currency, date and phone semantics
+- large-data behavior
+- browser compatibility
+- runtime/deployment evidence
+
+A workspace is not considered audited because its happy path renders.
+
+### 13.5 Device behavior is a product contract
+Do not equate responsive CSS with responsive UX. Define what information, actions, navigation and interaction model changes at 360, 375, 390, 414, 430, 768, 820, 834, 1024, 1280, 1366, 1440, 1536, 1920 and 2560px widths.
+- **Mobile:** hybrid operational subset; priority-first information, drawer navigation, contextual actions, full-screen editors where useful, collapsible filters, ≥44×44 operational targets, no hover dependency, no accidental page overflow.
+- **Tablet:** hybrid adaptive workspace; exploit width for split/context layouts without sacrificing touch usability.
+- **Desktop:** full operational workspace with bounded content width and high information density; never stretch dense content indefinitely.
+
+### 13.6 Tables are operational instruments
+For every major entity explicitly define primary/secondary/mobile-hidden columns, detail view, sorting, filtering, search, pagination/cursor strategy, selection, row/bulk actions and all loading/empty/filtered-empty/error states. Use cards when mobile tasks are entity scanning/acting; preserve horizontal table semantics only when genuinely valuable.
+
+### 13.7 Forms and mutations are state machines
+Important mutations follow: **idle → validating → submitting → success | recoverable-error**.
+Every mutation requires permission verification, duplicate-submit protection, deterministic pending state, success/error feedback, recovery/retry, cache invalidation and audit logging where applicable. Protect dirty forms and preserve drafts after recoverable failure. High-risk mutations (delete/archive/publish/status/price/activation/media) require explicit safety semantics; do not use unsafe optimistic UI.
+
+Media uploads follow an explicit queued/validating/uploading/progress/cancelling/success/failure/retry/cleanup model. Concurrent uploads must have deterministic identity and ordering.
+
+### 13.8 Data correctness and scale
+Never derive business KPIs from finite paginated lists. Use aggregate contracts/query semantics. Search and filtering must be server-bounded and cancellation-aware where appropriate. Do not solve scale with arbitrary client limits. Establish pagination, indexes, bounded payloads, deduplication and caching before considering virtualization; virtualization requires profiling evidence.
+
+### 13.9 Failure and recovery contract
+Explicitly test slow/failed APIs, network loss, double-submit, mutation failure, retry, session expiry, refresh during save, Back/Forward during operations, upload failure, rapidly changing search/filter/page state and stale responses. Distinguish validation, auth, authorization, network, API, server, conflict, timeout and unknown errors. Distinguish no-data, no-results, no-filter-results, no-permission, not-configured, loading and failed states.
+
+### 13.10 Accessibility and localization
+Target WCAG 2.2 AA and use ≥44×44px operational targets. Verify focus entry/restore, visible/unobscured focus, keyboard traversal, drawer focus containment/removal, semantic tables, labels, error/status announcements and current navigation semantics. Design for Arabic RTL, French and English from the beginning, including mixed bidi content, DZD formatting, dates, phones and text expansion.
+
+### 13.11 Evidence discipline
+Never claim visual/browser/runtime/deployment validation without actual evidence. If browser access is blocked, record the exact limitation. Every implementation follows: **Observe → isolate → model → smallest coherent change → verify → inspect diff → deploy when applicable → re-verify**. P0 defects block visual polish. Do not alter production schema during UX work unless a separately justified schema requirement is documented.
+
+### 13.12 Intelligence and continuous learning
+When an implementation exposes a reusable lesson, update the appropriate skill or learning ledger rather than relying on conversation memory. For external facts, verify primary sources and record the question, facts, date, confidence and applicability. At completion, perform the failure self-check: scope drift, weakened gates, unverified claims, and tests that do not actually assert behavior.
