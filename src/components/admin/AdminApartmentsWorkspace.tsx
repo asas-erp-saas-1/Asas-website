@@ -127,7 +127,6 @@ export function AdminApartmentsWorkspace() {
 
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true);
     setError(null);
     const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
     if (projectSlug !== 'all') params.set('projectSlug', projectSlug);
@@ -144,23 +143,18 @@ export function AdminApartmentsWorkspace() {
         setApartments([]);
         setError(err instanceof Error ? err.message : 'Impossible de charger les appartements.');
       })
-      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+      .finally(() => { if (!controller.signal.aborted) { setLoading(false); setRefreshing(false); } });
     return () => controller.abort();
   }, [page, projectSlug, status, type, retryKey, debouncedSearch]);
 
-  useEffect(() => {
-    if (pagination.totalPages > 0 && page > pagination.totalPages) setPage(pagination.totalPages);
-  }, [page, pagination.totalPages]);
-
+  const effectivePage = pagination.totalPages > 0 ? Math.min(page, pagination.totalPages) : page;
   const filteredApartments = useMemo(() => apartments, [apartments]);
-  const rangeStart = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1;
-  const rangeEnd = Math.min(pagination.page * pagination.limit, pagination.total);
+  const rangeStart = pagination.total === 0 ? 0 : (effectivePage - 1) * pagination.limit + 1;
+  const rangeEnd = Math.min(effectivePage * pagination.limit, pagination.total);
 
   function resetPage() { setPage(1); }
   function clearFilters() { setProjectSlug('all'); setStatus('all'); setType('all'); setSearch(''); setDebouncedSearch(''); resetPage(); }
   function refresh() { setRefreshing(true); setRetryKey((value) => value + 1); }
-
-  useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
 
   const operationalReadiness = useMemo(() => apartments.map((apartment) => {
     const signals: OperationalSignal[] = [
