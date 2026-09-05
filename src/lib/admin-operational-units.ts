@@ -126,3 +126,97 @@ export const ADMIN_OPERATIONAL_RELATIONSHIPS = {
     lead: ['project', 'building', 'apartment', 'property-interest', 'follow-up', 'reservation', 'conversion-loss'],
   },
 } as const;
+
+
+export type AdminOperationalAction = {
+  id: string;
+  label: string;
+  requires?: readonly string[];
+  risk: 'low' | 'medium' | 'high';
+  reversible: boolean;
+};
+
+export type AdminOperationalUnitDefinition = {
+  id: string;
+  area: AdminOperationalArea;
+  entity: AdminEntity;
+  purpose: string;
+  prerequisites: readonly string[];
+  actions: readonly AdminOperationalAction[];
+  completionSignals: readonly string[];
+};
+
+export const ADMIN_OPERATIONAL_UNIT_DEFINITIONS: readonly AdminOperationalUnitDefinition[] = [
+  {
+    id: 'project-management',
+    area: 'site-operations',
+    entity: 'project',
+    purpose: 'Create and maintain a commercially publishable real-estate project and its inventory context.',
+    prerequisites: [],
+    actions: [
+      { id: 'create', label: 'Create project', risk: 'low', reversible: true },
+      { id: 'complete-information', label: 'Complete project information', risk: 'low', reversible: true },
+      { id: 'add-buildings', label: 'Add buildings', requires: ['project exists'], risk: 'low', reversible: true },
+      { id: 'add-apartments', label: 'Add apartments', requires: ['project exists'], risk: 'low', reversible: true },
+      { id: 'manage-inventory', label: 'Manage inventory', requires: ['project exists'], risk: 'medium', reversible: true },
+      { id: 'manage-pricing', label: 'Manage pricing', requires: ['inventory exists'], risk: 'high', reversible: true },
+      { id: 'manage-media', label: 'Manage media', requires: ['project exists'], risk: 'medium', reversible: true },
+      { id: 'manage-publication', label: 'Manage publication', requires: ['minimum publishable completeness'], risk: 'high', reversible: true },
+      { id: 'monitor-completeness', label: 'Monitor completeness', requires: ['project exists'], risk: 'low', reversible: true },
+    ],
+    completionSignals: ['identity complete', 'structure linked', 'inventory coherent', 'commercial data valid', 'media ready', 'publication state explicit'],
+  },
+  {
+    id: 'building-management',
+    area: 'site-operations',
+    entity: 'building',
+    purpose: 'Maintain a building as structural inventory belonging to a project.',
+    prerequisites: ['project exists'],
+    actions: [
+      { id: 'create', label: 'Create building', requires: ['project selected'], risk: 'low', reversible: true },
+      { id: 'associate-project', label: 'Associate project', requires: ['project selected'], risk: 'medium', reversible: true },
+      { id: 'define-structure', label: 'Define structure', risk: 'medium', reversible: true },
+      { id: 'manage-apartments', label: 'Manage apartments', requires: ['building exists'], risk: 'medium', reversible: true },
+      { id: 'monitor-inventory', label: 'Monitor inventory', requires: ['building exists'], risk: 'low', reversible: true },
+    ],
+    completionSignals: ['project linked', 'structure valid', 'inventory relationship coherent'],
+  },
+  {
+    id: 'apartment-inventory',
+    area: 'site-operations',
+    entity: 'apartment',
+    purpose: 'Maintain a unit from physical definition through commercial availability and publication.',
+    prerequisites: ['project exists', 'building exists'],
+    actions: [
+      { id: 'create', label: 'Create apartment', requires: ['project selected', 'building selected'], risk: 'low', reversible: true },
+      { id: 'assign-project', label: 'Assign project', requires: ['project exists'], risk: 'medium', reversible: true },
+      { id: 'assign-building', label: 'Assign building', requires: ['building exists'], risk: 'medium', reversible: true },
+      { id: 'define-physical-specs', label: 'Define physical specs', risk: 'low', reversible: true },
+      { id: 'define-commercial-data', label: 'Define commercial data', risk: 'high', reversible: true },
+      { id: 'define-availability', label: 'Define availability', risk: 'high', reversible: true },
+      { id: 'upload-plans-media', label: 'Upload plans/media', requires: ['apartment exists'], risk: 'medium', reversible: true },
+      { id: 'publish', label: 'Publish', requires: ['publishable completeness'], risk: 'high', reversible: true },
+      { id: 'track-lifecycle', label: 'Track lifecycle', requires: ['apartment exists'], risk: 'low', reversible: true },
+    ],
+    completionSignals: ['identity valid', 'project/building linked', 'physical specs valid', 'commercial data valid', 'availability explicit', 'media validated', 'lifecycle state explicit'],
+  },
+  {
+    id: 'lead-management',
+    area: 'customer-operations',
+    entity: 'lead',
+    purpose: 'Convert an inbound lead into a qualified, followed-up and traceable property opportunity.',
+    prerequisites: [],
+    actions: [
+      { id: 'intake', label: 'Intake', risk: 'low', reversible: true },
+      { id: 'qualification', label: 'Qualification', requires: ['lead exists'], risk: 'medium', reversible: true },
+      { id: 'assignment', label: 'Assignment', requires: ['lead exists'], risk: 'medium', reversible: true },
+      { id: 'follow-up', label: 'Follow-up', requires: ['lead exists'], risk: 'low', reversible: true },
+      { id: 'activity-notes', label: 'Activity / notes', requires: ['lead exists'], risk: 'low', reversible: true },
+      { id: 'property-interest', label: 'Property interest', requires: ['lead exists', 'project or apartment context'], risk: 'medium', reversible: true },
+      { id: 'negotiation', label: 'Negotiation', requires: ['property interest exists'], risk: 'high', reversible: true },
+      { id: 'reservation', label: 'Reservation', requires: ['qualified interest', 'availability confirmed'], risk: 'high', reversible: true },
+      { id: 'conversion-loss', label: 'Conversion / loss', requires: ['lead exists'], risk: 'high', reversible: true },
+    ],
+    completionSignals: ['owner explicit', 'qualification explicit', 'interest explicit', 'next follow-up explicit', 'commercial outcome explicit'],
+  },
+] as const;
