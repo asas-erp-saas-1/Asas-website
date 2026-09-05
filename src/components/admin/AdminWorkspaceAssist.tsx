@@ -27,11 +27,11 @@ const DOMAIN_LABELS: Record<AdminDomainId, string> = {
  * Workspace context layer. The route remains the authority; this component
  * derives the active operational domain without owning business/server state.
  */
-export function AdminWorkspaceAssist({ activeTab }: { activeTab?: string }) {
-  const [routeTab, setRouteTab] = useState(() => getAdminRoute().workspace);
+export function AdminWorkspaceAssist() {
+  const [route, setRoute] = useState(() => getAdminRoute());
 
   useEffect(() => {
-    const sync = () => setRouteTab(getAdminRoute().workspace);
+    const sync = () => setRoute(getAdminRoute());
     window.addEventListener('hashchange', sync);
     window.addEventListener('popstate', sync);
     sync();
@@ -41,8 +41,9 @@ export function AdminWorkspaceAssist({ activeTab }: { activeTab?: string }) {
     };
   }, []);
 
-  const currentTab = activeTab && TAB_LABELS[activeTab] ? activeTab : routeTab;
+  const currentTab = route.workspace;
   const label = TAB_LABELS[currentTab] ?? TAB_LABELS.dashboard;
+  const entityLabel = route.entity && route.entityId ? `Entité ${route.entity} ${route.entityId}` : null;
   const domain = getAdminDomain(currentTab);
   const domainLabel = DOMAIN_LABELS[domain];
 
@@ -72,7 +73,7 @@ export function AdminWorkspaceAssist({ activeTab }: { activeTab?: string }) {
       data-admin-context="true"
       data-admin-domain={domain}
     >
-      Section d’administration active : {label}. Domaine opérationnel : {domainLabel}.
+      Section d’administration active : {label}. Domaine opérationnel : {domainLabel}.{entityLabel ? ` ${entityLabel}.` : ''}
     </div>
   );
 }
