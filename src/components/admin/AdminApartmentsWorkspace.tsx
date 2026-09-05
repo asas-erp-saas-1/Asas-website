@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatPrice } from '@/lib/constants';
+import { evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
 
 interface Apartment {
   id: string;
@@ -160,6 +161,20 @@ export function AdminApartmentsWorkspace() {
   function refresh() { setRefreshing(true); setRetryKey((value) => value + 1); }
 
   useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
+
+  const operationalReadiness = useMemo(() => apartments.map((apartment) => {
+    const signals: OperationalSignal[] = [
+      apartment.apartmentNumber || apartment.unitNumber ? 'complete' : 'incomplete',
+      apartment.project?.id ? 'complete' : 'incomplete',
+      apartment.building?.id ? 'complete' : 'incomplete',
+      apartment.surface > 0 && apartment.apartmentType ? 'complete' : 'incomplete',
+      apartment.priceOnRequest || apartment.price != null ? 'complete' : 'incomplete',
+      apartment.status ? 'complete' : 'incomplete',
+      apartment.heroImage ? 'complete' : 'unknown',
+      apartment.published ? 'complete' : 'unknown',
+    ];
+    return { id: apartment.id, ...evaluateOperationalSignals(signals) };
+  }), [apartments]);
 
   const hasFilters = projectSlug !== 'all' || status !== 'all' || type !== 'all' || search.trim() !== '';
 
