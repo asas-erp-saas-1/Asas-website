@@ -84,6 +84,17 @@ export function parseAdminRoute(input: {
   };
 }
 
+export function subscribeToAdminRoute(onChange: (route: AdminRouteModel) => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  const sync = () => onChange(getAdminRoute());
+  window.addEventListener('hashchange', sync);
+  window.addEventListener('popstate', sync);
+  return () => {
+    window.removeEventListener('hashchange', sync);
+    window.removeEventListener('popstate', sync);
+  };
+}
+
 export function getAdminRoute(): AdminRouteModel {
   if (typeof window === 'undefined') return { workspace: 'dashboard', filters: {} };
   return parseAdminRoute({ pathname: window.location.pathname, hash: window.location.hash });
