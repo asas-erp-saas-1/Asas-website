@@ -662,3 +662,10 @@ When an implementation exposes a reusable lesson, update the appropriate skill o
 The dashboard KPI boundary is now an implementation rule, not documentation: /api/admin/stats is the authoritative aggregate source for total projects, total apartments, apartment availability/reservation/sold counts, total leads and new leads. Bounded workspace collections may be used only for previews/breakdowns and must never be promoted into business totals.
 
 During deployment waits, continue engineering from verified repository state: inspect the resulting deployment and runtime evidence before declaring the change valid; do not infer build success from a commit alone. If deployment fails, isolate the failure and fix the smallest coherent cause before proceeding.
+
+
+## 15. Operational Units — Mandatory Domain Lens
+
+Admin work must be reasoned about as operational units, not isolated CRUD screens. Site Operations cover project-management, building-management, apartment-inventory, availability-management, media-management and publication-management. Customer Operations cover lead-intake, qualification, assignment, follow-up-management, property-interest and reservation-conversion. System Operations cover users, permissions, settings and audit activity. Entity work must preserve the contextual relationship graph and expose appropriate next actions.
+
+For the real-estate catalog, the canonical operational chain is Project → Building → Apartment → Availability → Reservation → Contract → Payment. For commercial operations, it is Project/Apartment → Lead → Follow-up → Reservation. New Admin functionality must identify its operational unit, entity context, upstream/downstream relationships, mutation risks and recovery behavior before implementation.
