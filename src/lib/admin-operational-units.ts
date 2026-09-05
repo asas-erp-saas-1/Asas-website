@@ -271,6 +271,23 @@ export function getCompletionRatio(signals: readonly boolean[]): number {
 
 export type OperationalSignal = 'complete' | 'incomplete' | 'unknown';
 
+export interface NamedOperationalSignal {
+  key: string;
+  value: OperationalSignal;
+}
+
+export function evaluateNamedOperationalSignals(
+  signals: readonly NamedOperationalSignal[],
+): { state: AdminOperationalState; completionRatio: number; blockers: string[] } {
+  const known = signals.filter((signal) => signal.value !== 'unknown');
+  const complete = known.filter((signal) => signal.value === 'complete').length;
+  const blockers = signals.filter((signal) => signal.value === 'incomplete').map((signal) => signal.key);
+  if (signals.length === 0 || known.length === 0) return { state: 'not-started', completionRatio: 0, blockers };
+  if (blockers.length > 0) return { state: complete > 0 ? 'incomplete' : 'not-started', completionRatio: Math.round((complete / signals.length) * 100), blockers };
+  if (known.length < signals.length) return { state: 'ready', completionRatio: Math.round((complete / signals.length) * 100), blockers: ['some-readiness-signals-unavailable'] };
+  return { state: 'completed', completionRatio: 100, blockers: [] };
+}
+
 export function evaluateOperationalSignals(
   signals: readonly OperationalSignal[],
 ): { state: AdminOperationalState; completionRatio: number; blockers: string[] } {
