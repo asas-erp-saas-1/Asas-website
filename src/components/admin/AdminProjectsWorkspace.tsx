@@ -171,6 +171,12 @@ export function AdminProjectsWorkspace() {
           <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => { window.location.hash = '#/admin'; }} className="gap-2"><ChevronLeft className="h-4 w-4" /> Retour au tableau de bord</Button><Button variant="outline" size="sm" onClick={refresh} disabled={loading || refreshing} className="gap-2" aria-label="Actualiser les projets"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Actualiser</Button></div>
         </header>
 
+        <div className="grid gap-3 sm:grid-cols-3" aria-label="État opérationnel de la page">
+          <Card><CardContent className="p-4"><p className="text-xs font-medium text-muted-foreground">Projets visibles</p><p className="mt-1 text-2xl font-semibold">{operationalReadiness.length}</p></CardContent></Card>
+          <Card><CardContent className="p-4"><p className="text-xs font-medium text-muted-foreground">Informations incomplètes détectées</p><p className="mt-1 text-2xl font-semibold">{operationalReadiness.filter((item) => item.state === 'incomplete').length}</p></CardContent></Card>
+          <Card><CardContent className="p-4"><p className="text-xs font-medium text-muted-foreground">Prêts selon les données disponibles</p><p className="mt-1 text-2xl font-semibold">{operationalReadiness.filter((item) => item.state === 'completed' || item.state === 'ready').length}</p></CardContent></Card>
+        </div>
+
         {mutationError && <div role="alert" className="flex flex-col gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 sm:flex-row sm:items-center sm:justify-between"><span>{mutationError}</span><Button variant="outline" size="sm" onClick={() => setMutationError(null)}>Fermer</Button></div>}
         {mutationSuccess && <div role="status" className="flex flex-col gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 sm:flex-row sm:items-center sm:justify-between"><span>{mutationSuccess}</span><Button variant="outline" size="sm" onClick={() => setMutationSuccess(null)}>Fermer</Button></div>}
 
