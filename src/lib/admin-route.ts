@@ -13,6 +13,13 @@ export const ADMIN_WORKSPACES = [
 
 export type AdminWorkspaceId = (typeof ADMIN_WORKSPACES)[number];
 
+export type AdminEntity = 'project' | 'building' | 'apartment' | 'lead' | 'reservation' | 'contract' | 'payment' | 'user';
+const ENTITY_SET = new Set<string>(['project','building','apartment','lead','reservation','contract','payment','user']);
+function normalizeEntity(value: string | null): AdminEntity | undefined {
+  const candidate = value?.trim().toLowerCase();
+  return candidate && ENTITY_SET.has(candidate) ? candidate as AdminEntity : undefined;
+}
+
 export interface AdminRouteModel {
   workspace: AdminWorkspaceId;
   search?: string;
@@ -20,6 +27,9 @@ export interface AdminRouteModel {
   sort?: string;
   page?: number;
   subview?: string;
+  entity?: AdminEntity;
+  entityId?: string;
+  cursor?: string;
 }
 
 const WORKSPACE_SET = new Set<string>(ADMIN_WORKSPACES);
@@ -45,7 +55,7 @@ export function parseAdminRoute(input: {
     const filters: Record<string, string> = {};
     params.forEach((value, key) => { if (!['search', 'sort', 'page', 'subview'].includes(key)) filters[key] = value; });
     const rawPage = Number(params.get('page'));
-    return { workspace: hashWorkspace ?? 'dashboard', search: params.get('search') ?? undefined, filters, sort: params.get('sort') ?? undefined, page: Number.isInteger(rawPage) && rawPage > 0 ? rawPage : undefined, subview: params.get('subview') ?? undefined };
+    return { workspace: hashWorkspace ?? 'dashboard', search: params.get('search') ?? undefined, filters, sort: params.get('sort') ?? undefined, page: Number.isInteger(rawPage) && rawPage > 0 ? rawPage : undefined, subview: params.get('subview') ?? undefined, entity: normalizeEntity(params.get('entity')), entityId: params.get('entityId') ?? undefined, cursor: params.get('cursor') ?? undefined };
   }
 
   const pathMatch = pathname.match(/^\/admin(?:\/([^/]+))?/i);
@@ -68,6 +78,9 @@ export function parseAdminRoute(input: {
     sort: params.get('sort') ?? undefined,
     page: Number.isInteger(rawPage) && rawPage > 0 ? rawPage : undefined,
     subview: params.get('subview') ?? undefined,
+    entity: normalizeEntity(params.get('entity')),
+    entityId: params.get('entityId') ?? undefined,
+    cursor: params.get('cursor') ?? undefined,
   };
 }
 
