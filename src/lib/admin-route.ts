@@ -53,7 +53,7 @@ export function parseAdminRoute(input: {
     const query = hashValue.includes('?') ? hashValue.slice(hashValue.indexOf('?') + 1) : '';
     const params = new URLSearchParams(query);
     const filters: Record<string, string> = {};
-    params.forEach((value, key) => { if (!['search', 'sort', 'page', 'subview'].includes(key)) filters[key] = value; });
+    params.forEach((value, key) => { if (!['search', 'sort', 'page', 'subview', 'entity', 'entityId', 'cursor'].includes(key)) filters[key] = value; });
     const rawPage = Number(params.get('page'));
     return { workspace: hashWorkspace ?? 'dashboard', search: params.get('search') ?? undefined, filters, sort: params.get('sort') ?? undefined, page: Number.isInteger(rawPage) && rawPage > 0 ? rawPage : undefined, subview: params.get('subview') ?? undefined, entity: normalizeEntity(params.get('entity')), entityId: params.get('entityId') ?? undefined, cursor: params.get('cursor') ?? undefined };
   }
@@ -68,7 +68,7 @@ export function parseAdminRoute(input: {
   const params = new URLSearchParams(query);
   const filters: Record<string, string> = {};
   params.forEach((value, key) => {
-    if (key !== 'search' && key !== 'sort' && key !== 'page' && key !== 'subview') filters[key] = value;
+    if (!['search', 'sort', 'page', 'subview', 'entity', 'entityId', 'cursor'].includes(key)) filters[key] = value;
   });
   const rawPage = Number(params.get('page'));
   return {
@@ -89,6 +89,33 @@ export function getAdminRoute(): AdminRouteModel {
   return parseAdminRoute({ pathname: window.location.pathname, hash: window.location.hash });
 }
 
-export function adminRouteHref(workspace: AdminWorkspaceId): string {
-  return workspace === 'dashboard' ? '#/admin' : '#/admin/' + workspace;
+export interface AdminRoutePatch {
+  workspace?: AdminWorkspaceId;
+  search?: string;
+  filters?: Record<string, string | undefined>;
+  sort?: string;
+  page?: number;
+  cursor?: string;
+  subview?: string;
+  entity?: AdminEntity;
+  entityId?: string;
+}
+
+export function adminRouteHref(workspaceOrPatch: AdminWorkspaceId | AdminRoutePatch): string {
+  const patch = typeof workspaceOrPatch === 'string' ? { workspace: workspaceOrPatch } : workspaceOrPatch;
+  const workspace = patch.workspace ?? 'dashboard';
+  const params = new URLSearchParams();
+  if (patch.search) params.set('search', patch.search);
+  if (patch.sort) params.set('sort', patch.sort);
+  if (patch.page && patch.page > 0) params.set('page', String(patch.page));
+  if (patch.cursor) params.set('cursor', patch.cursor);
+  if (patch.subview) params.set('subview', patch.subview);
+  if (patch.entity) params.set('entity', patch.entity);
+  if (patch.entityId) params.set('entityId', patch.entityId);
+  Object.entries(patch.filters ?? {}).forEach(([key, value]) => {
+    if (value != null && value !== '') params.set(key, value);
+  });
+  const base = workspace === 'dashboard' ? '#/admin' : '#/admin/' + workspace;
+  const query = params.toString();
+  return query ? base + '?' + query : base;
 }
