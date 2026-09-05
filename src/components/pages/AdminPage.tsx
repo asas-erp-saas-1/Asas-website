@@ -123,6 +123,7 @@ interface AdminDashboardStats {
   soldCount: number;
   totalLeads: number;
   newLeadsCount: number;
+  intentBreakdown?: Record<string, number>;
 }
 
 async function fetchAdminDashboardStats(): Promise<AdminDashboardStats> {
