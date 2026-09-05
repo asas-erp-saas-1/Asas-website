@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Archive, Building2, ChevronLeft, ChevronRight, Eye, EyeOff, Filter, Loader2, RefreshCw, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -117,6 +118,17 @@ export function AdminProjectsWorkspace() {
       setPage(meta.totalPages);
     }
   }, [meta.totalPages, page]);
+
+  const operationalReadiness = projects.map((project) => {
+    const signals: OperationalSignal[] = [
+      project.name.trim() ? 'complete' : 'incomplete',
+      project.city.trim() && project.district.trim() ? 'complete' : 'incomplete',
+      project.projectType.trim() ? 'complete' : 'incomplete',
+      project.apartmentCount >= 0 ? 'complete' : 'unknown',
+      project.published ? 'complete' : 'unknown',
+    ];
+    return { id: project.id, ...evaluateOperationalSignals(signals) };
+  });
 
   const normalizedSearch = debouncedSearch;
   const hasFilters = status !== 'all' || normalizedSearch !== '';
