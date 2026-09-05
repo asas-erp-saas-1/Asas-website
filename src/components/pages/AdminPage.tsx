@@ -115,6 +115,23 @@ function formatDate(dateStr: string): string {
 
 /* ─── API Fetch Helpers ─── */
 
+interface AdminDashboardStats {
+  totalProjects: number;
+  totalApartments: number;
+  availableCount: number;
+  reservedCount: number;
+  soldCount: number;
+  totalLeads: number;
+  newLeadsCount: number;
+}
+
+async function fetchAdminDashboardStats(): Promise<AdminDashboardStats> {
+  const res = await fetch('/api/admin/stats', { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to fetch dashboard statistics');
+  const json = await res.json();
+  return json.data;
+}
+
 async function fetchAdminProjects(): Promise<AdminProject[]> {
   const res = await fetch('/api/admin/projects?limit=50', { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch projects');
@@ -4143,6 +4160,13 @@ export default function AdminPage() {
     enabled: isAuthenticated,
   });
 
+  const dashboardStatsQuery = useQuery({
+    queryKey: ['admin', 'dashboard-stats'],
+    queryFn: fetchAdminDashboardStats,
+    enabled: isAuthenticated && activeTab === 'dashboard',
+    staleTime: 30_000,
+  });
+
   const apartmentsQuery = useQuery({
     queryKey: ['admin', 'apartments', projectFilter, statusFilter, typeFilter],
     queryFn: () => fetchAdminApartments({
@@ -4171,20 +4195,23 @@ export default function AdminPage() {
   const apartments = apartmentsQuery.data ?? [];
   const leads = leadsQuery.data ?? [];
 
-  const stats = useMemo(() => ({
-    totalProjects: projects.length,
-    totalApartments: apartments.length,
-    availableCount: apartments.filter((a) => a.status === 'AVAILABLE').length,
-    reservedCount: apartments.filter((a) => a.status === 'RESERVED').length,
-    soldCount: apartments.filter((a) => a.status === 'SOLD').length,
-    totalLeads: leads.length,
-    newLeadsCount: leads.filter((l) => l.status === 'NEW').length,
-  }), [projects, apartments, leads]);
+  // Dashboard KPIs come from the aggregate endpoint, never from paginated previews.
+  // The collections below remain bounded previews for recent items / breakdowns.
+  const stats: AdminDashboardStats = dashboardStatsQuery.data ?? {
+    totalProjects: 0,
+    totalApartments: 0,
+    availableCount: 0,
+    reservedCount: 0,
+    soldCount: 0,
+    totalLeads: 0,
+    newLeadsCount: 0,
+  };
 
   const activeLoading = activeTab === 'projects' ? projectsQuery.isLoading
     : activeTab === 'apartments' ? apartmentsQuery.isLoading
     : activeTab === 'buildings' ? buildingsQuery.isLoading
     : activeTab === 'leads' ? leadsQuery.isLoading
+    : activeTab === 'dashboard' ? dashboardStatsQuery.isLoading
     : false;
 
   /* ─── Render ─── */
