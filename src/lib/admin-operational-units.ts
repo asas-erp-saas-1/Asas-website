@@ -222,6 +222,33 @@ export const ADMIN_OPERATIONAL_UNIT_DEFINITIONS: readonly AdminOperationalUnitDe
 ] as const;
 
 
+export type AdminOperationalDomainId = 'site-operations' | 'customer-operations' | 'system-operations';
+
+export interface OperationalTransition {
+  from: AdminOperationalState;
+  to: AdminOperationalState;
+  actionId: string;
+  requires: readonly string[];
+  risk: 'low' | 'medium' | 'high';
+  reversible: boolean;
+}
+
+export const APARTMENT_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[] = [
+  { from: 'not-started', to: 'incomplete', actionId: 'create', requires: ['project selected', 'building selected'], risk: 'low', reversible: true },
+  { from: 'incomplete', to: 'ready', actionId: 'complete-information', requires: ['identity valid', 'physical specs valid', 'commercial data valid', 'availability explicit'], risk: 'low', reversible: true },
+  { from: 'ready', to: 'in-progress', actionId: 'publish', requires: ['publishable completeness'], risk: 'high', reversible: true },
+  { from: 'in-progress', to: 'completed', actionId: 'publish-success', requires: ['server confirmation'], risk: 'high', reversible: true },
+  { from: 'in-progress', to: 'failed', actionId: 'publish-failure', requires: ['recoverable server/network error'], risk: 'high', reversible: true },
+];
+
+export const LEAD_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[] = [
+  { from: 'not-started', to: 'incomplete', actionId: 'intake', requires: ['lead identity'], risk: 'low', reversible: true },
+  { from: 'incomplete', to: 'ready', actionId: 'qualification', requires: ['qualification explicit', 'owner explicit'], risk: 'medium', reversible: true },
+  { from: 'ready', to: 'in-progress', actionId: 'reservation', requires: ['qualified interest', 'availability confirmed'], risk: 'high', reversible: true },
+  { from: 'in-progress', to: 'completed', actionId: 'reservation-success', requires: ['server confirmation'], risk: 'high', reversible: true },
+  { from: 'in-progress', to: 'failed', actionId: 'reservation-failure', requires: ['recoverable server/network error'], risk: 'high', reversible: true },
+];
+
 export type AdminOperationalState =
   | 'not-started'
   | 'incomplete'
