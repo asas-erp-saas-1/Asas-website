@@ -26,14 +26,14 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <StoreHydration />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex min-h-screen min-w-0 w-full flex-col overflow-x-clip bg-background">
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-forest focus:text-white focus:px-4 focus:py-2 focus:rounded-md focus:text-sm focus:font-medium">
           Aller au contenu principal
         </a>
         <Navbar />
         <ScrollProgress />
         <BackToTop />
-        <main id="main-content" className="flex-1">
+        <main id="main-content" className="min-w-0 flex-1">
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
         <Footer />
