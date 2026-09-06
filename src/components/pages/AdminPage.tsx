@@ -4122,6 +4122,18 @@ export default function AdminPage() {
   // Hash navigation is retained for backward compatibility with the current admin
   // surface, while local activeTab becomes a derived/rendering concern.
   useEffect(() => subscribeToAdminRoute((route) => setActiveTab(route.workspace as TabId)), []);
+  // Entity URLs are authoritative entry points into the existing editor surface.
+  // This preserves deep links without creating a second apartment-detail state owner.
+  useEffect(() => {
+    const syncEntity = () => {
+      const route = getAdminRoute();
+      if (route.workspace !== 'apartments' || route.entity !== 'apartment' || !route.entityId) return;
+      const match = (apartmentsQuery.data ?? []).find((apartment) => apartment.id === route.entityId || apartment.slug === route.entityId);
+      if (match) setEditApartment(match);
+    };
+    syncEntity();
+    return subscribeToAdminRoute(syncEntity);
+  }, [apartmentsQuery.data]);
 
   function navigateAdmin(workspace: TabId, patch: { search?: string; filters?: Record<string, string | undefined>; sort?: string; page?: number; cursor?: string; subview?: string; entity?: import('@/lib/admin-route').AdminEntity; entityId?: string } = {}) {
     const href = adminRouteHref({ workspace: workspace as AdminWorkspaceId, ...patch });
