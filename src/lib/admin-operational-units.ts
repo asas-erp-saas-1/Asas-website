@@ -267,6 +267,23 @@ export const BUILDING_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[] 
 ];
 
 export const APARTMENT_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[] = [
+  { from: 'not-started', to: 'incomplete', actionId: 'create', requires: ['project selected', 'building selected', 'server-created-apartment'], risk: 'low', reversible: true },
+  { from: 'incomplete', to: 'incomplete', actionId: 'assign-project', requires: ['project exists', 'server persistence'], risk: 'medium', reversible: true },
+  { from: 'incomplete', to: 'incomplete', actionId: 'assign-building', requires: ['building exists', 'server persistence'], risk: 'medium', reversible: true },
+  { from: 'incomplete', to: 'incomplete', actionId: 'physical-specs', requires: ['apartment exists', 'valid physical data'], risk: 'low', reversible: true },
+  { from: 'incomplete', to: 'incomplete', actionId: 'commercial-data', requires: ['apartment exists', 'server persistence'], risk: 'high', reversible: true },
+  { from: 'incomplete', to: 'ready', actionId: 'availability', requires: ['availability represented by supported apartment status'], risk: 'high', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'media', requires: ['apartment exists', 'media endpoint available'], risk: 'medium', reversible: true },
+  { from: 'ready', to: 'in-progress', actionId: 'publish', requires: ['publishable completeness', 'server confirmation'], risk: 'high', reversible: true },
+  { from: 'in-progress', to: 'completed', actionId: 'publish-success', requires: ['server confirmation'], risk: 'high', reversible: true },
+  { from: 'in-progress', to: 'failed', actionId: 'publish-failure', requires: ['recoverable server/network error'], risk: 'high', reversible: true },
+  { from: 'completed', to: 'completed', actionId: 'unpublish', requires: ['server-supported published=false mutation'], risk: 'high', reversible: true },
+  { from: 'completed', to: 'completed', actionId: 'archive', requires: ['ADMIN authorization', 'server-supported archive mutation'], risk: 'high', reversible: false },
+  { from: 'ready', to: 'ready', actionId: 'status-change', requires: ['valid server status transition'], risk: 'high', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'price-change', requires: ['server-supported price mutation'], risk: 'high', reversible: true },
+];
+
+
   { from: 'not-started', to: 'incomplete', actionId: 'create', requires: ['project selected', 'building selected'], risk: 'low', reversible: true },
   { from: 'incomplete', to: 'ready', actionId: 'complete-information', requires: ['identity valid', 'physical specs valid', 'commercial data valid', 'availability explicit'], risk: 'low', reversible: true },
   { from: 'ready', to: 'in-progress', actionId: 'publish', requires: ['publishable completeness'], risk: 'high', reversible: true },
@@ -275,6 +292,18 @@ export const APARTMENT_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[]
 ];
 
 export const LEAD_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[] = [
+  { from: 'not-started', to: 'incomplete', actionId: 'intake', requires: ['lead identity'], risk: 'low', reversible: true },
+  { from: 'incomplete', to: 'ready', actionId: 'qualification', requires: ['qualification status supported', 'owner explicit'], risk: 'medium', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'assign', requires: ['lead exists', 'server-supported assignment mutation'], risk: 'medium', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'follow-up', requires: ['lead exists', 'server-supported follow-up date mutation'], risk: 'low', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'interest', requires: ['projectId or apartmentId present in current lead model'], risk: 'medium', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'negotiate', requires: ['NEGOTIATION status supported'], risk: 'high', reversible: true },
+  { from: 'ready', to: 'completed', actionId: 'convert', requires: ['SOLD status', 'server confirmation'], risk: 'high', reversible: true },
+  { from: 'ready', to: 'completed', actionId: 'lose', requires: ['LOST status', 'server confirmation'], risk: 'high', reversible: true },
+  { from: 'ready', to: 'failed', actionId: 'reservation', requires: ['reservation backend not currently supported'], risk: 'high', reversible: true },
+];
+
+
   { from: 'not-started', to: 'incomplete', actionId: 'intake', requires: ['lead identity'], risk: 'low', reversible: true },
   { from: 'incomplete', to: 'ready', actionId: 'qualification', requires: ['qualification explicit', 'owner explicit'], risk: 'medium', reversible: true },
   { from: 'ready', to: 'in-progress', actionId: 'reservation', requires: ['qualified interest', 'availability confirmed'], risk: 'high', reversible: true },
