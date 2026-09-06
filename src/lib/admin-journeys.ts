@@ -92,8 +92,22 @@ export const ADMIN_JOURNEYS: readonly AdminJourneyDefinition[] = [
   },
 ];
 
-export function getJourneyForWorkspace(workspace: AdminWorkspaceId): AdminJourneyDefinition | undefined {
-  return ADMIN_JOURNEYS.find((journey) => journey.stages.some((stage) => stage.workspaces.includes(workspace)));
+export function getJourneyForWorkspace(
+  workspace: AdminWorkspaceId,
+  entity?: AdminEntity,
+): AdminJourneyDefinition | undefined {
+  const candidates = ADMIN_JOURNEYS.filter((journey) =>
+    journey.stages.some((stage) => stage.workspaces.includes(workspace)),
+  );
+  if (entity) {
+    const entityMatch = candidates.find((journey) =>
+      journey.stages.some((stage) =>
+        stage.workspaces.includes(workspace) && stage.entity === entity,
+      ),
+    );
+    if (entityMatch) return entityMatch;
+  }
+  return candidates[0];
 }
 
 export function getJourneyStage(
