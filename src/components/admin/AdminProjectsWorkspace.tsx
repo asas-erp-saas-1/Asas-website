@@ -58,10 +58,10 @@ function statusLabel(status: string) { return STATUS_OPTIONS.find(([value]) => v
 export function AdminProjectsWorkspace() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [meta, setMeta] = useState<ProjectMeta>({ page: 1, limit: 20, total: 0, totalPages: 1 });
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [status, setStatus] = useState('all');
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(() => getAdminRoute().search ?? '');
+  const [debouncedSearch, setDebouncedSearch] = useState(() => getAdminRoute().search ?? '');
+  const [status, setStatus] = useState(() => getAdminRoute().filters.status ?? 'all');
+  const [page, setPage] = useState(() => getAdminRoute().page ?? 1);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
@@ -70,19 +70,12 @@ export function AdminProjectsWorkspace() {
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [mutationSuccess, setMutationSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    const route = getAdminRoute();
-    setSearch(route.search ?? '');
-    setDebouncedSearch(route.search ?? '');
-    setStatus(route.filters.status ?? 'all');
-    setPage(route.page ?? 1);
-    return subscribeToAdminRoute((next) => {
-      setSearch(next.search ?? '');
-      setDebouncedSearch(next.search ?? '');
-      setStatus(next.filters.status ?? 'all');
-      setPage(next.page ?? 1);
-    });
-  }, []);
+  useEffect(() => subscribeToAdminRoute((next) => {
+    setSearch(next.search ?? '');
+    setDebouncedSearch(next.search ?? '');
+    setStatus(next.filters.status ?? 'all');
+    setPage(next.page ?? 1);
+  }), []);
 
   useEffect(() => {
     const controller = new AbortController();
