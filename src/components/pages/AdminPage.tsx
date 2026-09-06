@@ -1372,6 +1372,8 @@ function MediaUploadCard({ projects, apartments, onUploaded }: {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [mutationSnapshot, setMutationSnapshot] = useState<AdminMutationSnapshot>({ state: 'idle' });
+  const [dirty, setDirty] = useState(false);
   const [uploading, setUploading] = useState(false);
   const qc = useQueryClient();
 
@@ -1874,7 +1876,9 @@ function VideoManager({ projects, apartments }: { projects: AdminProject[]; apar
       setUrl(''); setTitle(''); setDescription(''); setThumbnailUrl('');
       qc.invalidateQueries({ queryKey: ['admin', 'videos'] });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Échec');
+      const failure = mutationAfterFailure(err, requestId);
+      setMutationSnapshot(failure);
+      setError(failure.error ?? 'Échec');
     } finally {
       setCreating(false);
     }
@@ -2662,10 +2666,12 @@ function ProjectEditForm({ project, onClose }: { project: AdminProject; onClose:
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm(prev => ({ ...prev, [key]: value }));
+    setDirty(true);
   }
 
   function toggleFlag(key: 'hasParking' | 'hasElevator' | 'hasGarden' | 'hasPool' | 'hasSecurity' | 'hasClim' | 'priceOnRequest' | 'published' | 'featured') {
     setForm(prev => ({ ...prev, [key]: !prev[key] }));
+    setDirty(true);
   }
 
   function toggleApartmentType(t: string) {
@@ -2675,9 +2681,13 @@ function ProjectEditForm({ project, onClose }: { project: AdminProject; onClose:
   }
 
   const save = async () => {
+    if (!canStartMutation(mutationSnapshot.state) || saving) return;
+    const requestId = createMutationRequestId('project-save');
+    setMutationSnapshot({ state: 'validating', requestId });
     setSaving(true);
     setError(null);
     try {
+      setMutationSnapshot({ state: 'submitting', requestId });
       // Build clean payload — convert empty strings to null for optional fields
       const payload: Record<string, unknown> = { ...form };
       // Numbers: send undefined as null
@@ -2702,6 +2712,8 @@ function ProjectEditForm({ project, onClose }: { project: AdminProject; onClose:
       }
       qc.invalidateQueries({ queryKey: ['admin', 'projects'] });
       qc.invalidateQueries({ queryKey: ['admin', 'project', project.slug] });
+      setMutationSnapshot(mutationSucceeded(requestId));
+      setDirty(false);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Échec');
