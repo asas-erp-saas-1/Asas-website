@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatPrice } from '@/lib/constants';
 import { navigateAdminRoute, subscribeToAdminRoute, getAdminRoute } from '@/lib/admin-route';
-import { canStartMutation, createMutationRequestId, mutationAfterFailure, mutationSuccess, type AdminMutationSnapshot } from '@/lib/admin-mutation';
+import { canStartMutation, createMutationRequestId, mutationAfterFailure, mutationSuccess as mutationSucceeded, type AdminMutationSnapshot } from '@/lib/admin-mutation';
 import { evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
 
 interface Apartment {
@@ -213,7 +213,7 @@ export function AdminApartmentsWorkspace() {
         await getJson(`/api/admin/apartments/${encodeURIComponent(apartment.slug)}?id=${encodeURIComponent(apartment.id)}`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ published: !apartment.published }),
         });
-        setMutationSnapshot(mutationSuccess(requestId));
+        setMutationSnapshot(mutationSucceeded(requestId));
         setMutationSuccess(!apartment.published ? `« ${apartment.typeName} » est maintenant publié.` : `« ${apartment.typeName} » a été retiré de la publication.`);
       } else {
         await getJson(`/api/admin/apartments/${encodeURIComponent(apartment.slug)}?id=${encodeURIComponent(apartment.id)}`, { method: 'DELETE' });
