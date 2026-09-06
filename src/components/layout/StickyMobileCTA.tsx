@@ -25,14 +25,14 @@ export function StickyMobileCTA() {
   if (!visible || compareCount >= 2) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-background/95 backdrop-blur border-t border-border px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-      <div className="flex items-center gap-2">
+    <div className="fixed inset-x-0 bottom-0 z-40 md:hidden bg-background/95 backdrop-blur border-t border-border px-[max(0.75rem,env(safe-area-inset-left))] py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto flex w-full max-w-xl items-center gap-2">
         {/* WhatsApp */}
         <a
           href={getWhatsAppUrl('Bonjour, je souhaite des informations sur vos projets.')}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 flex items-center justify-center gap-1.5 h-10 rounded-md text-sm font-medium text-white transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 min-h-11 rounded-md text-sm font-medium text-white transition-colors"
           style={{ backgroundColor: '#25D366' }}
         >
           <MessageCircle className="size-4" />
@@ -42,7 +42,7 @@ export function StickyMobileCTA() {
         {/* Appeler */}
         <a
           href={getPhoneUrl()}
-          className="flex-1 flex items-center justify-center gap-1.5 h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium transition-colors hover:bg-primary/90"
+          className="flex-1 flex items-center justify-center gap-1.5 min-h-11 rounded-md bg-primary text-primary-foreground text-sm font-medium transition-colors hover:bg-primary/90"
         >
           <Phone className="size-4" />
           <span>Appeler</span>
@@ -51,7 +51,7 @@ export function StickyMobileCTA() {
         {/* Demander les infos */}
         <Button
           size="sm"
-          className="flex-1 h-10 text-xs bg-forest hover:bg-forest-dark text-white border-forest hover:border-forest-dark"
+          className="flex-1 min-h-11 text-xs bg-forest hover:bg-forest-dark text-white border-forest hover:border-forest-dark"
           onClick={() => navigate({ page: 'contact' })}
         >
           Demander les infos
