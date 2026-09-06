@@ -3406,36 +3406,6 @@ function ApartmentEditForm({ apartment, onClose }: { apartment: AdminApartment; 
               <Label className="text-xs">Type</Label>
               <Select value={String(form.apartmentType)} onValueChange={(v) => {
                 update('apartmentType', v);
-                // Smart auto-fill: when type changes, auto-suggest bedrooms + typeName
-                const smartDefaults: Record<string, { bedrooms: number; typeName: string; typeNameAr: string; surface?: number }> = {
-                  'F2': { bedrooms: 2, typeName: 'F2 Confort', typeNameAr: 'شقة F2', surface: 65 },
-                  'F3': { bedrooms: 3, typeName: 'F3 Familial', typeNameAr: 'شقة F3', surface: 92 },
-                  'F4': { bedrooms: 4, typeName: 'F4 Standing', typeNameAr: 'شقة F4', surface: 120 },
-                  'F5': { bedrooms: 5, typeName: 'F5 Prestige', typeNameAr: 'شقة F5', surface: 150 },
-                  'Duplex': { bedrooms: 4, typeName: 'Duplex Panoramique', typeNameAr: 'دوبلكس', surface: 140 },
-                  'Studio': { bedrooms: 1, typeName: 'Studio Moderne', typeNameAr: 'استوديو', surface: 40 },
-                  'Villa': { bedrooms: 5, typeName: 'Villa', typeNameAr: 'فيلا', surface: 250 },
-                };
-                const defaults = smartDefaults[v];
-                if (defaults) {
-                  // Only auto-fill if the field is empty or matches a previous default (not user-customized)
-                  const currentTypeName = String(form.typeName);
-                  const wasPreviousDefault = Object.values(smartDefaults).some(d => d.typeName === currentTypeName) || !currentTypeName;
-                  if (wasPreviousDefault) {
-                    update('typeName', defaults.typeName);
-                    update('typeNameAr', defaults.typeNameAr);
-                  }
-                  // Auto-suggest bedrooms if 0 or matches a previous default
-                  const currentBedrooms = Number(form.bedrooms);
-                  if (currentBedrooms === 0 || Object.values(smartDefaults).some(d => d.bedrooms === currentBedrooms)) {
-                    update('bedrooms', defaults.bedrooms);
-                  }
-                  // Auto-suggest surface if empty or 0
-                  const currentSurface = Number(form.surface);
-                  if (currentSurface === 0 && defaults.surface) {
-                    update('surface', defaults.surface);
-                  }
-                }
               }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
