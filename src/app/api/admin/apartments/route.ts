@@ -2,24 +2,42 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { withSecurityHeaders } from '@/lib/with-security-headers';
 import { verifyAdminAuth, sessionHasRole } from '@/lib/admin-auth';
+import { z } from 'zod';
+
+const apartmentQuerySchema = z.object({
+  projectId: z.string().trim().max(100).optional(),
+  projectSlug: z.string().trim().max(200).optional(),
+  status: z.string().trim().max(50).optional(),
+  type: z.string().trim().max(50).optional(),
+  search: z.string().trim().max(200).optional(),
+  published: z.enum(['true', 'false']).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
 
 export async function GET(request: NextRequest) {
   if (!(await verifyAdminAuth(request))) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   try {
-    const { searchParams } = request.nextUrl;
-    const projectId = searchParams.get('projectId') ?? undefined;
-    const projectSlug = searchParams.get('projectSlug') ?? undefined;
-    const status = searchParams.get('status') ?? undefined;
-    const type = searchParams.get('type') ?? undefined;
-    const publishedStr = searchParams.get('published');
-    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20', 10)));
+    const parsed = apartmentQuerySchema.safeParse(Object.fromEntries(request.nextUrl.searchParams.entries()));
+    if (!parsed.success) return withSecurityHeaders(NextResponse.json({ error: 'Paramètres de requête invalides' }, { status: 400 }));
+    const { projectId, projectSlug, status, type, search, published: publishedStr, page, limit } = parsed.data;
     const where: Record<string, unknown> = { archived: false };
     if (projectId) where.projectId = projectId;
     if (status) where.status = status;
     if (type) where.apartmentType = type;
     if (publishedStr) where.published = publishedStr === 'true';
     if (projectSlug) where.project = { slug: projectSlug };
+    if (search) {
+      where.OR = [
+        { apartmentNumber: { contains: search, mode: 'insensitive' } },
+        { unitNumber: { contains: search, mode: 'insensitive' } },
+        { slug: { contains: search, mode: 'insensitive' } },
+        { typeName: { contains: search, mode: 'insensitive' } },
+        { project: { name: { contains: search, mode: 'insensitive' } } },
+        { building: { name: { contains: search, mode: 'insensitive' } } },
+        { building: { code: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
     const skip = (page - 1) * limit;
     const [apartments, total] = await Promise.all([
       db.apartment.findMany({

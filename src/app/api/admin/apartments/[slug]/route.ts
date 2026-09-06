@@ -9,6 +9,8 @@ import { logAudit } from '@/lib/audit';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 /**
  * GET /api/admin/apartments/[slug]
  * Get single apartment with images and building.
@@ -26,7 +28,20 @@ export async function GET(
   }
   try {
     const { slug } = await params;
-    const apartment = await db.apartment.findFirst({
+    const id = request.nextUrl.searchParams.get('id')?.trim();
+    if (id && !UUID_RE.test(id)) {
+      return withSecurityHeaders(NextResponse.json({ error: 'Identifiant d’appartement invalide' }, { status: 400 }));
+    }
+    const apartment = id
+      ? await db.apartment.findUnique({
+          where: { id },
+          include: {
+            building: true,
+            project: { select: { id: true, slug: true, name: true, city: true, district: true } },
+            imagesRelation: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] },
+          },
+        })
+      : await db.apartment.findFirst({
       where: { slug },
       include: {
         building: true,
@@ -39,7 +54,7 @@ export async function GET(
             district: true,
           },
         },
-        imagesRelation: { orderBy: { order: 'asc' } },
+        imagesRelation: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] },
       },
     });
 
@@ -72,11 +87,18 @@ export async function PUT(
   if (!session) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   }
+  if (!sessionHasRole(session, ['ADMIN', 'EDITOR'])) {
+    return withSecurityHeaders(NextResponse.json({ error: 'Privilèges insuffisants' }, { status: 403 }));
+  }
   try {
     const { slug } = await params;
     const body = await request.json();
 
-    const existing = await db.apartment.findFirst({ where: { slug } });
+    const id = request.nextUrl.searchParams.get('id')?.trim();
+    if (id && !UUID_RE.test(id)) {
+      return withSecurityHeaders(NextResponse.json({ error: 'Identifiant d’appartement invalide' }, { status: 400 }));
+    }
+    const existing = id ? await db.apartment.findUnique({ where: { id } }) : await db.apartment.findFirst({ where: { slug } });
     if (!existing) {
       return withSecurityHeaders(NextResponse.json(
         { error: 'Apartment not found' },
@@ -151,7 +173,8 @@ export async function DELETE(
   }
   try {
     const { slug } = await params;
-    const existing = await db.apartment.findFirst({ where: { slug } });
+    const id = request.nextUrl.searchParams.get('id')?.trim();
+    const existing = id ? await db.apartment.findUnique({ where: { id } }) : await db.apartment.findFirst({ where: { slug } });
     if (!existing) return withSecurityHeaders(NextResponse.json({ error: 'Apartment not found' }, { status: 404 }));
     const apartment = await db.apartment.update({
       where: { id: existing.id },

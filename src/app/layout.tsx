@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./admin-ux.css";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationSchema, websiteSchema } from "@/lib/seo";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { LocaleSync } from "@/components/shared/LocaleSync";
+import { AdminRouteMarker } from "@/components/shared/AdminRouteMarker";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -46,6 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <JsonLd data={[organizationSchema, websiteSchema]} />
         <ThemeProvider>
           <LocaleSync />
+          <AdminRouteMarker />
           {children}
         </ThemeProvider>
       </body>

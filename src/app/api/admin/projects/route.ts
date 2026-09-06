@@ -3,18 +3,56 @@ import { db } from '@/lib/db';
 import { withSecurityHeaders } from '@/lib/with-security-headers';
 import { verifyAdminAuth, sessionHasRole } from '@/lib/admin-auth';
 import { logAudit } from '@/lib/audit';
+import { z } from 'zod';
+
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
+const projectQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(MAX_LIMIT).default(DEFAULT_LIMIT),
+  search: z.string().trim().max(200).default(''),
+  status: z.string().trim().default(''),
+});
 
 export async function GET(request: NextRequest) {
   if (!(await verifyAdminAuth(request))) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+
   try {
+    const parsed = projectQuerySchema.safeParse(Object.fromEntries(request.nextUrl.searchParams.entries()));
+    if (!parsed.success) return withSecurityHeaders(NextResponse.json({ error: 'Paramètres de requête invalides' }, { status: 400 }));
+    const { page, limit, search, status } = parsed.data;
+
+    const where = {
+      archived: false,
+      ...(status && status !== 'all' ? { status } : {}),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' as const } },
+              { slug: { contains: search, mode: 'insensitive' as const } },
+              { city: { contains: search, mode: 'insensitive' as const } },
+              { district: { contains: search, mode: 'insensitive' as const } },
+              { developer: { is: { name: { contains: search, mode: 'insensitive' as const } } } },
+            ],
+          }
+        : {}),
+    };
+
+    const total = await db.project.count({ where });
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const effectivePage = Math.min(page, totalPages);
+
     const projects = await db.project.findMany({
-      where: { archived: false }, orderBy: { order: 'asc' },
-      include: {
-        _count: { select: { apartments: true } },
-        developer: { select: { id: true, name: true, slug: true } },
-        imagesRelation: { where: { type: 'hero' }, take: 1 },
-      },
-    });
+        where,
+        skip: (effectivePage - 1) * limit,
+        take: limit,
+        orderBy: [{ order: 'asc' }, { createdAt: 'desc' }, { id: 'asc' }],
+        include: {
+          _count: { select: { apartments: true } },
+          developer: { select: { id: true, name: true, slug: true } },
+          imagesRelation: { where: { type: 'hero' }, take: 1 },
+        },
+      });
     const result = projects.map((p) => ({
       id: p.id, slug: p.slug, name: p.name, nameAr: p.nameAr, city: p.city, district: p.district,
       projectType: p.projectType, status: p.status, published: p.published, featured: p.featured,
@@ -23,7 +61,8 @@ export async function GET(request: NextRequest) {
       heroImage: p.imagesRelation[0]?.url ?? null, developer: p.developer, order: p.order,
       createdAt: p.createdAt, updatedAt: p.updatedAt,
     }));
-    return withSecurityHeaders(NextResponse.json({ data: result }));
+
+    return withSecurityHeaders(NextResponse.json({ data: result, meta: { page: effectivePage, limit, total, totalPages } }));
   } catch (error) {
     console.error('[API /admin/projects] GET error:', error instanceof Error ? error.message : error);
     return withSecurityHeaders(NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 }));

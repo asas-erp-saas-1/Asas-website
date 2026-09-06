@@ -1,5 +1,6 @@
 'use client';
 
+import { AdminApartmentsWorkspace } from '@/components/admin/AdminApartmentsWorkspace';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -25,6 +26,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/constants';
+import { getAdminRoute, adminRouteHref, subscribeToAdminRoute, type AdminWorkspaceId } from '@/lib/admin-route';
 
 /* ─── Types ─── */
 
@@ -114,8 +116,26 @@ function formatDate(dateStr: string): string {
 
 /* ─── API Fetch Helpers ─── */
 
+interface AdminDashboardStats {
+  totalProjects: number;
+  totalApartments: number;
+  availableCount: number;
+  reservedCount: number;
+  soldCount: number;
+  totalLeads: number;
+  newLeadsCount: number;
+  intentBreakdown?: Record<string, number>;
+}
+
+async function fetchAdminDashboardStats(): Promise<AdminDashboardStats> {
+  const res = await fetch('/api/admin/stats', { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to fetch dashboard statistics');
+  const json = await res.json();
+  return json.data;
+}
+
 async function fetchAdminProjects(): Promise<AdminProject[]> {
-  const res = await fetch('/api/admin/projects');
+  const res = await fetch('/api/admin/projects?limit=50', { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch projects');
   const json = await res.json();
   return json.data ?? [];
@@ -127,14 +147,14 @@ async function fetchAdminApartments(filters: { projectSlug?: string; status?: st
   if (filters.status) params.set('status', filters.status);
   if (filters.type) params.set('type', filters.type);
   params.set('limit', '50');
-  const res = await fetch(`/api/admin/apartments?${params.toString()}`);
+  const res = await fetch(`/api/admin/apartments?${params.toString()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch apartments');
   const json = await res.json();
   return json.data ?? [];
 }
 
 async function fetchAdminBuildings(): Promise<AdminBuilding[]> {
-  const res = await fetch('/api/admin/buildings');
+  const res = await fetch('/api/admin/buildings?limit=50', { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch buildings');
   const json = await res.json();
   return json.data ?? [];
@@ -144,13 +164,14 @@ async function fetchAdminLeads(statusFilter?: string): Promise<AdminLead[]> {
   const params = new URLSearchParams();
   if (statusFilter) params.set('status', statusFilter);
   params.set('limit', '50');
-  const res = await fetch(`/api/admin/leads?${params.toString()}`);
+  const res = await fetch(`/api/admin/leads?${params.toString()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch leads');
   const json = await res.json();
   return json.data ?? [];
 }
 
 /* ─── Status Badge ─── */
+
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; className: string }> = {
@@ -3385,36 +3406,6 @@ function ApartmentEditForm({ apartment, onClose }: { apartment: AdminApartment; 
               <Label className="text-xs">Type</Label>
               <Select value={String(form.apartmentType)} onValueChange={(v) => {
                 update('apartmentType', v);
-                // Smart auto-fill: when type changes, auto-suggest bedrooms + typeName
-                const smartDefaults: Record<string, { bedrooms: number; typeName: string; typeNameAr: string; surface?: number }> = {
-                  'F2': { bedrooms: 2, typeName: 'F2 Confort', typeNameAr: 'شقة F2', surface: 65 },
-                  'F3': { bedrooms: 3, typeName: 'F3 Familial', typeNameAr: 'شقة F3', surface: 92 },
-                  'F4': { bedrooms: 4, typeName: 'F4 Standing', typeNameAr: 'شقة F4', surface: 120 },
-                  'F5': { bedrooms: 5, typeName: 'F5 Prestige', typeNameAr: 'شقة F5', surface: 150 },
-                  'Duplex': { bedrooms: 4, typeName: 'Duplex Panoramique', typeNameAr: 'دوبلكس', surface: 140 },
-                  'Studio': { bedrooms: 1, typeName: 'Studio Moderne', typeNameAr: 'استوديو', surface: 40 },
-                  'Villa': { bedrooms: 5, typeName: 'Villa', typeNameAr: 'فيلا', surface: 250 },
-                };
-                const defaults = smartDefaults[v];
-                if (defaults) {
-                  // Only auto-fill if the field is empty or matches a previous default (not user-customized)
-                  const currentTypeName = String(form.typeName);
-                  const wasPreviousDefault = Object.values(smartDefaults).some(d => d.typeName === currentTypeName) || !currentTypeName;
-                  if (wasPreviousDefault) {
-                    update('typeName', defaults.typeName);
-                    update('typeNameAr', defaults.typeNameAr);
-                  }
-                  // Auto-suggest bedrooms if 0 or matches a previous default
-                  const currentBedrooms = Number(form.bedrooms);
-                  if (currentBedrooms === 0 || Object.values(smartDefaults).some(d => d.bedrooms === currentBedrooms)) {
-                    update('bedrooms', defaults.bedrooms);
-                  }
-                  // Auto-suggest surface if empty or 0
-                  const currentSurface = Number(form.surface);
-                  if (currentSurface === 0 && defaults.surface) {
-                    update('surface', defaults.surface);
-                  }
-                }
               }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -4095,7 +4086,19 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<TabId>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabId>(() => getAdminRoute().workspace as TabId);
+
+  // Route authority: the URL is the source of truth for workspace identity.
+  // Hash navigation is retained for backward compatibility with the current admin
+  // surface, while local activeTab becomes a derived/rendering concern.
+  useEffect(() => subscribeToAdminRoute((route) => setActiveTab(route.workspace as TabId)), []);
+
+  function navigateAdmin(workspace: TabId, patch: { search?: string; filters?: Record<string, string | undefined>; sort?: string; page?: number; cursor?: string; subview?: string; entity?: import('@/lib/admin-route').AdminEntity; entityId?: string } = {}) {
+    const href = adminRouteHref({ workspace: workspace as AdminWorkspaceId, ...patch });
+    if (window.location.hash === href.slice(1)) return;
+    window.history.pushState(null, '', href);
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+  }
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Filter state
@@ -4118,6 +4121,13 @@ export default function AdminPage() {
     enabled: isAuthenticated,
   });
 
+  const dashboardStatsQuery = useQuery({
+    queryKey: ['admin', 'dashboard-stats'],
+    queryFn: fetchAdminDashboardStats,
+    enabled: isAuthenticated && activeTab === 'dashboard',
+    staleTime: 30_000,
+  });
+
   const apartmentsQuery = useQuery({
     queryKey: ['admin', 'apartments', projectFilter, statusFilter, typeFilter],
     queryFn: () => fetchAdminApartments({
@@ -4127,6 +4137,20 @@ export default function AdminPage() {
     }),
     enabled: isAuthenticated,
   });
+
+
+  // Entity URLs are authoritative entry points into the existing editor surface.
+  // This preserves deep links without creating a second apartment-detail state owner.
+  useEffect(() => {
+    const syncEntity = () => {
+      const route = getAdminRoute();
+      if (route.workspace !== 'apartments' || route.entity !== 'apartment' || !route.entityId) return;
+      const match = (apartmentsQuery.data ?? []).find((apartment) => apartment.id === route.entityId || apartment.slug === route.entityId);
+      if (match) setEditApartment(match);
+    };
+    syncEntity();
+    return subscribeToAdminRoute(syncEntity);
+  }, [apartmentsQuery.data]);
 
   const buildingsQuery = useQuery({
     queryKey: ['admin', 'buildings'],
@@ -4140,25 +4164,29 @@ export default function AdminPage() {
     enabled: isAuthenticated,
   });
 
-  // Stats derived from queries
+  // These collections are bounded workspace previews only. Dashboard KPIs must
+  // not be inferred from paginated results; aggregate contracts are required.
   const projects = projectsQuery.data ?? [];
   const apartments = apartmentsQuery.data ?? [];
   const leads = leadsQuery.data ?? [];
 
-  const stats = useMemo(() => ({
-    totalProjects: projects.length,
-    totalApartments: apartments.length,
-    availableCount: apartments.filter((a) => a.status === 'AVAILABLE').length,
-    reservedCount: apartments.filter((a) => a.status === 'RESERVED').length,
-    soldCount: apartments.filter((a) => a.status === 'SOLD').length,
-    totalLeads: leads.length,
-    newLeadsCount: leads.filter((l) => l.status === 'NEW').length,
-  }), [projects, apartments, leads]);
+  // Dashboard KPIs come from the aggregate endpoint, never from paginated previews.
+  // The collections below remain bounded previews for recent items / breakdowns.
+  const stats: AdminDashboardStats = dashboardStatsQuery.data ?? {
+    totalProjects: 0,
+    totalApartments: 0,
+    availableCount: 0,
+    reservedCount: 0,
+    soldCount: 0,
+    totalLeads: 0,
+    newLeadsCount: 0,
+  };
 
   const activeLoading = activeTab === 'projects' ? projectsQuery.isLoading
     : activeTab === 'apartments' ? apartmentsQuery.isLoading
     : activeTab === 'buildings' ? buildingsQuery.isLoading
     : activeTab === 'leads' ? leadsQuery.isLoading
+    : activeTab === 'dashboard' ? dashboardStatsQuery.isLoading
     : false;
 
   /* ─── Render ─── */
@@ -4201,7 +4229,7 @@ export default function AdminPage() {
               {group.items.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => navigateAdmin(item.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
                     activeTab === item.id
                       ? 'bg-forest text-white shadow-lg shadow-forest/20'
@@ -4244,7 +4272,7 @@ export default function AdminPage() {
             leads={leads}
             projects={projects}
             apartments={apartments}
-            onNavigate={(tab) => setActiveTab(tab)}
+            onNavigate={navigateAdmin}
             onCreateProject={() => setShowCreateProject(true)}
             onCreateApartment={() => setShowCreateApartment(true)}
           />
@@ -4258,19 +4286,7 @@ export default function AdminPage() {
           />
         )}
         {activeTab === 'apartments' && (
-          <ApartmentsTab
-            apartments={apartments}
-            projects={projects}
-            isLoading={apartmentsQuery.isLoading}
-            projectFilter={projectFilter}
-            statusFilter={statusFilter}
-            typeFilter={typeFilter}
-            onProjectFilterChange={setProjectFilter}
-            onStatusFilterChange={setStatusFilter}
-            onTypeFilterChange={setTypeFilter}
-            onEdit={setEditApartment}
-            onCreate={() => setShowCreateApartment(true)}
-          />
+          <AdminApartmentsWorkspace />
         )}
         {activeTab === 'buildings' && (
           <BuildingsTab
