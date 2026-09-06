@@ -4152,6 +4152,18 @@ export default function AdminPage() {
     return subscribeToAdminRoute(syncEntity);
   }, [apartmentsQuery.data]);
 
+  // Project entity URLs reuse the existing editor surface; no second detail owner is introduced.
+  useEffect(() => {
+    const syncEntity = () => {
+      const route = getAdminRoute();
+      if (route.workspace !== 'projects' || route.entity !== 'project' || !route.entityId) return;
+      const match = (projectsQuery.data ?? []).find((project) => project.id === route.entityId || project.slug === route.entityId);
+      if (match) setEditProject(match);
+    };
+    syncEntity();
+    return subscribeToAdminRoute(syncEntity);
+  }, [projectsQuery.data]);
+
   const buildingsQuery = useQuery({
     queryKey: ['admin', 'buildings'],
     queryFn: fetchAdminBuildings,
