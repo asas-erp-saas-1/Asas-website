@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Archive, Building2, ChevronLeft, ChevronRight, Eye, EyeOff, Filter, Loader2, RefreshCw, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { navigateAdminRoute, subscribeToAdminRoute, getAdminRoute } from '@/lib/admin-route';
 import { evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -70,6 +71,20 @@ export function AdminProjectsWorkspace() {
   const [mutationSuccess, setMutationSuccess] = useState<string | null>(null);
 
   useEffect(() => {
+    const route = getAdminRoute();
+    setSearch(route.search ?? '');
+    setDebouncedSearch(route.search ?? '');
+    setStatus(route.filters.status ?? 'all');
+    setPage(route.page ?? 1);
+    return subscribeToAdminRoute((next) => {
+      setSearch(next.search ?? '');
+      setDebouncedSearch(next.search ?? '');
+      setStatus(next.filters.status ?? 'all');
+      setPage(next.page ?? 1);
+    });
+  }, []);
+
+  useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams({ page: String(page), limit: '20' });
     if (debouncedSearch) params.set('search', debouncedSearch);
@@ -134,9 +149,17 @@ export function AdminProjectsWorkspace() {
   const hasFilters = status !== 'all' || normalizedSearch !== '';
 
   function refresh() { setRefreshing(true); setRetryKey((value) => value + 1); }
-  function clearFilters() { setSearch(''); setStatus('all'); setPage(1); }
-  function changeSearch(value: string) { setSearch(value); setPage(1); }
-  function changeStatus(value: string) { setStatus(value); setPage(1); }
+  function syncRoute(next: { search?: string; status?: string; page?: number }) {
+    navigateAdminRoute({
+      workspace: 'projects',
+      search: next.search ?? search,
+      filters: { status: next.status ?? status },
+      page: next.page ?? page,
+    }, 'replace');
+  }
+  function clearFilters() { setSearch(''); setStatus('all'); setPage(1); syncRoute({ search: '', status: 'all', page: 1 }); }
+  function changeSearch(value: string) { setSearch(value); setPage(1); syncRoute({ search: value, page: 1 }); }
+  function changeStatus(value: string) { setStatus(value); setPage(1); syncRoute({ status: value, page: 1 }); }
 
   async function executeMutation() {
     if (!pendingAction) return;
@@ -168,7 +191,7 @@ export function AdminProjectsWorkspace() {
       <div className="mx-auto max-w-[1400px] space-y-5">
         <header className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest">Catalogue</p><h1 id="projects-workspace-title" className="text-2xl font-bold text-charcoal sm:text-3xl">Projets</h1><p className="mt-1 text-sm text-muted-foreground">Vue opérationnelle du portefeuille immobilier avec recherche, pagination et actions sécurisées.</p></div>
-          <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => { window.location.hash = '#/admin'; }} className="gap-2"><ChevronLeft className="h-4 w-4" /> Retour au tableau de bord</Button><Button variant="outline" size="sm" onClick={refresh} disabled={loading || refreshing} className="gap-2" aria-label="Actualiser les projets"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Actualiser</Button></div>
+          <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => navigateAdminRoute({ workspace: 'dashboard' })} className="gap-2"><ChevronLeft className="h-4 w-4" /> Retour au tableau de bord</Button><Button variant="outline" size="sm" onClick={refresh} disabled={loading || refreshing} className="gap-2" aria-label="Actualiser les projets"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Actualiser</Button></div>
         </header>
 
         <div className="grid gap-3 sm:grid-cols-3" aria-label="État opérationnel de la page">
@@ -189,7 +212,7 @@ export function AdminProjectsWorkspace() {
         : projects.length === 0 ? <Card><CardContent className="flex flex-col items-center gap-3 py-16 text-center"><Building2 className="h-8 w-8 text-muted-foreground" /><p className="font-semibold text-charcoal">Aucun projet trouvé</p><p className="text-sm text-muted-foreground">Modifiez les critères ou effacez les filtres pour élargir la vue.</p>{hasFilters && <Button variant="outline" onClick={clearFilters}>Effacer les filtres</Button>}</CardContent></Card>
         : <Card className="overflow-hidden"><div className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Projet</TableHead><TableHead>Localisation</TableHead><TableHead>Statut</TableHead><TableHead>Appartements</TableHead><TableHead>Publication</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{projects.map((project) => <TableRow key={project.id} className={loading ? 'opacity-70' : undefined}>
           <TableCell><div className="min-w-[180px]"><div className="font-medium">{project.name}</div><div className="text-xs text-muted-foreground">{project.slug}</div></div></TableCell><TableCell><div>{project.district}</div><div className="text-xs text-muted-foreground">{project.city}</div></TableCell><TableCell><span className="inline-flex items-center rounded-md border bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{statusLabel(project.status)}</span></TableCell><TableCell>{project.apartmentCount.toLocaleString('fr-FR')}</TableCell><TableCell><Badge variant={project.published ? 'default' : 'secondary'}>{project.published ? 'Publié' : 'Brouillon'}</Badge></TableCell><TableCell><div className="flex justify-end gap-1"><Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => { setMutationError(null); setMutationSuccess(null); setPendingAction({ kind: 'publish', project }); }} disabled={loading || pendingAction !== null} title={project.published ? 'Retirer de la publication' : 'Publier'} aria-label={project.published ? `Retirer ${project.name} de la publication` : `Publier ${project.name}`}><span aria-hidden="true">{project.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</span><span className="sr-only">{project.published ? 'Retirer de la publication' : 'Publier'}</span></Button><Button variant="ghost" size="sm" className="h-8 px-2 text-red-600 hover:text-red-700" onClick={() => { setMutationError(null); setMutationSuccess(null); setPendingAction({ kind: 'archive', project }); }} disabled={loading || pendingAction !== null} title="Archiver" aria-label={`Archiver ${project.name}`}><Archive className="h-4 w-4" /><span className="sr-only">Archiver</span></Button></div></TableCell>
-        </TableRow>)}</TableBody></Table></div><div className="flex flex-col gap-3 border-t p-3 sm:flex-row sm:items-center sm:justify-between"><span className="text-xs text-muted-foreground">Page {meta.page} sur {meta.totalPages}</span><nav aria-label="Pagination des projets" className="flex items-center gap-1"><Button variant="outline" size="sm" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={loading || page <= 1} aria-label="Page précédente" className="gap-1"><ChevronLeft className="h-4 w-4" /> Précédente</Button><Button variant="outline" size="sm" onClick={() => setPage((value) => Math.min(meta.totalPages, value + 1))} disabled={loading || page >= meta.totalPages} aria-label="Page suivante" className="gap-1">Suivante <ChevronRight className="h-4 w-4" /></Button></nav></div></Card>}
+        </TableRow>)}</TableBody></Table></div><div className="flex flex-col gap-3 border-t p-3 sm:flex-row sm:items-center sm:justify-between"><span className="text-xs text-muted-foreground">Page {meta.page} sur {meta.totalPages}</span><nav aria-label="Pagination des projets" className="flex items-center gap-1"><Button variant="outline" size="sm" onClick={() => { const next = Math.max(1, page - 1); setPage(next); syncRoute({ page: next }); }} disabled={loading || page <= 1} aria-label="Page précédente" className="gap-1"><ChevronLeft className="h-4 w-4" /> Précédente</Button><Button variant="outline" size="sm" onClick={() => { const next = Math.min(meta.totalPages, page + 1); setPage(next); syncRoute({ page: next }); }} disabled={loading || page >= meta.totalPages} aria-label="Page suivante" className="gap-1">Suivante <ChevronRight className="h-4 w-4" /></Button></nav></div></Card>}
       </div>
 
       <Dialog open={pendingAction !== null} onOpenChange={(open) => { if (!open && !mutationBusy) setPendingAction(null); }}><DialogContent><DialogHeader><DialogTitle>{pendingAction?.kind === 'archive' ? 'Archiver ce projet ?' : pendingAction?.project.published ? 'Retirer la publication ?' : 'Publier ce projet ?'}</DialogTitle><DialogDescription>{pendingAction?.kind === 'archive' ? `« ${pendingAction.project.name} » sera archivé et retiré du site public. Cette action est réservée aux administrateurs.` : pendingAction?.project.published ? `« ${pendingAction.project.name} » sera retiré du site public sans être archivé.` : `« ${pendingAction?.project.name} » sera rendu visible sur le site public.`}</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" onClick={() => setPendingAction(null)} disabled={mutationBusy}>Annuler</Button><Button variant={pendingAction?.kind === 'archive' ? 'destructive' : 'default'} onClick={executeMutation} disabled={mutationBusy} className="gap-2">{mutationBusy && <Loader2 className="h-4 w-4 animate-spin" />}{mutationBusy ? 'Traitement…' : pendingAction?.kind === 'archive' ? 'Archiver' : pendingAction?.project.published ? 'Retirer la publication' : 'Publier'}</Button></DialogFooter></DialogContent></Dialog>
