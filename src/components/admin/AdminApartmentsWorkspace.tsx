@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Filter, Home, Loader2, RefreshCw, Search, X, Eye, EyeOff, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -96,6 +96,7 @@ export function AdminApartmentsWorkspace() {
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [mutationSuccess, setMutationSuccess] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const mutationBusyRef = useRef(false);
 
   useEffect(() => subscribeToAdminRoute((next) => {
     setSearch(next.search ?? '');
@@ -198,8 +199,9 @@ export function AdminApartmentsWorkspace() {
   const hasFilters = projectSlug !== 'all' || status !== 'all' || type !== 'all' || search.trim() !== '';
 
   async function executeMutation() {
-    if (!pendingAction) return;
+    if (!pendingAction || mutationBusyRef.current) return;
     const { kind, apartment } = pendingAction;
+    mutationBusyRef.current = true;
     setMutationError(null); setMutationSuccess(null);
     try {
       if (kind === 'publish') {
@@ -213,6 +215,7 @@ export function AdminApartmentsWorkspace() {
       }
       setPendingAction(null); setRetryKey((value) => value + 1); window.dispatchEvent(new Event('asas-admin-data-changed'));
     } catch (err) { setMutationError(err instanceof Error ? err.message : 'L’opération a échoué.'); }
+    finally { mutationBusyRef.current = false; }
   }
 
   const mutationBusy = pendingAction !== null && mutationError === null && mutationSuccess === null;
