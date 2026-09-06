@@ -10,7 +10,7 @@ export function AdminJourneyContext() {
 
   useEffect(() => subscribeToAdminRoute(setRoute), []);
 
-  const journey = useMemo(() => getJourneyForWorkspace(route.workspace, route.entity), [route.workspace]);
+  const journey = useMemo(() => getJourneyForWorkspace(route.workspace, route.entity), [route.workspace, route.entity]);
   const stage = journey ? getJourneyStage(journey, route.workspace, route.entity) : undefined;
   if (!journey || !stage) return null;
 
