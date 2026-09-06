@@ -140,20 +140,29 @@ export function navigateAdminRoute(
 ): void {
   if (typeof window === 'undefined') return;
   const current = getAdminRoute();
-  const mergedFilters = { ...current.filters, ...(patch.filters ?? {}) };
+  const workspace = patch.workspace ?? current.workspace;
+  const workspaceChanged = workspace !== current.workspace;
+
+  // Workspace boundaries are context boundaries. Do not leak a Projects
+  // search/filter/entity context into Leads, Buildings, etc. Within the same
+  // workspace, preserve context unless the caller explicitly changes it.
+  const mergedFilters = workspaceChanged
+    ? { ...(patch.filters ?? {}) }
+    : { ...current.filters, ...(patch.filters ?? {}) };
   Object.keys(mergedFilters).forEach((key) => {
     if (mergedFilters[key] == null || mergedFilters[key] === '') delete mergedFilters[key];
   });
+
   const href = adminRouteHref({
-    workspace: patch.workspace ?? current.workspace,
-    search: patch.search ?? current.search,
+    workspace,
+    search: workspaceChanged ? patch.search : patch.search ?? current.search,
     filters: mergedFilters,
-    sort: patch.sort ?? current.sort,
-    page: patch.page ?? current.page,
-    cursor: patch.cursor ?? current.cursor,
-    subview: patch.subview ?? current.subview,
-    entity: patch.entity ?? current.entity,
-    entityId: patch.entityId ?? current.entityId,
+    sort: workspaceChanged ? patch.sort : patch.sort ?? current.sort,
+    page: workspaceChanged ? patch.page : patch.page ?? current.page,
+    cursor: workspaceChanged ? patch.cursor : patch.cursor ?? current.cursor,
+    subview: workspaceChanged ? patch.subview : patch.subview ?? current.subview,
+    entity: workspaceChanged ? patch.entity : patch.entity ?? current.entity,
+    entityId: workspaceChanged ? patch.entityId : patch.entityId ?? current.entityId,
   });
   if (mode === 'replace') {
     window.history.replaceState({}, '', href);
