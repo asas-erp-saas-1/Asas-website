@@ -300,7 +300,6 @@ export const LEAD_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[] = [
   { from: 'ready', to: 'ready', actionId: 'negotiate', requires: ['NEGOTIATION status supported'], risk: 'high', reversible: true },
   { from: 'ready', to: 'completed', actionId: 'convert', requires: ['SOLD status', 'server confirmation'], risk: 'high', reversible: true },
   { from: 'ready', to: 'completed', actionId: 'lose', requires: ['LOST status', 'server confirmation'], risk: 'high', reversible: true },
-  { from: 'ready', to: 'failed', actionId: 'reservation', requires: ['reservation backend not currently supported'], risk: 'high', reversible: true },
 ];
 
 
