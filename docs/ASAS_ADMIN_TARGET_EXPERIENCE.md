@@ -508,3 +508,72 @@ Do not use this target architecture to justify:
 - virtualization without evidence;
 - decorative dashboard effects;
 - rewriting everything at once.
+
+
+## 21. Operational User Journey Contract
+
+The primary unit of UX quality is the **complete user journey**, not an isolated screen.
+
+### Journey A — Publish a property correctly
+
+`Projects → Project → Buildings → Building → Apartments → Apartment → Complete data → Media → Availability → Publish`
+
+At every transition the workspace must preserve:
+- current entity context;
+- parent relationship;
+- unsaved/draft state;
+- permission boundary;
+- mutation status;
+- recoverable error state.
+
+The user must never need to manually reconstruct where the apartment belongs.
+
+### Journey B — Find and qualify a customer
+
+`Leads → Search → Filter → Lead → Interested Project/Apartment → Qualification → Assignment → Follow-up → Next action`
+
+The lead view must expose the property context directly and make the next operational action explicit.
+
+### Journey C — Convert interest into reservation
+
+`Lead → Interested Apartment → Availability → Reservation`
+
+The system must surface availability from the authoritative inventory state. Reservation actions must not depend on stale list state and must handle conflicts explicitly.
+
+### Journey D — Recover from failure
+
+`Action → Pending → Failure → Explain → Preserve context/draft → Retry → Success`
+
+A recoverable failure must not silently return the user to a list or erase entered data.
+
+### Journey E — Continue after navigation interruption
+
+`List → Filter/Search → Entity → Edit → Back/Forward/Refresh`
+
+The route model must restore the meaningful operational context. Local UI state may be disposable; business context must not be.
+
+### Journey F — Mobile field operation
+
+`Login → Drawer → Workspace → Search/Filter → Entity → Contextual action → Result`
+
+Mobile is an operational subset, not a shrunken desktop. The highest-frequency task must remain executable with touch alone and without accidental page-level horizontal scrolling.
+
+### Journey Quality Gate
+
+For every primary journey evaluate:
+
+| Dimension | Required question |
+|---|---|
+| Orientation | Does the user know where they are and what entity they are operating on? |
+| Context | Are parent/child relationships visible when needed? |
+| Intent | Is the next action obvious? |
+| Feedback | Does the system clearly report what happened? |
+| Prevention | Does the UI prevent predictable mistakes? |
+| Recovery | Can the user retry without losing work? |
+| Reversibility | Can unsafe/destructive actions be cancelled or recovered? |
+| Continuity | Does navigation preserve the operational context? |
+| Trust | Is the system state believable and auditable? |
+| Efficiency | Is the shortest safe path used? |
+| Cognitive load | Does the workflow avoid unnecessary decisions and screen changes? |
+
+**Rule:** A screen is not considered production-ready merely because it renders correctly. Its surrounding journey must also satisfy the contract.
