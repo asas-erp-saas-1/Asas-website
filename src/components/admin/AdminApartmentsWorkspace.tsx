@@ -82,12 +82,12 @@ export function AdminApartmentsWorkspace() {
   const [projects, setProjects] = useState<ProjectOption[]>([]);
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: PAGE_SIZE, total: 0, totalPages: 0 });
-  const [projectSlug, setProjectSlug] = useState('all');
-  const [status, setStatus] = useState('all');
-  const [type, setType] = useState('all');
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const [projectSlug, setProjectSlug] = useState(() => getAdminRoute().filters.projectSlug ?? 'all');
+  const [status, setStatus] = useState(() => getAdminRoute().filters.status ?? 'all');
+  const [type, setType] = useState(() => getAdminRoute().filters.type ?? 'all');
+  const [search, setSearch] = useState(() => getAdminRoute().search ?? '');
+  const [debouncedSearch, setDebouncedSearch] = useState(() => getAdminRoute().search ?? '');
+  const [page, setPage] = useState(() => getAdminRoute().page ?? 1);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -97,23 +97,14 @@ export function AdminApartmentsWorkspace() {
   const [mutationSuccess, setMutationSuccess] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
 
-  useEffect(() => {
-    const route = getAdminRoute();
-    setSearch(route.search ?? '');
-    setDebouncedSearch(route.search ?? '');
-    setProjectSlug(route.filters.projectSlug ?? 'all');
-    setStatus(route.filters.status ?? 'all');
-    setType(route.filters.type ?? 'all');
-    setPage(route.page ?? 1);
-    return subscribeToAdminRoute((next) => {
-      setSearch(next.search ?? '');
-      setDebouncedSearch(next.search ?? '');
-      setProjectSlug(next.filters.projectSlug ?? 'all');
-      setStatus(next.filters.status ?? 'all');
-      setType(next.filters.type ?? 'all');
-      setPage(next.page ?? 1);
-    });
-  }, []);
+  useEffect(() => subscribeToAdminRoute((next) => {
+    setSearch(next.search ?? '');
+    setDebouncedSearch(next.search ?? '');
+    setProjectSlug(next.filters.projectSlug ?? 'all');
+    setStatus(next.filters.status ?? 'all');
+    setType(next.filters.type ?? 'all');
+    setPage(next.page ?? 1);
+  }), []);
 
   useEffect(() => {
     const controller = new AbortController();
