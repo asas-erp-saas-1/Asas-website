@@ -233,6 +233,39 @@ export interface OperationalTransition {
   reversible: boolean;
 }
 
+/**
+ * State transition catalogs for the currently supported Admin API surface.
+ *
+ * State-preserving transitions (from === to) represent valid operational
+ * mutations that do not change the coarse lifecycle state. This avoids
+ * inventing lifecycle states that the persisted model does not expose.
+ *
+ * Unsupported ERP capabilities (reservations/contracts/payments) are not
+ * represented as executable transitions.
+ */
+export const PROJECT_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[] = [
+  { from: 'not-started', to: 'incomplete', actionId: 'create', requires: ['server-created-project'], risk: 'low', reversible: true },
+  { from: 'incomplete', to: 'ready', actionId: 'complete-information', requires: ['identity valid', 'commercial data valid', 'publication prerequisites available'], risk: 'low', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'add-building', requires: ['project exists', 'server-created-building'], risk: 'low', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'add-apartment', requires: ['project exists', 'server-created-apartment'], risk: 'low', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'manage-inventory', requires: ['project exists'], risk: 'medium', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'manage-pricing', requires: ['project exists', 'pricing field supported by server'], risk: 'high', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'manage-media', requires: ['project exists', 'media endpoint available'], risk: 'medium', reversible: true },
+  { from: 'ready', to: 'in-progress', actionId: 'publish', requires: ['publishable completeness', 'server confirmation'], risk: 'high', reversible: true },
+  { from: 'in-progress', to: 'completed', actionId: 'publish-success', requires: ['server confirmation'], risk: 'high', reversible: true },
+  { from: 'in-progress', to: 'failed', actionId: 'publish-failure', requires: ['recoverable server/network error'], risk: 'high', reversible: true },
+  { from: 'completed', to: 'completed', actionId: 'unpublish', requires: ['server-supported published=false mutation'], risk: 'high', reversible: true },
+  { from: 'completed', to: 'completed', actionId: 'archive', requires: ['ADMIN authorization', 'server-supported archive mutation'], risk: 'high', reversible: false },
+];
+
+export const BUILDING_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[] = [
+  { from: 'not-started', to: 'incomplete', actionId: 'create', requires: ['project selected', 'server-created-building'], risk: 'low', reversible: true },
+  { from: 'incomplete', to: 'ready', actionId: 'associate-project', requires: ['project selected', 'server persistence'], risk: 'medium', reversible: true },
+  { from: 'incomplete', to: 'ready', actionId: 'define-structure', requires: ['building exists', 'valid structural data'], risk: 'medium', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'manage-apartments', requires: ['building exists'], risk: 'medium', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'monitor-inventory', requires: ['building exists'], risk: 'low', reversible: true },
+];
+
 export const APARTMENT_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[] = [
   { from: 'not-started', to: 'incomplete', actionId: 'create', requires: ['project selected', 'building selected'], risk: 'low', reversible: true },
   { from: 'incomplete', to: 'ready', actionId: 'complete-information', requires: ['identity valid', 'physical specs valid', 'commercial data valid', 'availability explicit'], risk: 'low', reversible: true },
