@@ -26,7 +26,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/constants';
-import { getAdminRoute, adminRouteHref, type AdminWorkspaceId } from '@/lib/admin-route';
+import { getAdminRoute, adminRouteHref, subscribeToAdminRoute, type AdminWorkspaceId } from '@/lib/admin-route';
 
 /* ─── Types ─── */
 
