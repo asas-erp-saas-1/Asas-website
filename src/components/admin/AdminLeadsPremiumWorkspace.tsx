@@ -83,13 +83,13 @@ async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
 export function AdminLeadsPremiumWorkspace() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [meta, setMeta] = useState<LeadMeta>({ page: 1, limit: 20, total: 0, totalPages: 1 });
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => getAdminRoute().search ?? '');
   const deferredSearch = useDeferredValue(search);
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [status, setStatus] = useState('all');
-  const [intent, setIntent] = useState('all');
-  const [source, setSource] = useState('');
-  const [page, setPage] = useState(1);
+  const [debouncedSearch, setDebouncedSearch] = useState(() => getAdminRoute().search ?? '');
+  const [status, setStatus] = useState(() => getAdminRoute().filters.status ?? 'all');
+  const [intent, setIntent] = useState(() => getAdminRoute().filters.intent ?? 'all');
+  const [source, setSource] = useState(() => getAdminRoute().filters.source ?? '');
+  const [page, setPage] = useState(() => getAdminRoute().page ?? 1);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
