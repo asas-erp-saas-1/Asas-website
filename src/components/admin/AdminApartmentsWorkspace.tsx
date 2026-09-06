@@ -175,7 +175,10 @@ export function AdminApartmentsWorkspace() {
       page: next.page ?? page,
     }, 'replace');
   }
-  function clearFilters() { setProjectSlug('all'); setStatus('all'); setType('all'); setSearch(''); setDebouncedSearch(''); resetPage(); syncRoute({ search: '', projectSlug: 'all', status: 'all', type: 'all', page: 1 }); }
+  function clearFilters() {
+    setProjectSlug('all'); setStatus('all'); setType('all'); setSearch(''); setDebouncedSearch(''); resetPage();
+    syncRoute({ search: '', projectSlug: 'all', status: 'all', type: 'all', page: 1 });
+  }
   function refresh() { setRefreshing(true); setRetryKey((value) => value + 1); }
 
   const operationalReadiness = useMemo(() => apartments.map((apartment) => {
