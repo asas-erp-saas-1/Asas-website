@@ -64,10 +64,10 @@ export default function AdminBuildingsWorkspace() {
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [meta, setMeta] = useState<Meta>({ page: 1, limit: 20, total: 0, totalPages: 1 });
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [projectId, setProjectId] = useState('all');
+  const [page, setPage] = useState(() => getAdminRoute().page ?? 1);
+  const [search, setSearch] = useState(() => getAdminRoute().search ?? '');
+  const [debouncedSearch, setDebouncedSearch] = useState(() => getAdminRoute().search ?? '');
+  const [projectId, setProjectId] = useState(() => getAdminRoute().filters.projectId ?? 'all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
