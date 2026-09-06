@@ -130,3 +130,35 @@ export function adminRouteHref(workspaceOrPatch: AdminWorkspaceId | AdminRoutePa
   const query = params.toString();
   return query ? base + '?' + query : base;
 }
+
+
+export type AdminNavigationMode = 'push' | 'replace';
+
+export function navigateAdminRoute(
+  patch: AdminRoutePatch,
+  mode: AdminNavigationMode = 'push',
+): void {
+  if (typeof window === 'undefined') return;
+  const current = getAdminRoute();
+  const mergedFilters = { ...current.filters, ...(patch.filters ?? {}) };
+  Object.keys(mergedFilters).forEach((key) => {
+    if (mergedFilters[key] == null || mergedFilters[key] === '') delete mergedFilters[key];
+  });
+  const href = adminRouteHref({
+    workspace: patch.workspace ?? current.workspace,
+    search: patch.search ?? current.search,
+    filters: mergedFilters,
+    sort: patch.sort ?? current.sort,
+    page: patch.page ?? current.page,
+    cursor: patch.cursor ?? current.cursor,
+    subview: patch.subview ?? current.subview,
+    entity: patch.entity ?? current.entity,
+    entityId: patch.entityId ?? current.entityId,
+  });
+  if (mode === 'replace') {
+    window.history.replaceState({}, '', href);
+  } else {
+    window.history.pushState({}, '', href);
+  }
+  window.dispatchEvent(new PopStateEvent('popstate'));
+}
