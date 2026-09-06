@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatPrice } from '@/lib/constants';
 import { navigateAdminRoute, subscribeToAdminRoute, getAdminRoute } from '@/lib/admin-route';
+import { canStartMutation, createMutationRequestId, mutationAfterFailure, mutationSuccess, type AdminMutationSnapshot } from '@/lib/admin-mutation';
 import { evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
 
 interface Apartment {
@@ -95,6 +96,7 @@ export function AdminApartmentsWorkspace() {
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [mutationSuccess, setMutationSuccess] = useState<string | null>(null);
+  const [mutationSnapshot, setMutationSnapshot] = useState<AdminMutationSnapshot>({ state: 'idle' });
   const [role, setRole] = useState<string | null>(null);
   const mutationBusyRef = useRef(false);
 
@@ -199,26 +201,34 @@ export function AdminApartmentsWorkspace() {
   const hasFilters = projectSlug !== 'all' || status !== 'all' || type !== 'all' || search.trim() !== '';
 
   async function executeMutation() {
-    if (!pendingAction || mutationBusyRef.current) return;
+    if (!pendingAction || mutationBusyRef.current || !canStartMutation(mutationSnapshot.state)) return;
     const { kind, apartment } = pendingAction;
     mutationBusyRef.current = true;
+    const requestId = createMutationRequestId(`apartment-${kind}`);
+    setMutationSnapshot({ state: 'validating', requestId });
     setMutationError(null); setMutationSuccess(null);
     try {
+      setMutationSnapshot({ state: 'submitting', requestId });
       if (kind === 'publish') {
         await getJson(`/api/admin/apartments/${encodeURIComponent(apartment.slug)}?id=${encodeURIComponent(apartment.id)}`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ published: !apartment.published }),
         });
+        setMutationSnapshot(mutationSuccess(requestId));
         setMutationSuccess(!apartment.published ? `« ${apartment.typeName} » est maintenant publié.` : `« ${apartment.typeName} » a été retiré de la publication.`);
       } else {
         await getJson(`/api/admin/apartments/${encodeURIComponent(apartment.slug)}?id=${encodeURIComponent(apartment.id)}`, { method: 'DELETE' });
+        setMutationSnapshot(mutationSuccess(requestId));
         setMutationSuccess(`« ${apartment.typeName} » a été archivé.`);
       }
       setPendingAction(null); setRetryKey((value) => value + 1); window.dispatchEvent(new Event('asas-admin-data-changed'));
-    } catch (err) { setMutationError(err instanceof Error ? err.message : 'L’opération a échoué.'); }
+    } catch (err) {
+      const failure = mutationAfterFailure(err, requestId);
+      setMutationSnapshot(failure);
+      setMutationError(failure.error ?? 'L’opération a échoué.'); }
     finally { mutationBusyRef.current = false; }
   }
 
-  const mutationBusy = pendingAction !== null && mutationError === null && mutationSuccess === null;
+  const mutationBusy = mutationSnapshot.state === 'validating' || mutationSnapshot.state === 'submitting';
 
   return (
     <section className="admin-apartments-workspace w-full" aria-labelledby="apartments-workspace-title">
