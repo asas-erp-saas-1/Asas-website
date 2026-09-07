@@ -36,6 +36,25 @@ interface Apartment {
   project: { id: string; slug: string; name: string; district: string; city: string };
   heroImage: string | null;
   updatedAt?: string;
+  totalFloors?: number | null;
+  balconies?: number | null;
+  balconySurface?: number | null;
+  hasTerrace?: boolean;
+  terraceSurface?: number | null;
+  hasGarden?: boolean;
+  gardenSurface?: number | null;
+  paymentPlan?: string | null;
+  paymentPlanAr?: string | null;
+  description?: string | null;
+  descriptionAr?: string | null;
+  features?: unknown;
+  featuresAr?: unknown;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  canonicalUrl?: string | null;
+  robotsIndex?: boolean | null;
+  archived?: boolean;
+  imagesRelation?: Array<{ id: string; url: string; type: string; order: number; alt?: string | null }>;
 }
 
 interface ProjectOption { id: string; slug: string; name: string }
@@ -99,6 +118,10 @@ export function AdminApartmentsWorkspace() {
   const [mutationSuccess, setMutationSuccess] = useState<string | null>(null);
   const [mutationSnapshot, setMutationSnapshot] = useState<AdminMutationSnapshot>({ state: 'idle' });
   const [role, setRole] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState(() => getAdminRoute().entity === 'apartment' ? getAdminRoute().entityId ?? null : null);
+  const [detail, setDetail] = useState<Apartment | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
   const mutationBusyRef = useRef(false);
 
   useEffect(() => subscribeToAdminRoute((next) => {
@@ -109,6 +132,7 @@ export function AdminApartmentsWorkspace() {
     setStatus(next.filters.status ?? 'all');
     setType(next.filters.type ?? 'all');
     setPage(next.page ?? 1);
+    setDetailId(next.entity === 'apartment' ? next.entityId ?? null : null);
   }), []);
 
   useEffect(() => {
@@ -118,6 +142,17 @@ export function AdminApartmentsWorkspace() {
       .catch(() => { if (!controller.signal.aborted) setRole(null); });
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    if (!detailId) { setDetail(null); setDetailError(null); return; }
+    const controller = new AbortController();
+    setDetailLoading(true); setDetailError(null);
+    getJson<{ data?: Apartment }>(`/api/admin/apartments/detail?${new URLSearchParams({ id: detailId })}`, { signal: controller.signal })
+      .then((json) => setDetail(json.data ?? null))
+      .catch((err: unknown) => { if (!(err instanceof DOMException && err.name === 'AbortError')) setDetailError(err instanceof Error ? err.message : 'Impossible de charger l’appartement.'); })
+      .finally(() => { if (!controller.signal.aborted) setDetailLoading(false); });
+    return () => controller.abort();
+  }, [detailId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -233,6 +268,32 @@ export function AdminApartmentsWorkspace() {
   }
 
   const mutationBusy = mutationSnapshot.state === 'validating' || mutationSnapshot.state === 'submitting';
+
+  if (detailId) {
+    return (
+      <section className="admin-apartments-workspace w-full" aria-labelledby="apartment-detail-title">
+        <div className="mx-auto max-w-[1400px] space-y-5">
+          <header className="flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest">Catalogue · Appartement</p><h1 id="apartment-detail-title" className="text-2xl font-bold text-charcoal sm:text-3xl">{detail?.typeName ?? 'Appartement'}</h1><p className="mt-1 text-sm text-muted-foreground">{detail?.project?.name ?? '—'}{detail?.building ? ` · ${detail.building.name}` : ''}</p></div>
+            <Button variant="outline" onClick={() => navigateAdminRoute({ workspace: 'apartments', entity: undefined, entityId: undefined })} className="gap-2"><ChevronLeft className="h-4 w-4" /> Retour aux appartements</Button>
+          </header>
+          {detailLoading ? <Card><CardContent className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /> Chargement…</CardContent></Card> : detailError ? <Card role="alert"><CardContent className="space-y-3 py-12 text-center"><p className="font-semibold">Impossible de charger l’appartement</p><p className="text-sm text-muted-foreground">{detailError}</p><Button onClick={() => setDetailId(detailId)}>Réessayer</Button></CardContent></Card> : detail ? <>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {[
+                ['Surface', detail.surface ? `${detail.surface} m²` : '—'], ['Étage', detail.floor != null ? String(detail.floor) : '—'], ['Prix', detail.priceOnRequest ? 'Sur demande' : detail.price != null ? formatPrice(detail.price) : '—'], ['Statut', statusLabel(detail.status)],
+              ].map(([label,value]) => <Card key={label}><CardContent className="p-4"><p className="text-xs font-medium text-muted-foreground">{label}</p><p className="mt-1 text-lg font-semibold">{value}</p></CardContent></Card>)}
+            </div>
+            <div className="grid gap-5 lg:grid-cols-2">
+              <Card><CardHeader><CardTitle className="text-base">Contexte & physique</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-4 text-sm"><div><span className="text-muted-foreground">Projet</span><p className="font-medium">{detail.project?.name ?? '—'}</p></div><div><span className="text-muted-foreground">Bâtiment</span><p className="font-medium">{detail.building?.name ?? 'Non associé'}</p></div><div><span className="text-muted-foreground">Unité</span><p className="font-medium">{detail.apartmentNumber ?? detail.unitNumber ?? '—'}</p></div><div><span className="text-muted-foreground">Type</span><p className="font-medium">{detail.apartmentType} · {detail.typeName}</p></div><div><span className="text-muted-foreground">Chambres</span><p className="font-medium">{detail.bedrooms}</p></div><div><span className="text-muted-foreground">Salles de bain</span><p className="font-medium">{detail.bathrooms ?? '—'}</p></div><div><span className="text-muted-foreground">Orientation</span><p className="font-medium">{detail.orientation ?? '—'}</p></div><div><span className="text-muted-foreground">Parking</span><p className="font-medium">{detail.hasParking ? `${detail.parkingSpots ?? 1} place(s)` : 'Non'}</p></div></CardContent></Card>
+              <Card><CardHeader><CardTitle className="text-base">Commercial & publication</CardTitle></CardHeader><CardContent className="space-y-3 text-sm"><div><span className="text-muted-foreground">Plan de paiement</span><p className="font-medium whitespace-pre-wrap">{detail.paymentPlan ?? 'Non renseigné'}</p></div><div className="flex flex-wrap gap-2"><Badge variant={detail.published ? 'default' : 'secondary'}>{detail.published ? 'Publié' : 'Brouillon'}</Badge><Badge variant="outline">{detail.archived ? 'Archivé' : 'Actif'}</Badge></div><div><span className="text-muted-foreground">SEO</span><p className="font-medium">{detail.seoTitle ?? 'Non renseigné'}</p><p className="text-xs text-muted-foreground">{detail.canonicalUrl ?? 'Canonical non renseignée'}</p></div></CardContent></Card>
+            </div>
+            <Card><CardHeader><CardTitle className="text-base">Média</CardTitle></CardHeader><CardContent>{detail.imagesRelation?.length ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{detail.imagesRelation.map((image) => <div key={image.id} className="overflow-hidden rounded-md border"><img src={image.url} alt={image.alt ?? detail.typeName} className="aspect-square w-full object-cover" loading="lazy" /><p className="truncate px-2 py-1 text-xs text-muted-foreground">{image.type}</p></div>)}</div> : <p className="text-sm text-muted-foreground">Aucun média associé disponible.</p>}</CardContent></Card>
+            <Card><CardHeader><CardTitle className="text-base">Contenu éditorial</CardTitle></CardHeader><CardContent className="grid gap-4 lg:grid-cols-2"><div><p className="mb-1 text-xs font-medium text-muted-foreground">Description FR</p><p className="whitespace-pre-wrap text-sm">{detail.description ?? 'Non renseignée'}</p></div><div dir="rtl"><p className="mb-1 text-xs font-medium text-muted-foreground">Description AR</p><p className="whitespace-pre-wrap text-sm">{detail.descriptionAr ?? 'غير متوفرة'}</p></div></CardContent></Card>
+          </> : null}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="admin-apartments-workspace w-full" aria-labelledby="apartments-workspace-title">
