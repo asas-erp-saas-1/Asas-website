@@ -14,26 +14,25 @@ interface AvailabilityBadgeProps {
 export function AvailabilityBadge({ available, reserved, total, className }: AvailabilityBadgeProps) {
   if (total === 0) return null;
 
-  const ratio = available / total; // 0 to 1
+  const ratio = available / total;
 
-  // All sold
   if (available === 0 && reserved === 0) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-        className={cn('inline-flex flex-col gap-1', className)}
+        className={cn('inline-flex min-w-0 flex-col gap-1', className)}
       >
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
-          <Home className="w-3.5 h-3.5 text-red-500" />
-          Épuisé
+        <span className="inline-flex min-h-6 max-w-full items-center gap-1.5 rounded-full border border-destructive/20 bg-destructive/10 px-3 py-1 text-xs font-semibold text-destructive">
+          <Home className="size-3.5 shrink-0" />
+          <span className="truncate">Épuisé</span>
         </span>
-        <div className="h-1 w-full rounded-full bg-red-100 overflow-hidden">
+        <div className="h-1 w-full overflow-hidden rounded-full bg-destructive/10" aria-hidden="true">
           <motion.div
-            className="h-full rounded-full bg-red-400"
+            className="h-full rounded-full bg-destructive/60"
             initial={{ width: 0 }}
-            animate={{ width: `${(reserved / total) * 100}%` }}
+            animate={{ width: '100%' }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
           />
         </div>
@@ -41,22 +40,21 @@ export function AvailabilityBadge({ available, reserved, total, className }: Ava
     );
   }
 
-  // Only reserved left (no available)
   if (available === 0 && reserved > 0) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-        className={cn('inline-flex flex-col gap-1', className)}
+        className={cn('inline-flex min-w-0 flex-col gap-1', className)}
       >
-        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-          <Home className="w-3.5 h-3.5 text-amber-500" />
-          Sur réservation
+        <span className="inline-flex min-h-6 max-w-full items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs font-semibold text-foreground">
+          <Home className="size-3.5 shrink-0 text-gold" />
+          <span className="truncate">Sur réservation</span>
         </span>
-        <div className="h-1 w-full rounded-full bg-amber-100 overflow-hidden">
+        <div className="h-1 w-full overflow-hidden rounded-full bg-gold/15" aria-hidden="true">
           <motion.div
-            className="h-full rounded-full bg-amber-400"
+            className="h-full rounded-full bg-gold"
             initial={{ width: 0 }}
             animate={{ width: `${(reserved / total) * 100}%` }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -66,22 +64,21 @@ export function AvailabilityBadge({ available, reserved, total, className }: Ava
     );
   }
 
-  // Some available
   return (
     <motion.div
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      className={cn('inline-flex flex-col gap-1', className)}
+      className={cn('inline-flex min-w-0 flex-col gap-1', className)}
     >
-      <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
-        <Home className="w-3.5 h-3.5 text-emerald-500" />
-        {available} disponible{available > 1 ? 's' : ''}
-        <span className="text-emerald-500/70 font-normal">/ {total}</span>
+      <span className="inline-flex min-h-6 max-w-full items-center gap-1.5 rounded-full border border-forest/20 bg-forest/8 px-3 py-1 text-xs font-semibold text-forest">
+        <Home className="size-3.5 shrink-0" />
+        <span className="truncate">{available} disponible{available > 1 ? 's' : ''}</span>
+        <span className="shrink-0 font-normal text-forest/70">/ {total}</span>
       </span>
-      <div className="h-1.5 w-full rounded-full bg-emerald-100 overflow-hidden">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-forest/10" aria-hidden="true">
         <motion.div
-          className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500"
+          className="h-full rounded-full bg-forest"
           initial={{ width: 0 }}
           animate={{ width: `${ratio * 100}%` }}
           transition={{ duration: 0.8, ease: 'easeOut', delay: 0.15 }}
