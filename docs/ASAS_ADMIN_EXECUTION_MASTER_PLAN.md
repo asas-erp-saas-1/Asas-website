@@ -80,13 +80,13 @@ Only relationships/capabilities actually represented by the current application/
 
 **Status:** In progress.
 
-**Latest execution:** Project → Buildings and Building → Apartments contextual navigation is now server-backed. Project navigation passes `projectId`; Building navigation passes `buildingId` plus `projectSlug`; Apartment API and URL state preserve the building scope.
+**Latest execution:** Project → Buildings → Apartments contextual navigation is server-backed, and Apartment entity routes now open a detail view from the canonical `entityId`. The detail view surfaces project/building context, physical/commercial/publication data, media and FR/AR editorial content without inventing reservation data.
 
 **Gate result:** Current baseline commit `861843c...` is CI-verified. Runtime and browser validation remain unverified.
 
 **Latest execution:** Project completeness contract is now server-data-backed. The list endpoint exposes `buildingCount`; the workspace evaluates identity, structure, inventory, commercial, media and publication separately. Publication remains `unknown` because the list payload does not prove readiness.
 
-**Current HEAD:** `01425394f42e95992bf3b43fe1e62eb9eb695f9f`
+**Current HEAD:** `9bb46b725067fa960daace7989d81cfd9a9532d7`
 **Immediate gate:** GitHub Actions for current HEAD.
 
 **CI failure investigated:** Run #550 failed at Typecheck only. Root cause was a missing `Home` import introduced by the Building → Apartments contextual action. Lint and Build were skipped because Typecheck is a fail-fast gate.
@@ -233,6 +233,8 @@ Only relationships/capabilities actually represented by the current application/
 | 2026-09-07 | `283b2dab...` | Added Building → scoped Apartments navigation | CI pending |
 | 2026-09-07 | `9d298381...` | Added Project → scoped Buildings navigation | CI pending |
 | 2026-09-07 | `01425394...` | Fixed missing `Home` icon import caught by CI Typecheck | CI pending |
+| 2026-09-07 | `3fc195e4...` | Added route-driven Apartment operational detail view | CI pending |
+| 2026-09-07 | `9bb46b72...` | Corrected detail view to use existing ID-backed Apartment API route | CI pending |
 
 # Evidence discipline
 
