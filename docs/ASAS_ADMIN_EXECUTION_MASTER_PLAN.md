@@ -86,8 +86,10 @@ Only relationships/capabilities actually represented by the current application/
 
 **Latest execution:** Project completeness contract is now server-data-backed. The list endpoint exposes `buildingCount`; the workspace evaluates identity, structure, inventory, commercial, media and publication separately. Publication remains `unknown` because the list payload does not prove readiness.
 
-**Current HEAD:** `9d2983810e5cbe32d9b4565342459ec349d23211`
+**Current HEAD:** `01425394f42e95992bf3b43fe1e62eb9eb695f9f`
 **Immediate gate:** GitHub Actions for current HEAD.
+
+**CI failure investigated:** Run #550 failed at Typecheck only. Root cause was a missing `Home` import introduced by the Building → Apartments contextual action. Lint and Build were skipped because Typecheck is a fail-fast gate.
 
 **CI evidence:** Run #525 (`34070619360`) completed successfully. Job `Lint + Typecheck + Build` passed: dependency install, Prisma client generation, Prisma baseline generation/verification, Typecheck, Lint and Build.
 
@@ -230,6 +232,7 @@ Only relationships/capabilities actually represented by the current application/
 | 2026-09-07 | `c8fa12b1...` | Persisted building context in Apartment workspace URL state | CI pending |
 | 2026-09-07 | `283b2dab...` | Added Building → scoped Apartments navigation | CI pending |
 | 2026-09-07 | `9d298381...` | Added Project → scoped Buildings navigation | CI pending |
+| 2026-09-07 | `01425394...` | Fixed missing `Home` icon import caught by CI Typecheck | CI pending |
 
 # Evidence discipline
 
