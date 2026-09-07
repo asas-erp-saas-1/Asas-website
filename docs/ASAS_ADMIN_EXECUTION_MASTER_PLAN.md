@@ -86,8 +86,10 @@ Only relationships/capabilities actually represented by the current application/
 
 **Latest execution:** Project completeness contract is now server-data-backed. The list endpoint exposes `buildingCount`; the workspace evaluates identity, structure, inventory, commercial, media and publication separately. Publication remains `unknown` because the list payload does not prove readiness.
 
-**Current HEAD:** `9bb46b725067fa960daace7989d81cfd9a9532d7`
+**Current HEAD:** `acd1f5c1494c5a6aaee810b5f804f5cd0e97fcf9`
 **Immediate gate:** GitHub Actions for current HEAD.
+
+**Apartment mutation slice:** publication now uses the shared mutation lifecycle and existing audited PUT endpoint. It updates detail state from the server response, invalidates the apartment list via the existing data-change event, and exposes retry on recoverable failure.
 
 **CI failure investigated:** Run #550 failed at Typecheck only. Root cause was a missing `Home` import introduced by the Building → Apartments contextual action. Lint and Build were skipped because Typecheck is a fail-fast gate.
 
@@ -235,6 +237,7 @@ Only relationships/capabilities actually represented by the current application/
 | 2026-09-07 | `01425394...` | Fixed missing `Home` icon import caught by CI Typecheck | CI pending |
 | 2026-09-07 | `3fc195e4...` | Added route-driven Apartment operational detail view | CI pending |
 | 2026-09-07 | `9bb46b72...` | Corrected detail view to use existing ID-backed Apartment API route | CI pending |
+| 2026-09-07 | `acd1f5c1...` | Added recoverable publication mutation to Apartment Detail using shared lifecycle | CI pending |
 
 # Evidence discipline
 
