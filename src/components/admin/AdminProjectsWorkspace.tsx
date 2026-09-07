@@ -128,12 +128,15 @@ export function AdminProjectsWorkspace() {
   }, [meta.totalPages, page]);
 
   const operationalReadiness = projects.map((project) => {
+    // Only fields actually returned by the list endpoint participate.
+    // Publication is deliberately unknown when false: false means "not published",
+    // not "publication readiness is incomplete".
     const signals: OperationalSignal[] = [
       project.name.trim() ? 'complete' : 'incomplete',
       project.city.trim() && project.district.trim() ? 'complete' : 'incomplete',
       project.projectType.trim() ? 'complete' : 'incomplete',
-      project.apartmentCount >= 0 ? 'complete' : 'unknown',
-      project.published ? 'complete' : 'unknown',
+      typeof project.apartmentCount === 'number' ? 'complete' : 'unknown',
+      'unknown',
     ];
     return { id: project.id, ...evaluateOperationalSignals(signals) };
   });
