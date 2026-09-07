@@ -54,10 +54,10 @@ export function FloorPlanViewer({ src, alt = 'Plan d\'appartement' }: FloorPlanV
   const renderViewer = (isFullscreen = false) => (
     <div
       className={cn(
-        'floor-plan-container relative w-full overflow-hidden rounded-lg bg-muted/30',
+        'floor-plan-container relative min-w-0 w-full touch-none overflow-hidden rounded-lg bg-muted/30',
         isFullscreen
           ? 'h-[min(80dvh,calc(100dvh-1rem))] min-h-[280px] sm:h-[80vh]'
-          : 'aspect-[4/3] min-h-[220px]'
+          : 'aspect-[4/3] min-h-[220px]',
       )}
       onWheel={handleWheel}
       onPointerDown={handlePointerDown}
@@ -83,17 +83,26 @@ export function FloorPlanViewer({ src, alt = 'Plan d\'appartement' }: FloorPlanV
       </div>
 
       <div
-        className="inline-block max-w-full select-none transition-transform duration-100"
-        style={{
-          transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-          transformOrigin: 'center center',
-        }}
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 flex items-center justify-center"
       >
-        <img src={src} alt={alt} className="h-full w-full object-contain pointer-events-none select-none" draggable={false} />
+        <Home className="size-20 text-forest/10 sm:size-24" />
       </div>
 
-      <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center opacity-[0.08]" aria-hidden="true">
-        <Home className="size-20 text-forest sm:size-24" />
+      <div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{ touchAction: 'none' }}
+      >
+        <img
+          src={src}
+          alt={alt}
+          className="max-h-full max-w-full select-none object-contain transition-transform duration-100"
+          style={{
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transformOrigin: 'center center',
+          }}
+          draggable={false}
+        />
       </div>
 
       <div className="pointer-events-none absolute bottom-14 left-1/2 z-10 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 text-center">
