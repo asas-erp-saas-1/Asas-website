@@ -125,6 +125,7 @@ export function AdminApartmentsWorkspace() {
   const [detailRetryKey, setDetailRetryKey] = useState(0);
   const [lastMutationPatch, setLastMutationPatch] = useState<Record<string, unknown> | null>(null);
   const [detailMutation, setDetailMutation] = useState<AdminMutationSnapshot>({ state: 'idle' });
+  const [lastMutationPatch, setLastMutationPatch] = useState<Record<string, unknown> | null>(null);
   const detailMutationBusy = detailMutation.state === 'validating' || detailMutation.state === 'submitting';
   const detailMutationError = detailMutation.state === 'recoverable-error' ? detailMutation.error : null;
   const [priceDraft, setPriceDraft] = useState('');
@@ -281,13 +282,14 @@ export function AdminApartmentsWorkspace() {
     if (patch.status !== undefined && typeof patch.status === 'string' && !patch.status.trim()) return;
     if (!detail || detailMutationBusy || !canStartMutation(detailMutation.state)) return;
     setLastMutationPatch(patch);
+    setLastMutationPatch(patch);
     const requestId = createMutationRequestId('apartment-detail');
     setDetailMutation({ state: 'validating', requestId });
     try {
       setDetailMutation({ state: 'submitting', requestId });
       const result = await getJson<{ data?: Apartment }>(`/api/admin/apartments/${encodeURIComponent(detail.slug)}?id=${encodeURIComponent(detail.id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) });
       setDetailMutation({ state: 'success', requestId });
-      if (result.data) setDetail(result.data);
+      if (result.data) { setDetail(result.data); setLastMutationPatch(null); }
       setRetryKey((value) => value + 1);
       window.dispatchEvent(new Event('asas-admin-data-changed'));
     } catch (error) {
