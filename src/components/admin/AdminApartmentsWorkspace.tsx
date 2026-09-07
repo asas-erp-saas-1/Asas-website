@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { formatPrice } from '@/lib/constants';
 import { navigateAdminRoute, subscribeToAdminRoute, getAdminRoute } from '@/lib/admin-route';
 import { canStartMutation, createMutationRequestId, mutationAfterFailure, mutationSuccess as mutationSucceeded, type AdminMutationSnapshot } from '@/lib/admin-mutation';
-import { evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
+import { evaluateApartmentOperationalCompleteness, evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
 
 interface Apartment {
   id: string;
