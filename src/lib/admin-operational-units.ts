@@ -288,10 +288,9 @@ export const LEAD_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[] = [
   { from: 'incomplete', to: 'ready', actionId: 'qualification', requires: ['qualification status supported', 'owner explicit'], risk: 'medium', reversible: true },
   { from: 'ready', to: 'ready', actionId: 'assignment', requires: ['lead exists', 'server-supported assignment mutation'], risk: 'medium', reversible: true },
   { from: 'ready', to: 'ready', actionId: 'follow-up', requires: ['lead exists', 'server-supported follow-up date mutation'], risk: 'low', reversible: true },
-  { from: 'ready', to: 'ready', actionId: 'property-interest'],, requires: ['projectId or apartmentId present in current lead model'], risk: 'medium', reversible: true },
+  { from: 'ready', to: 'ready', actionId: 'property-interest', requires: ['projectId or apartmentId present in current lead model'], risk: 'medium', reversible: true },
   { from: 'ready', to: 'ready', actionId: 'negotiation', requires: ['NEGOTIATION status supported'], risk: 'high', reversible: true },
-  { from: 'ready', to: 'completed', actionId: 'conversion-loss', requires: ['SOLD status', 'server confirmation'], risk: 'high', reversible: true },
-  { from: 'ready', to: 'completed', actionId: 'lose', requires: ['LOST status', 'server confirmation'], risk: 'high', reversible: true },
+  { from: 'ready', to: 'completed', actionId: 'conversion-loss', requires: ['SOLD or LOST status', 'server confirmation'], risk: 'high', reversible: true },
 ];
 
 export type AdminOperationalState =
