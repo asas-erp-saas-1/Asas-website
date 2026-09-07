@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Archive, Building2, ChevronLeft, ChevronRight, Eye, EyeOff, Filter, Loader2, RefreshCw, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { navigateAdminRoute, subscribeToAdminRoute, getAdminRoute } from '@/lib/admin-route';
-import { evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
+import { evaluateProjectOperationalCompleteness, evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -26,6 +26,7 @@ interface Project {
   deliveryYear?: number;
   deliveryQuarter?: string;
   apartmentCount: number;
+  buildingCount?: number;
   heroImage: string | null;
   developer?: { id: string; name: string; slug: string };
   order: number;
@@ -128,17 +129,16 @@ export function AdminProjectsWorkspace() {
   }, [meta.totalPages, page]);
 
   const operationalReadiness = projects.map((project) => {
-    // Only fields actually returned by the list endpoint participate.
-    // Publication is deliberately unknown when false: false means "not published",
-    // not "publication readiness is incomplete".
+    const completeness = evaluateProjectOperationalCompleteness(project);
     const signals: OperationalSignal[] = [
-      project.name.trim() ? 'complete' : 'incomplete',
-      project.city.trim() && project.district.trim() ? 'complete' : 'incomplete',
-      project.projectType.trim() ? 'complete' : 'incomplete',
-      typeof project.apartmentCount === 'number' ? 'complete' : 'unknown',
-      'unknown',
+      completeness.identity,
+      completeness.structure,
+      completeness.inventory,
+      completeness.commercial,
+      completeness.media,
+      completeness.publication,
     ];
-    return { id: project.id, ...evaluateOperationalSignals(signals) };
+    return { id: project.id, ...completeness, ...evaluateOperationalSignals(signals) };
   });
 
   const normalizedSearch = debouncedSearch;
