@@ -86,8 +86,10 @@ Only relationships/capabilities actually represented by the current application/
 
 **Latest execution:** Project completeness contract is now server-data-backed. The list endpoint exposes `buildingCount`; the workspace evaluates identity, structure, inventory, commercial, media and publication separately. Publication remains `unknown` because the list payload does not prove readiness.
 
-**Current HEAD:** `a4b3a205978dc12d77f47900f08924558bda8098`
+**Current HEAD:** `66f51621d6b7c9fe5eae1ecb7c13ee7ebffbc2fa`
 **Immediate gate:** GitHub Actions for current HEAD.
+
+**Apartment commercial/status slice:** price and status controls now validate client-side semantics, enforce the existing VIEWER restriction, use the shared mutation lifecycle, and persist through the existing audited PUT endpoint.
 
 **Verified gate:** Run #566 for `564729c3` completed successfully with Prisma generation, baseline generation, Typecheck, Lint, and Build all successful.
 
