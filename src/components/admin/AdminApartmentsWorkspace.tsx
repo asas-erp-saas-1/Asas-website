@@ -122,6 +122,7 @@ export function AdminApartmentsWorkspace() {
   const [detail, setDetail] = useState<Apartment | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
+  const [detailRetryKey, setDetailRetryKey] = useState(0);
   const mutationBusyRef = useRef(false);
 
   useEffect(() => subscribeToAdminRoute((next) => {
@@ -152,7 +153,7 @@ export function AdminApartmentsWorkspace() {
       .catch((err: unknown) => { if (!(err instanceof DOMException && err.name === 'AbortError')) setDetailError(err instanceof Error ? err.message : 'Impossible de charger l’appartement.'); })
       .finally(() => { if (!controller.signal.aborted) setDetailLoading(false); });
     return () => controller.abort();
-  }, [detailId]);
+  }, [detailId, detailRetryKey]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -277,7 +278,7 @@ export function AdminApartmentsWorkspace() {
             <div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest">Catalogue · Appartement</p><h1 id="apartment-detail-title" className="text-2xl font-bold text-charcoal sm:text-3xl">{detail?.typeName ?? 'Appartement'}</h1><p className="mt-1 text-sm text-muted-foreground">{detail?.project?.name ?? '—'}{detail?.building ? ` · ${detail.building.name}` : ''}</p></div>
             <Button variant="outline" onClick={() => navigateAdminRoute({ workspace: 'apartments', entity: undefined, entityId: undefined })} className="gap-2"><ChevronLeft className="h-4 w-4" /> Retour aux appartements</Button>
           </header>
-          {detailLoading ? <Card><CardContent className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /> Chargement…</CardContent></Card> : detailError ? <Card role="alert"><CardContent className="space-y-3 py-12 text-center"><p className="font-semibold">Impossible de charger l’appartement</p><p className="text-sm text-muted-foreground">{detailError}</p><Button onClick={() => setDetailId(detailId)}>Réessayer</Button></CardContent></Card> : detail ? <>
+          {detailLoading ? <Card><CardContent className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /> Chargement…</CardContent></Card> : detailError ? <Card role="alert"><CardContent className="space-y-3 py-12 text-center"><p className="font-semibold">Impossible de charger l’appartement</p><p className="text-sm text-muted-foreground">{detailError}</p><Button onClick={() => setDetailRetryKey((key) => key + 1)}>Réessayer</Button></CardContent></Card> : detail ? <>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {[
                 ['Surface', detail.surface ? `${detail.surface} m²` : '—'], ['Étage', detail.floor != null ? String(detail.floor) : '—'], ['Prix', detail.priceOnRequest ? 'Sur demande' : detail.price != null ? formatPrice(detail.price) : '—'], ['Statut', statusLabel(detail.status)],
