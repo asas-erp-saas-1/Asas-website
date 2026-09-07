@@ -86,8 +86,10 @@ Only relationships/capabilities actually represented by the current application/
 
 **Latest execution:** Project completeness contract is now server-data-backed. The list endpoint exposes `buildingCount`; the workspace evaluates identity, structure, inventory, commercial, media and publication separately. Publication remains `unknown` because the list payload does not prove readiness.
 
-**Current HEAD:** `2e73ed2aaea05c2a24b11f4e345866eda9c7ce36`
+**Current HEAD:** `a65723d40a4a8b78762c1b8476d24c34c2ef1ce4`
 **Immediate gate:** GitHub Actions for current HEAD.
+
+**Apartment server invariant hardening:** the canonical apartment PUT now enforces the same status transition rules as the dedicated status endpoint and rejects invalid numeric commercial/area values. `priceOnRequest` cannot be combined with an explicit price. This closes a server-side consistency gap where the generic PUT could previously bypass the operational transition model.
 
 **Retry hardening:** Apartment mutation retry now reuses the exact failed patch rather than reconstructing a potentially stale publication operation. This keeps recovery deterministic for price, status, and publication mutations.
 
