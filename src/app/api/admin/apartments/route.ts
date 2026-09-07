@@ -7,6 +7,7 @@ import { z } from 'zod';
 const apartmentQuerySchema = z.object({
   projectId: z.string().trim().max(100).optional(),
   projectSlug: z.string().trim().max(200).optional(),
+  buildingId: z.string().trim().max(100).optional(),
   status: z.string().trim().max(50).optional(),
   type: z.string().trim().max(50).optional(),
   search: z.string().trim().max(200).optional(),
@@ -20,9 +21,10 @@ export async function GET(request: NextRequest) {
   try {
     const parsed = apartmentQuerySchema.safeParse(Object.fromEntries(request.nextUrl.searchParams.entries()));
     if (!parsed.success) return withSecurityHeaders(NextResponse.json({ error: 'Paramètres de requête invalides' }, { status: 400 }));
-    const { projectId, projectSlug, status, type, search, published: publishedStr, page, limit } = parsed.data;
+    const { projectId, projectSlug, buildingId, status, type, search, published: publishedStr, page, limit } = parsed.data;
     const where: Record<string, unknown> = { archived: false };
     if (projectId) where.projectId = projectId;
+    if (buildingId) where.buildingId = buildingId;
     if (status) where.status = status;
     if (type) where.apartmentType = type;
     if (publishedStr) where.published = publishedStr === 'true';
