@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Last reviewed HEAD:** `8ed157f051204454fcd694922f6c9220cdeefebb`
+> **Last reviewed HEAD:** `f15b4252199a0d377afa8f0a6051df665a5ed70c`
 > **Rule:** This file records the execution contract, prompt for each step, evidence, decisions, and blockers. It is updated as part of the engineering work so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -79,6 +79,13 @@ Only relationships/capabilities actually represented by the current application/
 **Gate:** CI after each coherent mutation cluster; no visual polish until P0/P1 correctness remains clean.
 
 **Status:** In progress.
+
+**Execution rule:** When the user says `Continue`, first read this master plan and the stage prompt file `docs/ASAS_ADMIN_STAGE_PROMPTS.md`, execute only the first unclosed stage, run its gates, update this log, then stop at the next gate. Do not rely on conversation memory.
+
+**Continuation checkpoint (2026-09-07):** Apartment completeness and publication-readiness evaluators are now explicit, evidence-based domain contracts. Media upload lifecycle has validating/submitting/success/recoverable-error with cancel/retry. Apartment server status/price invariants and deterministic retry are already hardened. Do not rebuild these foundations; continue by closing the remaining Apartment lifecycle actions and contextual navigation, then move to Project.
+
+**Latest HEAD:** `f15b4252199a0d377afa8f0a6051df665a5ed70c`
+**CI:** Run #618 is currently `in_progress` for this HEAD. No success is claimed until the run concludes.
 
 **Latest execution:** Project → Buildings → Apartments contextual navigation is server-backed, and Apartment entity routes now open a detail view from the canonical `entityId`. The detail view surfaces project/building context, physical/commercial/publication data, media and FR/AR editorial content without inventing reservation data.
 
@@ -234,6 +241,9 @@ Only relationships/capabilities actually represented by the current application/
 ---
 
 # Change log
+
+| 2026-09-07 | `0517049...` | Added evidence-based Apartment publication-readiness contract | CI pending |
+| 2026-09-07 | `f15b425...` | Surfaced publication-readiness blockers in Apartment workspace | CI Run #618 in progress |
 
 | Date | Commit | Change | Verification |
 |---|---|---|---|
