@@ -80,11 +80,13 @@ Only relationships/capabilities actually represented by the current application/
 
 **Status:** In progress.
 
+**Latest execution:** Project inventory now exposes both apartment and building counts from server-backed data, strengthening the parent context without changing the data model.
+
 **Gate result:** Current baseline commit `861843c...` is CI-verified. Runtime and browser validation remain unverified.
 
 **Latest execution:** Project completeness contract is now server-data-backed. The list endpoint exposes `buildingCount`; the workspace evaluates identity, structure, inventory, commercial, media and publication separately. Publication remains `unknown` because the list payload does not prove readiness.
 
-**Current HEAD:** `5190abedbf021bab286b6b6f922b3e233f07855b`
+**Current HEAD:** `aad5d1ac22347999b1ea9aad6fadd622054f4cf6`
 **Immediate gate:** GitHub Actions for current HEAD.
 
 **CI evidence:** Run #525 (`34070619360`) completed successfully. Job `Lint + Typecheck + Build` passed: dependency install, Prisma client generation, Prisma baseline generation/verification, Typecheck, Lint and Build.
@@ -223,6 +225,7 @@ Only relationships/capabilities actually represented by the current application/
 | 2026-09-07 | `e39ccad...` | Added evidence-based Project completeness domain contract | CI pending |
 | 2026-09-07 | `af1131e...` | Exposed Project building count from server and wired completeness into workspace | CI pending |
 | 2026-09-07 | `5190abed...` | Integrated Project operational completeness into list readiness | CI pending |
+| 2026-09-07 | `aad5d1ac...` | Exposed building context beside project apartment inventory | CI pending |
 
 # Evidence discipline
 
