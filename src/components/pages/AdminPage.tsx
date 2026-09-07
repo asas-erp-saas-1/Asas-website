@@ -27,6 +27,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/constants';
 import { getAdminRoute, adminRouteHref, subscribeToAdminRoute, type AdminWorkspaceId } from '@/lib/admin-route';
+import { canStartMutation, createMutationRequestId, mutationAfterFailure, mutationSuccess as mutationSucceeded, type AdminMutationSnapshot } from '@/lib/admin-mutation';
 
 /* ─── Types ─── */
 
@@ -2562,6 +2563,8 @@ function ProjectEditForm({ project, onClose }: { project: AdminProject; onClose:
   const [tab, setTab] = useState<'basic' | 'location' | 'commercial' | 'amenities' | 'seo' | 'publish'>('basic');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mutationSnapshot, setMutationSnapshot] = useState<AdminMutationSnapshot>({ state: 'idle' });
+  const [dirty, setDirty] = useState(false);
 
   // Local state for all editable fields — initialized from project (or fetched full data)
   const [form, setForm] = useState<Record<string, unknown>>({
@@ -2716,7 +2719,9 @@ function ProjectEditForm({ project, onClose }: { project: AdminProject; onClose:
       setDirty(false);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Échec');
+      const failure = mutationAfterFailure(err, requestId);
+      setMutationSnapshot(failure);
+      setError(failure.error ?? 'Échec');
     } finally {
       setSaving(false);
     }
