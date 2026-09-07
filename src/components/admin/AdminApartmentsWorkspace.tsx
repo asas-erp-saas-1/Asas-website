@@ -123,6 +123,7 @@ export function AdminApartmentsWorkspace() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
   const [detailRetryKey, setDetailRetryKey] = useState(0);
+  const [lastMutationPatch, setLastMutationPatch] = useState<Record<string, unknown> | null>(null);
   const [detailMutation, setDetailMutation] = useState<AdminMutationSnapshot>({ state: 'idle' });
   const detailMutationBusy = detailMutation.state === 'validating' || detailMutation.state === 'submitting';
   const detailMutationError = detailMutation.state === 'recoverable-error' ? detailMutation.error : null;
@@ -279,6 +280,7 @@ export function AdminApartmentsWorkspace() {
     if (patch.price !== undefined) { const n = Number(patch.price); if (!Number.isFinite(n) || n < 0) return; }
     if (patch.status !== undefined && typeof patch.status === 'string' && !patch.status.trim()) return;
     if (!detail || detailMutationBusy || !canStartMutation(detailMutation.state)) return;
+    setLastMutationPatch(patch);
     const requestId = createMutationRequestId('apartment-detail');
     setDetailMutation({ state: 'validating', requestId });
     try {
@@ -312,7 +314,7 @@ export function AdminApartmentsWorkspace() {
               <Card><CardHeader><CardTitle className="text-base">Commercial & publication</CardTitle></CardHeader><CardContent className="space-y-4 text-sm">
                 <div className="flex flex-wrap items-end gap-2"><div className="min-w-[180px] flex-1"><span className="text-muted-foreground">Prix de vente (DZD)</span><Input className="mt-1" inputMode="decimal" type="number" min="0" step="1000" value={priceDraft || (detail.price != null ? String(detail.price) : '')} onChange={(e) => setPriceDraft(e.target.value)} aria-label="Prix en DZD" /></div><Button size="sm" disabled={detailMutationBusy || role === 'VIEWER' || !priceDraft} onClick={() => updateApartmentDetail({ price: Number(priceDraft), priceOnRequest: false })}>Enregistrer</Button></div>
                 <div className="flex flex-wrap items-center gap-2"><span className="text-muted-foreground">Statut</span><Select value={statusDraft || detail.status} onValueChange={setStatusDraft} disabled={detailMutationBusy || role === 'VIEWER'}><SelectTrigger className="w-[190px]" aria-label="Statut appartement"><SelectValue /></SelectTrigger><SelectContent>{['AVAILABLE','RESERVED','SOLD','COMING_SOON','OFF_MARKET','DRAFT'].map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select><Button size="sm" variant="outline" disabled={detailMutationBusy || role === 'VIEWER' || !statusDraft || statusDraft === detail.status} onClick={() => updateApartmentDetail({ status: statusDraft })}>Appliquer</Button></div>
-                <div className="flex flex-wrap items-center gap-2"><Button size="sm" disabled={detailMutationBusy || role === 'VIEWER'} onClick={() => updateApartmentDetail({ published: !detail.published })}>{detailMutationBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : detail.published ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}{detail.published ? 'Dépublier' : 'Publier'}</Button>{detailMutationError && <><span role="alert" className="text-sm text-destructive">{detailMutationError}</span><Button variant="outline" size="sm" onClick={() => updateApartmentDetail({ published: !detail.published })}>Réessayer</Button></>}</div>
+                <div className="flex flex-wrap items-center gap-2"><Button size="sm" disabled={detailMutationBusy || role === 'VIEWER'} onClick={() => updateApartmentDetail({ published: !detail.published })}>{detailMutationBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : detail.published ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}{detail.published ? 'Dépublier' : 'Publier'}</Button>{detailMutationError && <><span role="alert" className="text-sm text-destructive">{detailMutationError}</span><Button variant="outline" size="sm" onClick={() => lastMutationPatch && updateApartmentDetail(lastMutationPatch)}>Réessayer</Button></>}</div>
                 <div><span className="text-muted-foreground">Plan de paiement</span><p className="font-medium whitespace-pre-wrap">{detail.paymentPlan ?? 'Non renseigné'}</p></div>
                 <div className="flex flex-wrap gap-2"><Badge variant={detail.published ? 'default' : 'secondary'}>{detail.published ? 'Publié' : 'Brouillon'}</Badge><Badge variant="outline">{detail.archived ? 'Archivé' : 'Actif'}</Badge></div>
                 <div><span className="text-muted-foreground">SEO</span><p className="font-medium">{detail.seoTitle ?? 'Non renseigné'}</p><p className="text-xs text-muted-foreground">{detail.canonicalUrl ?? 'Canonical non renseignée'}</p></div>
