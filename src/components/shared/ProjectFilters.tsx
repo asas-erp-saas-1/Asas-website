@@ -129,7 +129,7 @@ export function ProjectFiltersPanel({
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Ville</p>
         <div className="flex flex-wrap gap-2">
           {CITIES.map((city) => (
-            <Button key={city} variant={filters.city === city ? 'default' : 'outline'} size="sm" onClick={() => update({ city: filters.city === city ? null : city })} className={filters.city === city ? 'bg-forest text-white hover:bg-forest-dark' : 'hover:border-forest/50'}>
+            <Button key={city} variant={filters.city === city ? 'default' : 'outline'} size="sm" onClick={() => update({ city: filters.city === city ? null : city })} className={filters.city === city ? 'min-h-10 bg-forest text-white hover:bg-forest-dark' : 'min-h-10 hover:border-forest/50'}>
               {city}
             </Button>
           ))}
@@ -140,21 +140,21 @@ export function ProjectFiltersPanel({
         <div>
           <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Type de projet</p>
           <Select value={filters.projectType ?? '__all__'} onValueChange={(v) => update({ projectType: v === '__all__' ? null : v })}>
-            <SelectTrigger className="w-full"><SelectValue placeholder="Tous" /></SelectTrigger>
+            <SelectTrigger className="w-full" aria-label="Type de projet"><SelectValue placeholder="Tous" /></SelectTrigger>
             <SelectContent><SelectItem value="__all__">Tous</SelectItem>{Object.entries(PROJECT_TYPES).map(([key, label]) => <SelectItem key={key} value={key}>{label}</SelectItem>)}</SelectContent>
           </Select>
         </div>
         <div>
           <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Type d&apos;appartement</p>
           <Select value={filters.apartmentType ?? '__all__'} onValueChange={(v) => update({ apartmentType: v === '__all__' ? null : v })}>
-            <SelectTrigger className="w-full"><SelectValue placeholder="Tous" /></SelectTrigger>
+            <SelectTrigger className="w-full" aria-label="Type d'appartement"><SelectValue placeholder="Tous" /></SelectTrigger>
             <SelectContent><SelectItem value="__all__">Tous</SelectItem>{Object.entries(APARTMENT_TYPES).map(([key, label]) => <SelectItem key={key} value={key}>{label}</SelectItem>)}</SelectContent>
           </Select>
         </div>
         <div>
           <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Statut</p>
           <Select value={filters.status ?? '__all__'} onValueChange={(v) => update({ status: v === '__all__' ? null : v })}>
-            <SelectTrigger className="w-full"><SelectValue placeholder="Tous" /></SelectTrigger>
+            <SelectTrigger className="w-full" aria-label="Statut du projet"><SelectValue placeholder="Tous" /></SelectTrigger>
             <SelectContent><SelectItem value="__all__">Tous</SelectItem>{Object.entries(STATUSES).map(([key, label]) => <SelectItem key={key} value={key}>{label}</SelectItem>)}</SelectContent>
           </Select>
         </div>
@@ -162,20 +162,20 @@ export function ProjectFiltersPanel({
 
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Prix : {formatPrice(filters.priceRange[0])} — {formatPrice(filters.priceRange[1])}</p>
-        <Slider min={priceMin} max={priceMax} step={1_000_000} value={filters.priceRange} onValueChange={(v) => update({ priceRange: v as [number, number] })} className="mt-2" />
+        <Slider min={priceMin} max={priceMax} step={1_000_000} value={filters.priceRange} onValueChange={(v) => update({ priceRange: v as [number, number] })} className="mt-2" aria-label="Fourchette de prix" />
       </div>
 
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Surface : {filters.surfaceRange[0]} m² — {filters.surfaceRange[1]} m²</p>
-        <Slider min={surfaceMin} max={surfaceMax} step={5} value={filters.surfaceRange} onValueChange={(v) => update({ surfaceRange: v as [number, number] })} className="mt-2" />
+        <Slider min={surfaceMin} max={surfaceMax} step={5} value={filters.surfaceRange} onValueChange={(v) => update({ surfaceRange: v as [number, number] })} className="mt-2" aria-label="Fourchette de surface" />
       </div>
 
       <div className="flex flex-wrap gap-6">
-        <label className="flex cursor-pointer items-center gap-2"><Checkbox checked={filters.hasParking === true} onCheckedChange={(checked) => update({ hasParking: checked === true ? true : null })} /><Car className="h-4 w-4 text-muted-foreground" /><span className="text-sm">Parking</span></label>
-        <label className="flex cursor-pointer items-center gap-2"><Checkbox checked={filters.hasPool === true} onCheckedChange={(checked) => update({ hasPool: checked === true ? true : null })} /><Waves className="h-4 w-4 text-muted-foreground" /><span className="text-sm">Piscine</span></label>
+        <label className="flex min-h-10 cursor-pointer items-center gap-2"><Checkbox checked={filters.hasParking === true} onCheckedChange={(checked) => update({ hasParking: checked === true ? true : null })} /><Car className="h-4 w-4 text-muted-foreground" /><span className="text-sm">Parking</span></label>
+        <label className="flex min-h-10 cursor-pointer items-center gap-2"><Checkbox checked={filters.hasPool === true} onCheckedChange={(checked) => update({ hasPool: checked === true ? true : null })} /><Waves className="h-4 w-4 text-muted-foreground" /><span className="text-sm">Piscine</span></label>
       </div>
 
-      <Button variant="ghost" size="sm" onClick={() => onFilterChange(defaults)} className="text-muted-foreground"><X className="h-4 w-4" />Réinitialiser</Button>
+      <Button variant="ghost" size="sm" onClick={() => onFilterChange(defaults)} className="min-h-10 text-muted-foreground"><X className="h-4 w-4" />Réinitialiser</Button>
     </div>
   );
 }
@@ -192,14 +192,14 @@ export default function ProjectFilters({ onFilterChange, projects }: ProjectFilt
     <>
       <div className="hidden md:block">
         <div className="mb-3 flex items-center justify-between">
-          <Button variant="outline" size="sm" onClick={() => setExpanded(!expanded)} className="gap-2"><Filter className="h-4 w-4" />Filtres{activeCount > 0 && <Badge className="ml-1 flex h-5 min-w-5 items-center justify-center bg-forest text-[10px] text-white">{activeCount}</Badge>}<motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}><ChevronDown className="h-4 w-4" /></motion.span></Button>
+          <Button variant="outline" size="sm" onClick={() => setExpanded(!expanded)} className="min-h-10 gap-2" aria-expanded={expanded}><Filter className="h-4 w-4" />Filtres{activeCount > 0 && <Badge className="ml-1 flex h-5 min-w-5 items-center justify-center bg-forest text-[10px] text-white">{activeCount}</Badge>}<motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}><ChevronDown className="h-4 w-4" /></motion.span></Button>
         </div>
         <AnimatePresence>{expanded && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: 'easeInOut' }} className="overflow-hidden"><div className="mb-4 rounded-xl border border-border bg-white p-5">{filterPanel}</div></motion.div>}</AnimatePresence>
       </div>
       <div className="md:hidden">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetTrigger asChild><Button variant="outline" size="sm" className="gap-2"><Filter className="h-4 w-4" />Filtres{activeCount > 0 && <Badge className="ml-1 flex h-5 min-w-5 items-center justify-center bg-forest text-[10px] text-white">{activeCount}</Badge>}</Button></SheetTrigger>
-          <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto"><SheetHeader><SheetTitle>Filtres avancés</SheetTitle></SheetHeader><div className="px-4 pb-6">{filterPanel}</div></SheetContent>
+          <SheetTrigger asChild><Button variant="outline" size="sm" className="min-h-11 gap-2"><Filter className="h-4 w-4" />Filtres{activeCount > 0 && <Badge className="ml-1 flex h-5 min-w-5 items-center justify-center bg-forest text-[10px] text-white">{activeCount}</Badge>}</Button></SheetTrigger>
+          <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))]"><SheetHeader><SheetTitle>Filtres avancés</SheetTitle></SheetHeader><div className="px-4 pb-6">{filterPanel}</div></SheetContent>
         </Sheet>
       </div>
     </>
