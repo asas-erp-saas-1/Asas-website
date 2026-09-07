@@ -280,6 +280,20 @@ export interface OperationalTransition {
  * Unsupported ERP capabilities (reservations/contracts/payments) are not
  * represented as executable transitions.
  */
+export function evaluateApartmentOperationalCompleteness(apartment: Record<string, unknown>) {
+  const has = (key: string) => {
+    const value = apartment[key];
+    return value !== null && value !== undefined && value !== '';
+  };
+  return {
+    identity: (has('id') || has('slug')) && has('apartmentType') && has('typeName'),
+    physical: has('surface') && has('floor') && has('bedrooms') && has('bathrooms'),
+    commercial: has('status') && (Boolean(apartment.priceOnRequest) || has('price')),
+    media: Boolean(apartment.heroImage) || (Array.isArray(apartment.imagesRelation) && apartment.imagesRelation.length > 0),
+    publication: apartment.published === true,
+  };
+}
+
 export const PROJECT_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[] = [
   { from: 'not-started', to: 'incomplete', actionId: 'create', requires: ['server-created-project'], risk: 'low', reversible: true },
   { from: 'incomplete', to: 'ready', actionId: 'complete-information', requires: ['identity valid', 'commercial data valid', 'publication prerequisites available'], risk: 'low', reversible: true },
