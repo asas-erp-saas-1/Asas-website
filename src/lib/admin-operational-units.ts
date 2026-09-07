@@ -280,6 +280,21 @@ export interface OperationalTransition {
  * Unsupported ERP capabilities (reservations/contracts/payments) are not
  * represented as executable transitions.
  */
+export function evaluateApartmentPublicationReadiness(apartment: Record<string, unknown>) {
+  const completeness = evaluateApartmentOperationalCompleteness(apartment);
+  const blockers: string[] = [];
+  if (!completeness.identity) blockers.push('identity');
+  if (!completeness.physical) blockers.push('physical');
+  if (!completeness.commercial) blockers.push('commercial');
+  if (!completeness.media) blockers.push('media');
+  if (!completeness.publication) blockers.push('publication');
+  return {
+    ready: blockers.length === 0,
+    blockers,
+    reason: blockers.length === 0 ? null : 'Apartment is not operationally publishable from currently available evidence.',
+  };
+}
+
 export function evaluateApartmentOperationalCompleteness(apartment: Record<string, unknown>) {
   const has = (key: string) => {
     const value = apartment[key];
