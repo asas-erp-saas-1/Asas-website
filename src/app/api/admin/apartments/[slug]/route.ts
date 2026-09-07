@@ -10,6 +10,15 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const VALID_APARTMENT_STATUSES = ['AVAILABLE', 'RESERVED', 'SOLD', 'COMING_SOON', 'OFF_MARKET', 'DRAFT'] as const;
+const VALID_STATUS_TRANSITIONS: Record<string, readonly string[]> = {
+  DRAFT: ['AVAILABLE', 'COMING_SOON', 'OFF_MARKET'],
+  COMING_SOON: ['AVAILABLE', 'OFF_MARKET'],
+  AVAILABLE: ['RESERVED', 'SOLD', 'OFF_MARKET'],
+  RESERVED: ['AVAILABLE', 'SOLD', 'OFF_MARKET'],
+  SOLD: ['OFF_MARKET'],
+  OFF_MARKET: ['AVAILABLE', 'COMING_SOON', 'DRAFT'],
+};
 
 /**
  * GET /api/admin/apartments/[slug]
@@ -106,6 +115,25 @@ export async function PUT(
       ));
     }
 
+    if (body.status !== undefined) {
+      const requestedStatus = String(body.status).toUpperCase();
+      if (!VALID_APARTMENT_STATUSES.includes(requestedStatus as typeof VALID_APARTMENT_STATUSES[number])) {
+        return withSecurityHeaders(NextResponse.json({ error: 'Statut appartement invalide', validStatuses: VALID_APARTMENT_STATUSES }, { status: 400 }));
+      }
+      const currentStatus = String(existing.status).toUpperCase();
+      if (requestedStatus !== currentStatus && !(VALID_STATUS_TRANSITIONS[currentStatus] ?? []).includes(requestedStatus)) {
+        return withSecurityHeaders(NextResponse.json({ error: `Transition de statut invalide: ${currentStatus} → ${requestedStatus}`, currentStatus, allowedTransitions: VALID_STATUS_TRANSITIONS[currentStatus] ?? [] }, { status: 409 }));
+      }
+      body.status = requestedStatus;
+    }
+    for (const field of ['price', 'surface', 'balconySurface', 'terraceSurface', 'gardenSurface'] as const) {
+      if (body[field] !== undefined && body[field] !== null && (!Number.isFinite(Number(body[field])) || Number(body[field]) < 0)) {
+        return withSecurityHeaders(NextResponse.json({ error: `Valeur numérique invalide: ${field}` }, { status: 400 }));
+      }
+    }
+    if (body.priceOnRequest === true && body.price !== undefined && body.price !== null) {
+      return withSecurityHeaders(NextResponse.json({ error: 'Un appartement ne peut pas avoir simultanément un prix et « prix sur demande ».' }, { status: 400 }));
+    }
     const updateData: Record<string, unknown> = {};
     const allowedFields = [
       'unitNumber', 'apartmentType', 'typeName', 'typeNameAr',
