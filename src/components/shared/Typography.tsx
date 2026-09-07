@@ -1,33 +1,27 @@
 import type { ReactNode, HTMLAttributes } from 'react';
 import { formatPrice } from '@/lib/constants';
 
-// ─── Typography System Components ───
-// Enforce the design system tokens from @/lib/design-tokens.
-// These are NOT meant to replace existing elements immediately,
-// but to provide a typed, design-system-compliant alternative
-// that can be adopted incrementally.
+// ─── ASAS Typography System ───
+// Responsive, content-safe primitives for the public real-estate experience.
 
 type TypographyProps = {
   children: ReactNode;
   className?: string;
 };
 
-// ── Display ──
-// text-5xl font-extrabold tracking-tight — hero headlines
+const cnText = (...classes: Array<string | undefined>) => classes.filter(Boolean).join(' ');
 
 export function Display({ children, className }: TypographyProps) {
   return (
-    <p className={`text-5xl font-extrabold tracking-tight leading-[1.1] ${className ?? ''}`}>
+    <p className={cnText('text-[clamp(2.25rem,7vw,3.5rem)] font-extrabold tracking-[-0.025em] leading-[1.06] text-balance', className)}>
       {children}
     </p>
   );
 }
 
-// ── Headings ──
-
 export function Heading1({ children, className }: TypographyProps) {
   return (
-    <h1 className={`text-4xl font-bold tracking-tight leading-[1.2] ${className ?? ''}`}>
+    <h1 className={cnText('text-[clamp(2rem,5vw,2.75rem)] font-bold tracking-[-0.02em] leading-[1.12] text-balance break-words', className)}>
       {children}
     </h1>
   );
@@ -35,7 +29,7 @@ export function Heading1({ children, className }: TypographyProps) {
 
 export function Heading2({ children, className }: TypographyProps) {
   return (
-    <h2 className={`text-3xl font-bold tracking-tight leading-[1.25] ${className ?? ''}`}>
+    <h2 className={cnText('text-[clamp(1.625rem,4vw,2.25rem)] font-bold tracking-[-0.015em] leading-[1.18] text-balance break-words', className)}>
       {children}
     </h2>
   );
@@ -43,7 +37,7 @@ export function Heading2({ children, className }: TypographyProps) {
 
 export function Heading3({ children, className }: TypographyProps) {
   return (
-    <h3 className={`text-2xl font-semibold leading-[1.3] ${className ?? ''}`}>
+    <h3 className={cnText('text-[clamp(1.25rem,3vw,1.5rem)] font-semibold leading-[1.25] text-balance break-words', className)}>
       {children}
     </h3>
   );
@@ -51,17 +45,15 @@ export function Heading3({ children, className }: TypographyProps) {
 
 export function Heading4({ children, className }: TypographyProps) {
   return (
-    <h4 className={`text-xl font-semibold leading-[1.4] ${className ?? ''}`}>
+    <h4 className={cnText('text-lg sm:text-xl font-semibold leading-[1.35] break-words', className)}>
       {children}
     </h4>
   );
 }
 
-// ── Body ──
-
 export function BodyLarge({ children, className }: TypographyProps) {
   return (
-    <p className={`text-lg font-normal leading-relaxed ${className ?? ''}`}>
+    <p className={cnText('text-base sm:text-lg font-normal leading-relaxed max-w-prose', className)}>
       {children}
     </p>
   );
@@ -69,7 +61,7 @@ export function BodyLarge({ children, className }: TypographyProps) {
 
 export function Body({ children, className }: TypographyProps) {
   return (
-    <p className={`text-base font-normal leading-normal ${className ?? ''}`}>
+    <p className={cnText('text-base font-normal leading-relaxed', className)}>
       {children}
     </p>
   );
@@ -77,35 +69,29 @@ export function Body({ children, className }: TypographyProps) {
 
 export function BodySmall({ children, className }: TypographyProps) {
   return (
-    <p className={`text-sm font-normal leading-normal ${className ?? ''}`}>
+    <p className={cnText('text-sm font-normal leading-relaxed', className)}>
       {children}
     </p>
   );
 }
-
-// ── Caption ──
 
 export function Caption({ children, className }: TypographyProps) {
   return (
-    <p className={`text-xs font-normal leading-[1.4] ${className ?? ''}`}>
+    <p className={cnText('text-xs font-normal leading-[1.4]', className)}>
       {children}
     </p>
   );
 }
 
-// ── Price Display ──
-// Formatted price with tabular-nums for alignment in grids.
-// Uses the existing formatPrice() from constants.
-
 interface PriceDisplayProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'children'> {
   value: number | null | undefined;
-  currency?: string; // defaults to 'DA' via formatPrice
+  currency?: string;
 }
 
 export function PriceDisplay({ value, className, ...rest }: PriceDisplayProps) {
   return (
     <span
-      className={`text-2xl font-bold leading-none tabular-nums ${className ?? ''}`}
+      className={cnText('inline-block max-w-full text-xl sm:text-2xl font-bold leading-tight tabular-nums break-words', className)}
       {...rest}
     >
       {formatPrice(value)}
@@ -113,12 +99,9 @@ export function PriceDisplay({ value, className, ...rest }: PriceDisplayProps) {
   );
 }
 
-// ── Property Label ──
-// text-xs uppercase font-semibold tracking-wider — badges, categories, tags
-
 export function PropertyLabel({ children, className }: TypographyProps) {
   return (
-    <span className={`text-xs uppercase font-semibold tracking-wider ${className ?? ''}`}>
+    <span className={cnText('inline-block max-w-full text-[0.6875rem] sm:text-xs uppercase font-semibold tracking-[0.08em] leading-tight break-words', className)}>
       {children}
     </span>
   );
