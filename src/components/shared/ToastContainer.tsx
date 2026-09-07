@@ -16,7 +16,7 @@ export function ToastContainer() {
       aria-live="assertive"
       role="status"
       aria-label="Notifications"
-      className="fixed bottom-4 right-[max(1rem,env(safe-area-inset-right))] left-[max(1rem,env(safe-area-inset-left))] sm:left-auto sm:bottom-6 sm:right-6 z-[100] flex flex-col gap-2 sm:gap-3 pointer-events-none"
+      className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] left-[max(1rem,env(safe-area-inset-left))] sm:left-auto sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))] sm:right-[max(1.5rem,env(safe-area-inset-right))] z-[100] flex flex-col gap-2 sm:gap-3 pointer-events-none"
     >
       <AnimatePresence mode="popLayout">
         {visibleToasts.map((toast) => {
@@ -35,7 +35,6 @@ export function ToastContainer() {
                 isError ? 'border-l-red-500' : 'border-l-forest'
               }`}
             >
-              {/* Icon */}
               <div className="flex-shrink-0 mt-0.5">
                 {isSuccess && <CheckCircle2 className="size-5 text-forest" />}
                 {isError && <AlertCircle className="size-5 text-red-500" />}
@@ -46,7 +45,6 @@ export function ToastContainer() {
                 )}
               </div>
 
-              {/* Content */}
               <div className="flex-1 min-w-0 break-words">
                 <p className="text-sm font-semibold text-foreground leading-tight">
                   {toast.title}
@@ -58,7 +56,6 @@ export function ToastContainer() {
                 )}
               </div>
 
-              {/* Dismiss */}
               <button
                 type="button"
                 onClick={() => removeToast(toast.id)}
