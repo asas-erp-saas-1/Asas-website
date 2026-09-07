@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Building2, ChevronLeft, ChevronRight, Loader2, Plus, RefreshCw, Search, X } from 'lucide-react';
+import { Building2, ChevronLeft, Home, ChevronRight, Loader2, Plus, RefreshCw, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
 import { getAdminRoute, navigateAdminRoute, subscribeToAdminRoute } from '@/lib/admin-route';
