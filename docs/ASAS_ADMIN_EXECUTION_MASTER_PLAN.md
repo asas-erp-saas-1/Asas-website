@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Last reviewed HEAD:** `f15b4252199a0d377afa8f0a6051df665a5ed70c`
+> **Last reviewed HEAD:** `fec2321e771b6d34c00e302cf0aea09e817f59f2`
 > **Rule:** This file records the execution contract, prompt for each step, evidence, decisions, and blockers. It is updated as part of the engineering work so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -80,12 +80,12 @@ Only relationships/capabilities actually represented by the current application/
 
 **Status:** In progress.
 
-**Execution rule:** When the user says `Continue`, first read this master plan and the stage prompt file `docs/ASAS_ADMIN_STAGE_PROMPTS.md`, execute only the first unclosed stage, run its gates, update this log, then stop at the next gate. Do not rely on conversation memory.
+**Execution rule:** When the user says `Continue`, first read this master plan and `docs/ASAS_ADMIN_STAGE_PROMPTS.md`, execute only the first unclosed stage, run its gates, update both trackers, and stop at the next gate. Do not rely on conversation memory.
 
 **Continuation checkpoint (2026-09-07):** Apartment completeness and publication-readiness evaluators are now explicit, evidence-based domain contracts. Media upload lifecycle has validating/submitting/success/recoverable-error with cancel/retry. Apartment server status/price invariants and deterministic retry are already hardened. Do not rebuild these foundations; continue by closing the remaining Apartment lifecycle actions and contextual navigation, then move to Project.
 
-**Latest HEAD:** `f15b4252199a0d377afa8f0a6051df665a5ed70c`
-**CI:** Run #618 is currently `in_progress` for this HEAD. No success is claimed until the run concludes.
+**Latest implementation HEAD:** `f15b4252199a0d377afa8f0a6051df665a5ed70c`
+**CI checkpoint:** Run #618 was the implementation gate at the previous checkpoint; this documentation continuation is separate. Current continuation gate is tracked in `docs/ASAS_ADMIN_STAGE_PROMPTS.md` Stage 0.
 
 **Latest execution:** Project → Buildings → Apartments contextual navigation is server-backed, and Apartment entity routes now open a detail view from the canonical `entityId`. The detail view surfaces project/building context, physical/commercial/publication data, media and FR/AR editorial content without inventing reservation data.
 
@@ -283,3 +283,10 @@ For every future entry record:
 **Active wave:** STEP 2 — Project operational vertical slice  
 **Immediate gate:** CI for `8ed157f...`  
 **Do not proceed to broad responsive/visual work until operational/data correctness gates are satisfied.**
+
+
+## Persistent execution control
+
+The stage-by-stage prompts are maintained in `docs/ASAS_ADMIN_STAGE_PROMPTS.md`. That file is the execution queue. `Continue` means execute the first non-COMPLETE stage, not a new plan. Every stage must update its status and this master log with exact commit/CI/runtime evidence before the next stage becomes ACTIVE.
+
+**Documentation checkpoint:** `fec2321e771b6d34c00e302cf0aea09e817f59f2` added the persistent stage prompt queue. The attempt to update this master file in the same sequence initially used an invalid ref and returned GitHub 404; no false success is recorded. This update is being written against the actual branch ref and file SHA.
