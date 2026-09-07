@@ -80,13 +80,13 @@ Only relationships/capabilities actually represented by the current application/
 
 **Status:** In progress.
 
-**Latest execution:** Project inventory now exposes both apartment and building counts from server-backed data, strengthening the parent context without changing the data model.
+**Latest execution:** Project → Buildings and Building → Apartments contextual navigation is now server-backed. Project navigation passes `projectId`; Building navigation passes `buildingId` plus `projectSlug`; Apartment API and URL state preserve the building scope.
 
 **Gate result:** Current baseline commit `861843c...` is CI-verified. Runtime and browser validation remain unverified.
 
 **Latest execution:** Project completeness contract is now server-data-backed. The list endpoint exposes `buildingCount`; the workspace evaluates identity, structure, inventory, commercial, media and publication separately. Publication remains `unknown` because the list payload does not prove readiness.
 
-**Current HEAD:** `aad5d1ac22347999b1ea9aad6fadd622054f4cf6`
+**Current HEAD:** `9d2983810e5cbe32d9b4565342459ec349d23211`
 **Immediate gate:** GitHub Actions for current HEAD.
 
 **CI evidence:** Run #525 (`34070619360`) completed successfully. Job `Lint + Typecheck + Build` passed: dependency install, Prisma client generation, Prisma baseline generation/verification, Typecheck, Lint and Build.
@@ -226,6 +226,10 @@ Only relationships/capabilities actually represented by the current application/
 | 2026-09-07 | `af1131e...` | Exposed Project building count from server and wired completeness into workspace | CI pending |
 | 2026-09-07 | `5190abed...` | Integrated Project operational completeness into list readiness | CI pending |
 | 2026-09-07 | `aad5d1ac...` | Exposed building context beside project apartment inventory | CI pending |
+| 2026-09-07 | `14e8e168...` | Added server-backed `buildingId` filter to apartment inventory | CI pending |
+| 2026-09-07 | `c8fa12b1...` | Persisted building context in Apartment workspace URL state | CI pending |
+| 2026-09-07 | `283b2dab...` | Added Building → scoped Apartments navigation | CI pending |
+| 2026-09-07 | `9d298381...` | Added Project → scoped Buildings navigation | CI pending |
 
 # Evidence discipline
 
