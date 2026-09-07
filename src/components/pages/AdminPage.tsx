@@ -1877,9 +1877,8 @@ function VideoManager({ projects, apartments }: { projects: AdminProject[]; apar
       setUrl(''); setTitle(''); setDescription(''); setThumbnailUrl('');
       qc.invalidateQueries({ queryKey: ['admin', 'videos'] });
     } catch (err) {
-      const failure = mutationAfterFailure(err, requestId);
-      setMutationSnapshot(failure);
-      setError(failure.error ?? 'Échec');
+      const message = err instanceof Error ? err.message : 'Échec';
+      setError(message);
     } finally {
       setCreating(false);
     }
