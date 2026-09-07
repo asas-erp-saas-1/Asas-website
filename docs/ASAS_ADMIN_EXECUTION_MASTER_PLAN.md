@@ -86,8 +86,10 @@ Only relationships/capabilities actually represented by the current application/
 
 **Latest execution:** Project completeness contract is now server-data-backed. The list endpoint exposes `buildingCount`; the workspace evaluates identity, structure, inventory, commercial, media and publication separately. Publication remains `unknown` because the list payload does not prove readiness.
 
-**Current HEAD:** `f9caf1147b2e4f642d6aba3a2e8a7f238ba81d46`
+**Current HEAD:** `bb5e2238195c81a621d8c8731d2bfef04b6fef06`
 **Immediate gate:** GitHub Actions for current HEAD.
+
+**Media lifecycle hardening:** the existing Admin media upload surface now uses the shared mutation vocabulary for validating/submitting/success/recoverable-error, retains the selected file on failure, exposes cancellation through the active XHR, and offers retry without discarding the failed upload input.
 
 **Availability truth boundary:** Prisma production schema has no `Reservation` model. Therefore Apartment availability is currently represented only by the persisted `Apartment.status`. The Admin must not create or imply a real reservation from `RESERVED`. Server mutation paths now reject new transitions into `RESERVED`; legacy `RESERVED` records remain readable and can transition only through the existing supported status path. UI status choices are aligned with this capability boundary.
 
