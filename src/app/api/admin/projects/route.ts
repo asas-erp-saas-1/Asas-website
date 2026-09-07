@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
         take: limit,
         orderBy: [{ order: 'asc' }, { createdAt: 'desc' }, { id: 'asc' }],
         include: {
-          _count: { select: { apartments: true } },
+          _count: { select: { apartments: true, buildings: true } },
           developer: { select: { id: true, name: true, slug: true } },
           imagesRelation: { where: { type: 'hero' }, take: 1 },
         },
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       id: p.id, slug: p.slug, name: p.name, nameAr: p.nameAr, city: p.city, district: p.district,
       projectType: p.projectType, status: p.status, published: p.published, featured: p.featured,
       startingPrice: p.startingPrice, priceOnRequest: p.priceOnRequest, deliveryYear: p.deliveryYear,
-      deliveryQuarter: p.deliveryQuarter, apartmentCount: p._count.apartments,
+      deliveryQuarter: p.deliveryQuarter, apartmentCount: p._count.apartments, buildingCount: p._count.buildings,
       heroImage: p.imagesRelation[0]?.url ?? null, developer: p.developer, order: p.order,
       createdAt: p.createdAt, updatedAt: p.updatedAt,
     }));
