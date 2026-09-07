@@ -86,8 +86,10 @@ Only relationships/capabilities actually represented by the current application/
 
 **Latest execution:** Project completeness contract is now server-data-backed. The list endpoint exposes `buildingCount`; the workspace evaluates identity, structure, inventory, commercial, media and publication separately. Publication remains `unknown` because the list payload does not prove readiness.
 
-**Current HEAD:** `acd1f5c1494c5a6aaee810b5f804f5cd0e97fcf9`
+**Current HEAD:** `a4b3a205978dc12d77f47900f08924558bda8098`
 **Immediate gate:** GitHub Actions for current HEAD.
+
+**Verified gate:** Run #566 for `564729c3` completed successfully with Prisma generation, baseline generation, Typecheck, Lint, and Build all successful.
 
 **Apartment mutation slice:** publication now uses the shared mutation lifecycle and existing audited PUT endpoint. It updates detail state from the server response, invalidates the apartment list via the existing data-change event, and exposes retry on recoverable failure.
 
@@ -237,7 +239,8 @@ Only relationships/capabilities actually represented by the current application/
 | 2026-09-07 | `01425394...` | Fixed missing `Home` icon import caught by CI Typecheck | CI pending |
 | 2026-09-07 | `3fc195e4...` | Added route-driven Apartment operational detail view | CI pending |
 | 2026-09-07 | `9bb46b72...` | Corrected detail view to use existing ID-backed Apartment API route | CI pending |
-| 2026-09-07 | `acd1f5c1...` | Added recoverable publication mutation to Apartment Detail using shared lifecycle | CI pending |
+| 2026-09-07 | `acd1f5c1...` | Added recoverable publication mutation to Apartment Detail using shared lifecycle | CI success — Run #566 |
+| 2026-09-07 | `a4b3a205...` | Surfaced publication mutation errors and disabled publish action for VIEWER | CI pending |
 
 # Evidence discipline
 
