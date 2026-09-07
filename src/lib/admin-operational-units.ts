@@ -224,6 +224,43 @@ export const ADMIN_OPERATIONAL_UNIT_DEFINITIONS: readonly AdminOperationalUnitDe
 
 export type AdminOperationalDomainId = 'site-operations' | 'customer-operations' | 'system-operations';
 
+export type OperationalSectionState = 'complete' | 'incomplete' | 'unknown';
+
+export interface ProjectOperationalCompletenessInput {
+  name?: string | null;
+  slug?: string | null;
+  city?: string | null;
+  district?: string | null;
+  startingPrice?: number | null;
+  priceOnRequest?: boolean | null;
+  apartmentCount?: number | null;
+  buildingCount?: number | null;
+  heroImage?: string | null;
+}
+
+export interface ProjectOperationalCompleteness {
+  identity: OperationalSectionState;
+  structure: OperationalSectionState;
+  inventory: OperationalSectionState;
+  commercial: OperationalSectionState;
+  media: OperationalSectionState;
+  publication: OperationalSectionState;
+  overall: OperationalSectionState;
+}
+
+/** Completeness is evidence-based. Missing evidence is unknown, never false. */
+export function evaluateProjectOperationalCompleteness(input: ProjectOperationalCompletenessInput): ProjectOperationalCompleteness {
+  const identity: OperationalSectionState = input.name?.trim() && input.slug?.trim() && input.city?.trim() && input.district?.trim() ? 'complete' : 'incomplete';
+  const structure: OperationalSectionState = typeof input.buildingCount === 'number' ? (input.buildingCount > 0 ? 'complete' : 'incomplete') : 'unknown';
+  const inventory: OperationalSectionState = typeof input.apartmentCount === 'number' ? (input.apartmentCount > 0 ? 'complete' : 'incomplete') : 'unknown';
+  const commercial: OperationalSectionState = typeof input.startingPrice === 'number' || input.priceOnRequest === true ? 'complete' : 'incomplete';
+  const media: OperationalSectionState = typeof input.heroImage === 'string' && input.heroImage.trim().length > 0 ? 'complete' : 'incomplete';
+  const publication: OperationalSectionState = 'unknown';
+  const states = [identity, structure, inventory, commercial, media, publication];
+  const overall: OperationalSectionState = states.includes('incomplete') ? 'incomplete' : states.every((state) => state === 'complete') ? 'complete' : 'unknown';
+  return { identity, structure, inventory, commercial, media, publication, overall };
+}
+
 export interface OperationalTransition {
   from: AdminOperationalState;
   to: AdminOperationalState;
