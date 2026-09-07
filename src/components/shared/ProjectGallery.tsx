@@ -16,12 +16,10 @@ interface ProjectGalleryProps {
   images: ProjectImage[];
   projectName: string;
   fallbackImage?: string;
-  /** Optional type filter — only show images matching this type */
   filterType?: string;
 }
 
 export function ProjectGallery({ images, projectName, fallbackImage, filterType }: ProjectGalleryProps) {
-  /* Apply type filter if specified */
   const filteredImages = filterType
     ? images.filter(img => img.type === filterType)
     : images;
@@ -48,7 +46,6 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
 
   return (
     <div className="space-y-3">
-      {/* Main Image */}
       <div className="relative group overflow-hidden rounded-xl aspect-video bg-muted">
         <AnimatePresence mode="wait">
           <motion.div
@@ -62,19 +59,18 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
             <img
               src={displayImages[activeIndex].url}
               alt={displayImages[activeIndex].alt ?? `${projectName} — image ${activeIndex + 1}`}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+              className="w-full h-full object-cover transition-transform duration-500 sm:group-hover:scale-[1.02]"
               loading="lazy"
             />
           </motion.div>
         </AnimatePresence>
 
-        {/* Navigation arrows */}
         {displayImages.length > 1 && (
           <>
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60"
+              className="absolute left-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/40 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity hover:bg-black/60"
               onClick={goPrev}
               aria-label="Image précédente"
             >
@@ -83,7 +79,7 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60"
+              className="absolute right-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/40 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity hover:bg-black/60"
               onClick={goNext}
               aria-label="Image suivante"
             >
@@ -92,18 +88,16 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
           </>
         )}
 
-        {/* Image counter badge */}
         {displayImages.length > 1 && (
           <span className="absolute bottom-3 left-3 text-xs font-medium text-white bg-black/50 backdrop-blur-sm rounded-lg px-2.5 py-1">
             {activeIndex + 1}/{displayImages.length}
           </span>
         )}
 
-        {/* Fullscreen button */}
         <Button
           variant="ghost"
           size="icon"
-          className="absolute bottom-3 right-3 size-9 rounded-lg bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60"
+          className="absolute bottom-3 right-3 size-10 rounded-lg bg-black/40 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity hover:bg-black/60"
           onClick={() => setFullscreenOpen(true)}
           aria-label="Voir en plein écran"
         >
@@ -111,7 +105,6 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
         </Button>
       </div>
 
-      {/* Thumbnail Grid */}
       {displayImages.length > 1 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {displayImages.map((img, index) => (
@@ -140,14 +133,13 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
         </div>
       )}
 
-      {/* Fullscreen Dialog */}
       <Dialog open={fullscreenOpen} onOpenChange={setFullscreenOpen}>
         <DialogContent
-          className="max-w-6xl p-0 bg-black/95 border-none overflow-hidden"
+          className="max-w-6xl w-[calc(100vw-1rem)] sm:w-full p-0 bg-black/95 border-none overflow-hidden"
           showCloseButton={false}
         >
           <DialogTitle className="sr-only">{projectName} — Vue plein écran</DialogTitle>
-          <div className="relative flex items-center justify-center min-h-[60vh] max-h-[85vh]">
+          <div className="relative flex items-center justify-center min-h-[min(60vh,28rem)] max-h-[calc(100dvh-1rem)] pb-[env(safe-area-inset-bottom)]">
             <AnimatePresence mode="wait">
               <motion.img
                 key={activeIndex}
@@ -157,22 +149,20 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
                 transition={{ duration: 0.25 }}
                 src={displayImages[activeIndex].url}
                 alt={displayImages[activeIndex].alt ?? `${projectName} — image ${activeIndex + 1}`}
-                className="max-w-full max-h-[85vh] object-contain"
+                className="max-w-full max-h-[calc(100dvh-4rem)] object-contain"
               />
             </AnimatePresence>
 
-            {/* Close button */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-3 right-3 size-10 rounded-full bg-white/10 text-white hover:bg-white/20"
+              className="absolute top-3 right-3 size-11 rounded-full bg-white/10 text-white hover:bg-white/20"
               onClick={() => setFullscreenOpen(false)}
               aria-label="Fermer"
             >
               <X className="size-5" />
             </Button>
 
-            {/* Navigation arrows in fullscreen */}
             {displayImages.length > 1 && (
               <>
                 <Button
@@ -196,9 +186,8 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
               </>
             )}
 
-            {/* Counter in fullscreen */}
             {displayImages.length > 1 && (
-              <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-white/80 bg-black/40 backdrop-blur-sm rounded-full px-4 py-1.5">
+              <span className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 text-sm text-white/80 bg-black/40 backdrop-blur-sm rounded-full px-4 py-1.5">
                 {activeIndex + 1}/{displayImages.length}
               </span>
             )}
