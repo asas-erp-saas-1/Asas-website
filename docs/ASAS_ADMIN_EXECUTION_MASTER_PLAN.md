@@ -86,8 +86,10 @@ Only relationships/capabilities actually represented by the current application/
 
 **Latest execution:** Project completeness contract is now server-data-backed. The list endpoint exposes `buildingCount`; the workspace evaluates identity, structure, inventory, commercial, media and publication separately. Publication remains `unknown` because the list payload does not prove readiness.
 
-**Current HEAD:** `a65723d40a4a8b78762c1b8476d24c34c2ef1ce4`
+**Current HEAD:** `f9caf1147b2e4f642d6aba3a2e8a7f238ba81d46`
 **Immediate gate:** GitHub Actions for current HEAD.
+
+**Availability truth boundary:** Prisma production schema has no `Reservation` model. Therefore Apartment availability is currently represented only by the persisted `Apartment.status`. The Admin must not create or imply a real reservation from `RESERVED`. Server mutation paths now reject new transitions into `RESERVED`; legacy `RESERVED` records remain readable and can transition only through the existing supported status path. UI status choices are aligned with this capability boundary.
 
 **Apartment server invariant hardening:** the canonical apartment PUT now enforces the same status transition rules as the dedicated status endpoint and rejects invalid numeric commercial/area values. `priceOnRequest` cannot be combined with an explicit price. This closes a server-side consistency gap where the generic PUT could previously bypass the operational transition model.
 
