@@ -123,6 +123,8 @@ export function AdminApartmentsWorkspace() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
   const [detailRetryKey, setDetailRetryKey] = useState(0);
+  const [detailMutation, setDetailMutation] = useState<AdminMutationSnapshot>({ state: 'idle' });
+  const detailMutationBusy = detailMutation.state === 'validating' || detailMutation.state === 'submitting';
   const mutationBusyRef = useRef(false);
 
   useEffect(() => subscribeToAdminRoute((next) => {
@@ -270,6 +272,22 @@ export function AdminApartmentsWorkspace() {
 
   const mutationBusy = mutationSnapshot.state === 'validating' || mutationSnapshot.state === 'submitting';
 
+  async function updateApartmentDetail(patch: Record<string, unknown>) {
+    if (!detail || detailMutationBusy || !canStartMutation(detailMutation.state)) return;
+    const requestId = createMutationRequestId('apartment-detail');
+    setDetailMutation({ state: 'validating', requestId });
+    try {
+      setDetailMutation({ state: 'submitting', requestId });
+      const result = await getJson<{ data?: Apartment }>(`/api/admin/apartments/${encodeURIComponent(detail.slug)}?id=${encodeURIComponent(detail.id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) });
+      setDetailMutation({ state: 'success', requestId });
+      if (result.data) setDetail(result.data);
+      setRetryKey((value) => value + 1);
+      window.dispatchEvent(new Event('asas-admin-data-changed'));
+    } catch (error) {
+      setDetailMutation(mutationAfterFailure(error, requestId));
+    }
+  }
+
   if (detailId) {
     return (
       <section className="admin-apartments-workspace w-full" aria-labelledby="apartment-detail-title">
@@ -286,7 +304,7 @@ export function AdminApartmentsWorkspace() {
             </div>
             <div className="grid gap-5 lg:grid-cols-2">
               <Card><CardHeader><CardTitle className="text-base">Contexte & physique</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-4 text-sm"><div><span className="text-muted-foreground">Projet</span><p className="font-medium">{detail.project?.name ?? '—'}</p></div><div><span className="text-muted-foreground">Bâtiment</span><p className="font-medium">{detail.building?.name ?? 'Non associé'}</p></div><div><span className="text-muted-foreground">Unité</span><p className="font-medium">{detail.apartmentNumber ?? detail.unitNumber ?? '—'}</p></div><div><span className="text-muted-foreground">Type</span><p className="font-medium">{detail.apartmentType} · {detail.typeName}</p></div><div><span className="text-muted-foreground">Chambres</span><p className="font-medium">{detail.bedrooms}</p></div><div><span className="text-muted-foreground">Salles de bain</span><p className="font-medium">{detail.bathrooms ?? '—'}</p></div><div><span className="text-muted-foreground">Orientation</span><p className="font-medium">{detail.orientation ?? '—'}</p></div><div><span className="text-muted-foreground">Parking</span><p className="font-medium">{detail.hasParking ? `${detail.parkingSpots ?? 1} place(s)` : 'Non'}</p></div></CardContent></Card>
-              <Card><CardHeader><CardTitle className="text-base">Commercial & publication</CardTitle></CardHeader><CardContent className="space-y-3 text-sm"><div><span className="text-muted-foreground">Plan de paiement</span><p className="font-medium whitespace-pre-wrap">{detail.paymentPlan ?? 'Non renseigné'}</p></div><div className="flex flex-wrap gap-2"><Badge variant={detail.published ? 'default' : 'secondary'}>{detail.published ? 'Publié' : 'Brouillon'}</Badge><Badge variant="outline">{detail.archived ? 'Archivé' : 'Actif'}</Badge></div><div><span className="text-muted-foreground">SEO</span><p className="font-medium">{detail.seoTitle ?? 'Non renseigné'}</p><p className="text-xs text-muted-foreground">{detail.canonicalUrl ?? 'Canonical non renseignée'}</p></div></CardContent></Card>
+              <Card><CardHeader><CardTitle className="text-base">Commercial & publication</CardTitle></CardHeader><CardContent className="space-y-3 text-sm"><div className="flex flex-wrap items-center gap-2"><Button size="sm" disabled={detailMutationBusy} onClick={() => updateApartmentDetail({ published: !detail.published })}>{detailMutationBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : detail.published ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}{detail.published ? 'Dépublier' : 'Publier'}</Button>{detailMutation.state === 'recoverable-error' && <Button variant="outline" size="sm" onClick={() => updateApartmentDetail({ published: !detail.published })}>Réessayer</Button>}</div><div><span className="text-muted-foreground">Plan de paiement</span><p className="font-medium whitespace-pre-wrap">{detail.paymentPlan ?? 'Non renseigné'}</p></div><div className="flex flex-wrap gap-2"><Badge variant={detail.published ? 'default' : 'secondary'}>{detail.published ? 'Publié' : 'Brouillon'}</Badge><Badge variant="outline">{detail.archived ? 'Archivé' : 'Actif'}</Badge></div><div><span className="text-muted-foreground">SEO</span><p className="font-medium">{detail.seoTitle ?? 'Non renseigné'}</p><p className="text-xs text-muted-foreground">{detail.canonicalUrl ?? 'Canonical non renseignée'}</p></div></CardContent></Card>
             </div>
             <Card><CardHeader><CardTitle className="text-base">Média</CardTitle></CardHeader><CardContent>{detail.imagesRelation?.length ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{detail.imagesRelation.map((image) => <div key={image.id} className="overflow-hidden rounded-md border"><img src={image.url} alt={image.alt ?? detail.typeName} className="aspect-square w-full object-cover" loading="lazy" /><p className="truncate px-2 py-1 text-xs text-muted-foreground">{image.type}</p></div>)}</div> : <p className="text-sm text-muted-foreground">Aucun média associé disponible.</p>}</CardContent></Card>
             <Card><CardHeader><CardTitle className="text-base">Contenu éditorial</CardTitle></CardHeader><CardContent className="grid gap-4 lg:grid-cols-2"><div><p className="mb-1 text-xs font-medium text-muted-foreground">Description FR</p><p className="whitespace-pre-wrap text-sm">{detail.description ?? 'Non renseignée'}</p></div><div dir="rtl"><p className="mb-1 text-xs font-medium text-muted-foreground">Description AR</p><p className="whitespace-pre-wrap text-sm">{detail.descriptionAr ?? 'غير متوفرة'}</p></div></CardContent></Card>
