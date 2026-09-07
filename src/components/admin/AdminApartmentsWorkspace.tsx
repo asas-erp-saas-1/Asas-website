@@ -125,7 +125,6 @@ export function AdminApartmentsWorkspace() {
   const [detailRetryKey, setDetailRetryKey] = useState(0);
   const [lastMutationPatch, setLastMutationPatch] = useState<Record<string, unknown> | null>(null);
   const [detailMutation, setDetailMutation] = useState<AdminMutationSnapshot>({ state: 'idle' });
-  const [lastMutationPatch, setLastMutationPatch] = useState<Record<string, unknown> | null>(null);
   const detailMutationBusy = detailMutation.state === 'validating' || detailMutation.state === 'submitting';
   const detailMutationError = detailMutation.state === 'recoverable-error' ? detailMutation.error : null;
   const [priceDraft, setPriceDraft] = useState('');
@@ -281,7 +280,6 @@ export function AdminApartmentsWorkspace() {
     if (patch.price !== undefined) { const n = Number(patch.price); if (!Number.isFinite(n) || n < 0) return; }
     if (patch.status !== undefined && typeof patch.status === 'string' && !patch.status.trim()) return;
     if (!detail || detailMutationBusy || !canStartMutation(detailMutation.state)) return;
-    setLastMutationPatch(patch);
     setLastMutationPatch(patch);
     const requestId = createMutationRequestId('apartment-detail');
     setDetailMutation({ state: 'validating', requestId });
