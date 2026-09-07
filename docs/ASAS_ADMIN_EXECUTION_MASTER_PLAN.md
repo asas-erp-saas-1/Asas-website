@@ -80,10 +80,14 @@ Only relationships/capabilities actually represented by the current application/
 
 **Status:** In progress.
 
+**Gate result:** Current baseline commit `861843c...` is CI-verified. Runtime and browser validation remain unverified.
+
 **Latest execution:** Project completeness contract is now server-data-backed. The list endpoint exposes `buildingCount`; the workspace evaluates identity, structure, inventory, commercial, media and publication separately. Publication remains `unknown` because the list payload does not prove readiness.
 
 **Current HEAD:** `5190abedbf021bab286b6b6f922b3e233f07855b`
 **Immediate gate:** GitHub Actions for current HEAD.
+
+**CI evidence:** Run #525 (`34070619360`) completed successfully. Job `Lint + Typecheck + Build` passed: dependency install, Prisma client generation, Prisma baseline generation/verification, Typecheck, Lint and Build.
 
 ---
 
