@@ -147,7 +147,7 @@ export function AdminApartmentsWorkspace() {
     if (!detailId) { setDetail(null); setDetailError(null); return; }
     const controller = new AbortController();
     setDetailLoading(true); setDetailError(null);
-    getJson<{ data?: Apartment }>(`/api/admin/apartments/detail?${new URLSearchParams({ id: detailId })}`, { signal: controller.signal })
+    getJson<{ data?: Apartment }>(`/api/admin/apartments/${encodeURIComponent(detailId)}?${new URLSearchParams({ id: detailId })}`, { signal: controller.signal })
       .then((json) => setDetail(json.data ?? null))
       .catch((err: unknown) => { if (!(err instanceof DOMException && err.name === 'AbortError')) setDetailError(err instanceof Error ? err.message : 'Impossible de charger l’appartement.'); })
       .finally(() => { if (!controller.signal.aborted) setDetailLoading(false); });
