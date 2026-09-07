@@ -1376,6 +1376,7 @@ function MediaUploadCard({ projects, apartments, onUploaded }: {
   const [mutationSnapshot, setMutationSnapshot] = useState<AdminMutationSnapshot>({ state: 'idle' });
   const [dirty, setDirty] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [xhrRef] = useState<{ current: XMLHttpRequest | null }>({ current: null });
   const qc = useQueryClient();
 
   const entityOptions = entityType === 'project'
@@ -1386,6 +1387,7 @@ function MediaUploadCard({ projects, apartments, onUploaded }: {
     if (!file) { setError('Aucun fichier sélectionné'); return; }
     if (!entityId) { setError('Veuillez sélectionner une cible (projet ou appartement)'); return; }
     setError(null);
+    setMutationSnapshot({ state: 'validating' });
     setUploading(true);
     setProgress(0);
     try {
@@ -1398,19 +1400,23 @@ function MediaUploadCard({ projects, apartments, onUploaded }: {
       formData.append('caption', caption);
       const res = await new Promise<Response>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
+        xhrRef.current = xhr;
         xhr.open('POST', '/api/admin/media/upload');
         xhr.withCredentials = true;
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
         };
         xhr.onload = () => {
+          xhrRef.current = null;
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve(new Response(xhr.responseText, { status: xhr.status }));
           } else {
             reject(new Error(`Upload failed (${xhr.status})`));
           }
         };
-        xhr.onerror = () => reject(new Error('Network error during upload'));
+        xhr.onerror = () => { xhrRef.current = null; reject(new Error('Network error during upload')); };
+        xhr.onabort = () => { xhrRef.current = null; reject(new Error('Téléversement annulé.')); };
+        setMutationSnapshot({ state: 'submitting' });
         xhr.send(formData);
       });
       const json = await res.json();
@@ -1421,9 +1427,12 @@ function MediaUploadCard({ projects, apartments, onUploaded }: {
       setProgress(0);
       qc.invalidateQueries({ queryKey: ['admin', 'media'] });
       onUploaded();
+      setMutationSnapshot({ state: 'success' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Échec de l\'upload');
+      setMutationSnapshot({ state: 'recoverable-error', error: err instanceof Error ? err.message : 'Échec de l\'upload' });
     } finally {
+      xhrRef.current = null;
       setUploading(false);
     }
   }
@@ -1535,6 +1544,8 @@ function MediaUploadCard({ projects, apartments, onUploaded }: {
           </div>
         )}
 
+        {uploading && <Button type="button" variant="outline" onClick={() => xhrRef.current?.abort()} className="w-full">Annuler le téléversement</Button>}
+        {mutationSnapshot.state === 'recoverable-error' && !uploading && <Button type="button" variant="outline" onClick={doUpload} disabled={!file || !entityId} className="w-full">Réessayer</Button>}
         <Button
           onClick={doUpload}
           disabled={uploading || !file || !entityId}
