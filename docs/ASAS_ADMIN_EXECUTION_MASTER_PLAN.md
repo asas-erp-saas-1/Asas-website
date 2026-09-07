@@ -80,6 +80,11 @@ Only relationships/capabilities actually represented by the current application/
 
 **Status:** In progress.
 
+**Latest execution:** Project completeness contract is now server-data-backed. The list endpoint exposes `buildingCount`; the workspace evaluates identity, structure, inventory, commercial, media and publication separately. Publication remains `unknown` because the list payload does not prove readiness.
+
+**Current HEAD:** `5190abedbf021bab286b6b6f922b3e233f07855b`
+**Immediate gate:** GitHub Actions for current HEAD.
+
 ---
 
 ## STEP 3 — Building operational vertical slice
@@ -210,6 +215,10 @@ Only relationships/capabilities actually represented by the current application/
 |---|---|---|---|
 | 2026-09-07 | `2579c13...` | Align transition IDs with canonical action vocabulary | CI pending for later HEAD |
 | 2026-09-07 | `8ed157f...` | Correct Lead transition registry syntax/outcome | CI pending for this HEAD |
+| 2026-09-07 | `5c06bfc...` | Created execution master plan + persistent engineering log | File committed; current CI must be re-run |
+| 2026-09-07 | `e39ccad...` | Added evidence-based Project completeness domain contract | CI pending |
+| 2026-09-07 | `af1131e...` | Exposed Project building count from server and wired completeness into workspace | CI pending |
+| 2026-09-07 | `5190abed...` | Integrated Project operational completeness into list readiness | CI pending |
 
 # Evidence discipline
 
