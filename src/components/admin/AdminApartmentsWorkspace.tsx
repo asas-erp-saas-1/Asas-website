@@ -84,6 +84,7 @@ export function AdminApartmentsWorkspace() {
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: PAGE_SIZE, total: 0, totalPages: 0 });
   const [projectSlug, setProjectSlug] = useState(() => getAdminRoute().filters.projectSlug ?? 'all');
+  const [buildingId, setBuildingId] = useState(() => getAdminRoute().filters.buildingId ?? 'all');
   const [status, setStatus] = useState(() => getAdminRoute().filters.status ?? 'all');
   const [type, setType] = useState(() => getAdminRoute().filters.type ?? 'all');
   const [search, setSearch] = useState(() => getAdminRoute().search ?? '');
@@ -104,6 +105,7 @@ export function AdminApartmentsWorkspace() {
     setSearch(next.search ?? '');
     setDebouncedSearch(next.search ?? '');
     setProjectSlug(next.filters.projectSlug ?? 'all');
+    setBuildingId(next.filters.buildingId ?? 'all');
     setStatus(next.filters.status ?? 'all');
     setType(next.filters.type ?? 'all');
     setPage(next.page ?? 1);
@@ -142,6 +144,7 @@ export function AdminApartmentsWorkspace() {
     const controller = new AbortController();
     const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
     if (projectSlug !== 'all') params.set('projectSlug', projectSlug);
+    if (buildingId !== 'all') params.set('buildingId', buildingId);
     if (status !== 'all') params.set('status', status);
     if (type !== 'all') params.set('type', type);
     if (debouncedSearch) params.set('search', debouncedSearch);
@@ -158,7 +161,7 @@ export function AdminApartmentsWorkspace() {
       })
       .finally(() => { if (!controller.signal.aborted) { setLoading(false); setRefreshing(false); } });
     return () => controller.abort();
-  }, [page, projectSlug, status, type, retryKey, debouncedSearch]);
+  }, [page, projectSlug, buildingId, status, type, retryKey, debouncedSearch]);
 
   const effectivePage = pagination.totalPages > 0 ? Math.min(page, pagination.totalPages) : page;
   const filteredApartments = useMemo(() => apartments, [apartments]);
@@ -166,12 +169,13 @@ export function AdminApartmentsWorkspace() {
   const rangeEnd = Math.min(effectivePage * pagination.limit, pagination.total);
 
   function resetPage() { setPage(1); }
-  function syncRoute(next: { search?: string; projectSlug?: string; status?: string; type?: string; page?: number }) {
+  function syncRoute(next: { search?: string; projectSlug?: string; buildingId?: string; status?: string; type?: string; page?: number }) {
     navigateAdminRoute({
       workspace: 'apartments',
       search: next.search ?? search,
       filters: {
         projectSlug: next.projectSlug ?? projectSlug,
+        buildingId: next.buildingId ?? buildingId,
         status: next.status ?? status,
         type: next.type ?? type,
       },
@@ -179,8 +183,8 @@ export function AdminApartmentsWorkspace() {
     }, 'replace');
   }
   function clearFilters() {
-    setProjectSlug('all'); setStatus('all'); setType('all'); setSearch(''); setDebouncedSearch(''); resetPage();
-    syncRoute({ search: '', projectSlug: 'all', status: 'all', type: 'all', page: 1 });
+    setProjectSlug('all'); setBuildingId('all'); setStatus('all'); setType('all'); setSearch(''); setDebouncedSearch(''); resetPage();
+    syncRoute({ search: '', projectSlug: 'all', buildingId: 'all', status: 'all', type: 'all', page: 1 });
   }
   function refresh() { setRefreshing(true); setRetryKey((value) => value + 1); }
 
@@ -198,7 +202,7 @@ export function AdminApartmentsWorkspace() {
     return { id: apartment.id, ...evaluateOperationalSignals(signals) };
   }), [apartments]);
 
-  const hasFilters = projectSlug !== 'all' || status !== 'all' || type !== 'all' || search.trim() !== '';
+  const hasFilters = projectSlug !== 'all' || buildingId !== 'all' || status !== 'all' || type !== 'all' || search.trim() !== '';
 
   async function executeMutation() {
     if (!pendingAction || mutationBusyRef.current || !canStartMutation(mutationSnapshot.state)) return;
