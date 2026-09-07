@@ -86,8 +86,10 @@ Only relationships/capabilities actually represented by the current application/
 
 **Latest execution:** Project completeness contract is now server-data-backed. The list endpoint exposes `buildingCount`; the workspace evaluates identity, structure, inventory, commercial, media and publication separately. Publication remains `unknown` because the list payload does not prove readiness.
 
-**Current HEAD:** `66f51621d6b7c9fe5eae1ecb7c13ee7ebffbc2fa`
+**Current HEAD:** `8b74193eec285fae93aa3e0c0a905cee0b8abb9f`
 **Immediate gate:** GitHub Actions for current HEAD.
+
+**CI incident:** Run #574 failed at Typecheck on the Apartment Detail JSX after the commercial/status mutation change. The failure was isolated to malformed closing JSX tags introduced in that change; no lint/build stage ran. Commit `8b74193e` repairs the JSX structure without changing the domain behavior. CI must re-run before further implementation.
 
 **Apartment commercial/status slice:** price and status controls now validate client-side semantics, enforce the existing VIEWER restriction, use the shared mutation lifecycle, and persist through the existing audited PUT endpoint.
 
