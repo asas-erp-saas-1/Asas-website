@@ -28,6 +28,20 @@ export function FloorPlanViewer({ src, alt = 'Plan d\'appartement' }: FloorPlanV
     setPan({ x: 0, y: 0 });
   }, []);
 
+  const handleDownload = useCallback(() => {
+    const link = document.createElement('a');
+    link.href = src;
+    link.download = `${(alt || 'plan-appartement')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/gi, '-')
+      .replace(/^-|-$/g, '')}.jpg`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }, [src, alt]);
+
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
@@ -67,32 +81,22 @@ export function FloorPlanViewer({ src, alt = 'Plan d\'appartement' }: FloorPlanV
       onContextMenu={(e) => e.preventDefault()}
       aria-label={alt}
     >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(34,90,72,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(34,90,72,0.06) 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
-      />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{
+        backgroundImage:
+          'linear-gradient(rgba(34,90,72,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(34,90,72,0.06) 1px, transparent 1px)',
+        backgroundSize: '24px 24px',
+      }} />
 
       <div className="absolute left-3 top-3 z-20 inline-flex max-w-[calc(100%-5rem)] items-center gap-1.5 rounded-full border border-forest/10 bg-forest/10 px-2.5 py-1 text-xs font-semibold text-forest backdrop-blur-sm">
         <LayoutGrid className="size-3 shrink-0" />
         <span className="truncate">Plan interactif</span>
       </div>
 
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 flex items-center justify-center"
-      >
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center">
         <Home className="size-20 text-forest/10 sm:size-24" />
       </div>
 
-      <div
-        className="absolute inset-0 flex items-center justify-center"
-        style={{ touchAction: 'none' }}
-      >
+      <div className="absolute inset-0 flex items-center justify-center" style={{ touchAction: 'none' }}>
         <img
           src={src}
           alt={alt}
@@ -128,7 +132,7 @@ export function FloorPlanViewer({ src, alt = 'Plan d\'appartement' }: FloorPlanV
           variant="ghost"
           size="sm"
           className="min-h-10 rounded-lg bg-white/90 text-xs shadow-md backdrop-blur hover:bg-white"
-          onClick={() => {}}
+          onClick={handleDownload}
           aria-label="Télécharger le plan"
         >
           <Download className="size-3.5 shrink-0" />
