@@ -164,6 +164,8 @@ export function navigateAdminRoute(
     entity: workspaceChanged ? patch.entity : patch.entity ?? current.entity,
     entityId: workspaceChanged ? patch.entityId : patch.entityId ?? current.entityId,
   });
+  const currentHref = window.location.pathname + window.location.search + window.location.hash;
+  if (currentHref === href) return;
   if (mode === 'replace') {
     window.history.replaceState({}, '', href);
   } else {
