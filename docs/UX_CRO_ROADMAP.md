@@ -1,9 +1,10 @@
 # ASAS UX / CRO Roadmap
 
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-09-08
 **Current phase:** Phase 3 — Sales Experience & Conversion System
 **Current branch:** `fix/responsive-viewport-hardening`
+**Latest implementation checkpoint:** `6455b0c8f7ca92ed9cfd01705461a5ba52f47559`
 
 ## Execution ledger
 
@@ -45,12 +46,14 @@ Target structure:
 7. Human consultation / visit.
 8. Alternatives.
 
-Known defects to resolve:
+Current checkpoint:
 
-- dead fullscreen control in project detail top-right gallery overlay
-- CTA hierarchy needs final consolidation
+- project gallery already provides the functional fullscreen control; the duplicate top-right overlay is still identified as a dead control in `ProjectDetailPage.tsx` and must be removed or explicitly wired before release
+- hero WhatsApp control is currently 40px high and should be brought to the shared 44px minimum
+- CTA hierarchy still needs final consolidation
 - verify whether page-level mobile sticky CTA duplicates the shared global CTA
 - remove unused imports/components where confirmed by lint
+- apartment alternatives were clarified to communicate comparison intent without implying fabricated personalization
 
 ### 3.5 Apartment Decision Room
 **State:** NEXT execution target.
