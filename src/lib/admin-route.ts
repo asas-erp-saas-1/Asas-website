@@ -41,9 +41,11 @@ function normalizeCandidate(value: string | null | undefined): AdminWorkspaceId 
 
 export function parseAdminRoute(input: {
   pathname?: string;
+  search?: string;
   hash?: string;
 }): AdminRouteModel {
   const pathname = input.pathname ?? '';
+  const search = input.search ?? '';
   const hash = input.hash ?? '';
 
   const hashValue = hash.replace(/^#\/?/, '');
@@ -60,11 +62,7 @@ export function parseAdminRoute(input: {
 
   const pathMatch = pathname.match(/^\/admin(?:\/([^/]+))?/i);
   const workspace = normalizeCandidate(pathMatch?.[1]) ?? 'dashboard';
-  const query = pathname.includes('?')
-    ? pathname.slice(pathname.indexOf('?') + 1)
-    : hashValue.includes('?')
-      ? hashValue.slice(hashValue.indexOf('?') + 1)
-      : '';
+  const query = search.replace(/^\?/, '') || (hashValue.includes('?') ? hashValue.slice(hashValue.indexOf('?') + 1) : '');
   const params = new URLSearchParams(query);
   const filters: Record<string, string> = {};
   params.forEach((value, key) => {
@@ -97,7 +95,7 @@ export function subscribeToAdminRoute(onChange: (route: AdminRouteModel) => void
 
 export function getAdminRoute(): AdminRouteModel {
   if (typeof window === 'undefined') return { workspace: 'dashboard', filters: {} };
-  return parseAdminRoute({ pathname: window.location.pathname, hash: window.location.hash });
+  return parseAdminRoute({ pathname: window.location.pathname, search: window.location.search, hash: window.location.hash });
 }
 
 export interface AdminRoutePatch {
@@ -164,7 +162,7 @@ export function navigateAdminRoute(
     entity: workspaceChanged ? patch.entity : patch.entity ?? current.entity,
     entityId: workspaceChanged ? patch.entityId : patch.entityId ?? current.entityId,
   });
-  const currentHref = window.location.pathname + window.location.search + window.location.hash;
+  const currentHref = window.location.hash || window.location.pathname + window.location.search;
   if (currentHref === href) return;
   if (mode === 'replace') {
     window.history.replaceState({}, '', href);
