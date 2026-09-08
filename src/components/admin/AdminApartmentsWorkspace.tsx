@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { formatPrice } from '@/lib/constants';
 import { navigateAdminRoute, subscribeToAdminRoute, getAdminRoute } from '@/lib/admin-route';
 import { canStartMutation, createMutationRequestId, mutationAfterFailure, mutationSuccess as mutationSucceeded, type AdminMutationSnapshot } from '@/lib/admin-mutation';
-import { evaluateApartmentOperationalCompleteness, evaluateApartmentPublicationReadiness, evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
+import { evaluateApartmentOperationalCompleteness, evaluateApartmentPublicationReadiness, canTransitionApartmentStatus, evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
 
 interface Apartment {
   id: string;
@@ -246,9 +246,20 @@ export function AdminApartmentsWorkspace() {
 
   const hasFilters = projectSlug !== 'all' || buildingId !== 'all' || status !== 'all' || type !== 'all' || search.trim() !== '';
 
+  function getApartmentPublicationReadiness(apartment: Apartment) {
+    return evaluateApartmentPublicationReadiness(apartment as unknown as Record<string, unknown>);
+  }
+
   async function executeMutation() {
     if (!pendingAction || mutationBusyRef.current || !canStartMutation(mutationSnapshot.state)) return;
     const { kind, apartment } = pendingAction;
+    if (kind === 'publish' && !apartment.published) {
+      const readiness = getApartmentPublicationReadiness(apartment);
+      if (!readiness.ready) {
+        setMutationError(`Publication bloquée : ${readiness.blockers.join(', ')}`);
+        return;
+      }
+    }
     mutationBusyRef.current = true;
     const requestId = createMutationRequestId(`apartment-${kind}`);
     setMutationSnapshot({ state: 'validating', requestId });
@@ -313,8 +324,17 @@ export function AdminApartmentsWorkspace() {
               <Card><CardHeader><CardTitle className="text-base">Contexte & physique</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-4 text-sm"><div><span className="text-muted-foreground">Projet</span><p className="font-medium">{detail.project?.name ?? '—'}</p></div><div><span className="text-muted-foreground">Bâtiment</span><p className="font-medium">{detail.building?.name ?? 'Non associé'}</p></div><div><span className="text-muted-foreground">Unité</span><p className="font-medium">{detail.apartmentNumber ?? detail.unitNumber ?? '—'}</p></div><div><span className="text-muted-foreground">Type</span><p className="font-medium">{detail.apartmentType} · {detail.typeName}</p></div><div><span className="text-muted-foreground">Chambres</span><p className="font-medium">{detail.bedrooms}</p></div><div><span className="text-muted-foreground">Salles de bain</span><p className="font-medium">{detail.bathrooms ?? '—'}</p></div><div><span className="text-muted-foreground">Orientation</span><p className="font-medium">{detail.orientation ?? '—'}</p></div><div><span className="text-muted-foreground">Parking</span><p className="font-medium">{detail.hasParking ? `${detail.parkingSpots ?? 1} place(s)` : 'Non'}</p></div></CardContent></Card>
               <Card><CardHeader><CardTitle className="text-base">Commercial & publication</CardTitle></CardHeader><CardContent className="space-y-4 text-sm">
                 <div className="flex flex-wrap items-end gap-2"><div className="min-w-[180px] flex-1"><span className="text-muted-foreground">Prix de vente (DZD)</span><Input className="mt-1" inputMode="decimal" type="number" min="0" step="1000" value={priceDraft || (detail.price != null ? String(detail.price) : '')} onChange={(e) => setPriceDraft(e.target.value)} aria-label="Prix en DZD" /></div><Button size="sm" disabled={detailMutationBusy || role === 'VIEWER' || !priceDraft} onClick={() => updateApartmentDetail({ price: Number(priceDraft), priceOnRequest: false })}>Enregistrer</Button></div>
-                <div className="flex flex-wrap items-center gap-2"><span className="text-muted-foreground">Statut</span><Select value={statusDraft || detail.status} onValueChange={setStatusDraft} disabled={detailMutationBusy || role === 'VIEWER'}><SelectTrigger className="w-[190px]" aria-label="Statut appartement"><SelectValue /></SelectTrigger><SelectContent>{[detail.status, ...(['AVAILABLE','SOLD','COMING_SOON','OFF_MARKET','DRAFT'] as const).filter((value) => value !== detail.status)].map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select><Button size="sm" variant="outline" disabled={detailMutationBusy || role === 'VIEWER' || !statusDraft || statusDraft === detail.status} onClick={() => updateApartmentDetail({ status: statusDraft })}>Appliquer</Button></div>
-                <div className="flex flex-wrap items-center gap-2"><Button size="sm" disabled={detailMutationBusy || role === 'VIEWER'} onClick={() => updateApartmentDetail({ published: !detail.published })}>{detailMutationBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : detail.published ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}{detail.published ? 'Dépublier' : 'Publier'}</Button>{detailMutationError && <><span role="alert" className="text-sm text-destructive">{detailMutationError}</span><Button variant="outline" size="sm" onClick={() => lastMutationPatch && updateApartmentDetail(lastMutationPatch)}>Réessayer</Button></>}</div>
+                <div className="flex flex-wrap items-center gap-2"><span className="text-muted-foreground">Statut</span><Select value={statusDraft || detail.status} onValueChange={setStatusDraft} disabled={detailMutationBusy || role === 'VIEWER'}><SelectTrigger className="w-[190px]" aria-label="Statut appartement"><SelectValue /></SelectTrigger><SelectContent>{[detail.status, ...(Object.keys({ AVAILABLE: true, SOLD: true, COMING_SOON: true, OFF_MARKET: true, DRAFT: true } as const)).filter((value) => value !== detail.status && canTransitionApartmentStatus(detail.status, value))].map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select><Button size="sm" variant="outline" disabled={detailMutationBusy || role === 'VIEWER' || !statusDraft || statusDraft === detail.status} onClick={() => updateApartmentDetail({ status: statusDraft })}>Appliquer</Button></div>
+                <div className="flex flex-wrap items-center gap-2"><Button size="sm" disabled={detailMutationBusy || role === 'VIEWER'} onClick={() => {
+                  if (!detail.published) {
+                    const readiness = evaluateApartmentPublicationReadiness(detail as unknown as Record<string, unknown>);
+                    if (!readiness.ready) {
+                      setDetailMutation({ state: 'recoverable-error', error: `Publication bloquée : ${readiness.blockers.join(', ')}` });
+                      return;
+                    }
+                  }
+                  updateApartmentDetail({ published: !detail.published });
+                }}>{detailMutationBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : detail.published ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}{detail.published ? 'Dépublier' : 'Publier'}</Button>{detailMutationError && <><span role="alert" className="text-sm text-destructive">{detailMutationError}</span><Button variant="outline" size="sm" onClick={() => lastMutationPatch && updateApartmentDetail(lastMutationPatch)}>Réessayer</Button></>}</div>
                 <div><span className="text-muted-foreground">Plan de paiement</span><p className="font-medium whitespace-pre-wrap">{detail.paymentPlan ?? 'Non renseigné'}</p></div>
                 <div className="flex flex-wrap gap-2"><Badge variant={detail.published ? 'default' : 'secondary'}>{detail.published ? 'Publié' : 'Brouillon'}</Badge><Badge variant="outline">{detail.archived ? 'Archivé' : 'Actif'}</Badge></div>
                 <div><span className="text-muted-foreground">SEO</span><p className="font-medium">{detail.seoTitle ?? 'Non renseigné'}</p><p className="text-xs text-muted-foreground">{detail.canonicalUrl ?? 'Canonical non renseignée'}</p></div>
