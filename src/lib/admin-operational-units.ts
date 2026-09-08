@@ -287,12 +287,27 @@ export function evaluateApartmentPublicationReadiness(apartment: Record<string, 
   if (!completeness.physical) blockers.push('physical');
   if (!completeness.commercial) blockers.push('commercial');
   if (!completeness.media) blockers.push('media');
-  if (!completeness.publication) blockers.push('publication');
   return {
     ready: blockers.length === 0,
     blockers,
+    published: apartment.published === true,
     reason: blockers.length === 0 ? null : 'Apartment is not operationally publishable from currently available evidence.',
   };
+}
+
+export const APARTMENT_STATUS_TRANSITIONS: Readonly<Record<string, readonly string[]>> = {
+  DRAFT: ['AVAILABLE', 'COMING_SOON', 'OFF_MARKET'],
+  COMING_SOON: ['AVAILABLE', 'OFF_MARKET'],
+  AVAILABLE: ['SOLD', 'OFF_MARKET'],
+  RESERVED: ['AVAILABLE', 'SOLD', 'OFF_MARKET'],
+  SOLD: ['OFF_MARKET'],
+  OFF_MARKET: ['AVAILABLE', 'COMING_SOON', 'DRAFT'],
+};
+
+export function canTransitionApartmentStatus(from: string, to: string) {
+  const current = String(from).toUpperCase();
+  const next = String(to).toUpperCase();
+  return current === next || (APARTMENT_STATUS_TRANSITIONS[current] ?? []).includes(next);
 }
 
 export function evaluateApartmentOperationalCompleteness(apartment: Record<string, unknown>) {
