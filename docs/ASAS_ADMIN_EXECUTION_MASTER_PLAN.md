@@ -314,3 +314,8 @@ CI Run #654 for `57d0c09f05aca6f67acfc24d86bf5a33dd8cea9f` completed `success`; 
 ## 2026-09-08 Stage 2 logic review checkpoint
 
 Stage 1 is verified by CI Run #660 = success on `247612bbe71a4d402e19340b87bfb6bd8fa1ffa8`. During Stage 2 review, a duplicate route mutation implementation was found in `AdminPage`: it constructed the canonical href itself and manually called `history.pushState` + synthetic `hashchange`, while `admin-route.ts` already owned navigation. Commit `496a6a24b4a6ea368737ed5f1109e158d825738a` hardened the canonical navigator against redundant route mutations. Commit `6245c8343ca3c17bf744a150f69e1b5a320578de` migrated `AdminPage` to `navigateAdminRoute`, removing that duplicate navigation authority. Verification of these new commits is pending CI.
+
+
+## 2026-09-08 Stage 2 route correctness checkpoint
+
+CI Run #668 for `1f2f1d849861bf37afd44a8862b91a45e9008a05` was still `in_progress` when reviewed. Static route review identified two correctness issues: path-based admin query parameters were not read from `window.location.search`, and no-op navigation compared a full URL representation against a hash-based canonical href, so equivalent routes could still trigger history mutations. Commit `eb020284846618e3975e163379d578191beda6cc` adds explicit `search` parsing and canonical hash/path no-op comparison. New commit verification is pending CI.
