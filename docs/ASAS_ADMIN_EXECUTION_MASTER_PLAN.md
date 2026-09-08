@@ -297,3 +297,10 @@ The stage-by-stage prompts are maintained in `docs/ASAS_ADMIN_STAGE_PROMPTS.md`.
 Repository branch confirmed to exist: `feat/admin-ux-ui-foundation`. The last implementation commit `f15b4252199a0d377afa8f0a6051df665a5ed70c` has GitHub Actions CI Run #618 completed with conclusion `success`. This closes the implementation CI gate for that checkpoint. Documentation continuity was repaired by creating the authoritative queue `docs/ASAS_ADMIN_STAGE_EXECUTION_PROMPTS.md` at commit `8f999dfa65054cae60671ce1c041a77750226faf`. The prior `ASAS_ADMIN_STAGE_PROMPTS.md` path could not be reliably retrieved from the branch, so it is no longer treated as authoritative.
 
 **Current execution stage:** STAGE 1 — Apartment lifecycle.
+
+
+## 2026-09-08 Stage 1 checkpoint
+
+`STAGE 0` implementation gate: commit `f15b4252199a0d377afa8f0a6051df665a5ed70c` has CI Run #618 = `success`.
+
+`STAGE 1` Apartment lifecycle implementation is now complete at code level but **verification is pending**. Commits: `2ef639b857f9fb647d83852bf61c93769749405d` (publication readiness + status transition contract), `9ceffd2ec8061a7e97688a92a1dcfd4972c3f87d` (UI lifecycle guards), `cf9e4c1e0141103c126eb1a85ac0b45798c797f7` (server publication preconditions), `7229e2b53916504225d3b222046846d376b79bc8` (explicit publish/unpublish audit actions). Current PR #7 head at this checkpoint: `7229e2b53916504225d3b222046846d376b79bc8` before the documentation checkpoint. GitHub combined status currently reports Vercel `pending`; no green CI evidence exists yet for the Stage 1 implementation commits. Do not mark Stage 1 COMPLETE until the implementation head has green static/CI evidence.
