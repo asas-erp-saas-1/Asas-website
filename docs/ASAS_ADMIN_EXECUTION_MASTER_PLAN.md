@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Last reviewed HEAD:** `fec2321e771b6d34c00e302cf0aea09e817f59f2`
+> **Last reviewed implementation checkpoint:** `f15b4252199a0d377afa8f0a6051df665a5ed70c`
 > **Rule:** This file records the execution contract, prompt for each step, evidence, decisions, and blockers. It is updated as part of the engineering work so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -80,7 +80,7 @@ Only relationships/capabilities actually represented by the current application/
 
 **Status:** In progress.
 
-**Execution rule:** When the user says `Continue`, first read this master plan and `docs/ASAS_ADMIN_STAGE_PROMPTS.md`, execute only the first unclosed stage, run its gates, update both trackers, and stop at the next gate. Do not rely on conversation memory.
+**Execution rule:** When the user says `Continue`, first read this master plan and `docs/ASAS_ADMIN_STAGE_EXECUTION_PROMPTS.md`, execute only the first unclosed stage, run its gates, update both trackers, and stop at the next gate. Do not rely on conversation memory.
 
 **Continuation checkpoint (2026-09-07):** Apartment completeness and publication-readiness evaluators are now explicit, evidence-based domain contracts. Media upload lifecycle has validating/submitting/success/recoverable-error with cancel/retry. Apartment server status/price invariants and deterministic retry are already hardened. Do not rebuild these foundations; continue by closing the remaining Apartment lifecycle actions and contextual navigation, then move to Project.
 
@@ -290,3 +290,10 @@ For every future entry record:
 The stage-by-stage prompts are maintained in `docs/ASAS_ADMIN_STAGE_PROMPTS.md`. That file is the execution queue. `Continue` means execute the first non-COMPLETE stage, not a new plan. Every stage must update its status and this master log with exact commit/CI/runtime evidence before the next stage becomes ACTIVE.
 
 **Documentation checkpoint:** `fec2321e771b6d34c00e302cf0aea09e817f59f2` added the persistent stage prompt queue. The attempt to update this master file in the same sequence initially used an invalid ref and returned GitHub 404; no false success is recorded. This update is being written against the actual branch ref and file SHA.
+
+
+## 2026-09-08 execution checkpoint
+
+Repository branch confirmed to exist: `feat/admin-ux-ui-foundation`. The last implementation commit `f15b4252199a0d377afa8f0a6051df665a5ed70c` has GitHub Actions CI Run #618 completed with conclusion `success`. This closes the implementation CI gate for that checkpoint. Documentation continuity was repaired by creating the authoritative queue `docs/ASAS_ADMIN_STAGE_EXECUTION_PROMPTS.md` at commit `8f999dfa65054cae60671ce1c041a77750226faf`. The prior `ASAS_ADMIN_STAGE_PROMPTS.md` path could not be reliably retrieved from the branch, so it is no longer treated as authoritative.
+
+**Current execution stage:** STAGE 1 — Apartment lifecycle.
