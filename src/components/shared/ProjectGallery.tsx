@@ -44,9 +44,45 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
     setActiveIndex((prev) => (prev - 1 + displayImages.length) % displayImages.length);
   }, [displayImages.length]);
 
+  const handleGalleryKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      goNext();
+    }
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      goPrev();
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      setFullscreenOpen(true);
+    }
+  }, [goNext, goPrev]);
+
+  const handleFullscreenKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      goNext();
+    }
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      goPrev();
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setFullscreenOpen(false);
+    }
+  }, [goNext, goPrev]);
+
   return (
     <div className="space-y-3">
-      <div className="relative group overflow-hidden rounded-xl aspect-video bg-muted ring-1 ring-black/5">
+      <div
+        className="relative group overflow-hidden rounded-xl aspect-video bg-muted ring-1 ring-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2"
+        role="region"
+        aria-label={`${projectName} — galerie photos`}
+        tabIndex={0}
+        onKeyDown={handleGalleryKeyDown}
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={activeIndex}
@@ -80,6 +116,7 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
               className="absolute left-3 top-1/2 size-11 -translate-y-1/2 rounded-full bg-black/40 text-white opacity-100 transition-opacity hover:bg-black/60 sm:opacity-0 sm:group-hover:opacity-100"
               onClick={goPrev}
               aria-label="Image précédente"
+              title="Image précédente"
             >
               <ChevronLeft className="size-5" />
             </Button>
@@ -89,6 +126,7 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
               className="absolute right-3 top-1/2 size-11 -translate-y-1/2 rounded-full bg-black/40 text-white opacity-100 transition-opacity hover:bg-black/60 sm:opacity-0 sm:group-hover:opacity-100"
               onClick={goNext}
               aria-label="Image suivante"
+              title="Image suivante"
             >
               <ChevronRight className="size-5" />
             </Button>
@@ -101,20 +139,21 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
           className="absolute bottom-3 right-3 size-11 rounded-lg bg-black/45 text-white opacity-100 backdrop-blur-sm transition-opacity hover:bg-black/65 sm:opacity-0 sm:group-hover:opacity-100"
           onClick={() => setFullscreenOpen(true)}
           aria-label="Voir en plein écran"
+          title="Voir en plein écran"
         >
           <Maximize2 className="size-4" />
         </Button>
       </div>
 
       {displayImages.length > 1 && (
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-4" aria-label="Miniatures de la galerie">
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 overscroll-x-contain sm:grid sm:grid-cols-4 sm:overflow-visible" aria-label="Miniatures de la galerie">
           {displayImages.map((img, index) => (
             <button
               key={img.id}
               type="button"
               onClick={() => setActiveIndex(index)}
               className={cn(
-                'relative aspect-video overflow-hidden rounded-lg border-2 transition-all duration-200',
+                'relative aspect-video min-w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-all duration-200 sm:min-w-0',
                 index === activeIndex
                   ? 'border-forest ring-1 ring-forest/30 shadow-md'
                   : 'border-transparent opacity-70 hover:border-forest/30 hover:opacity-100'
@@ -140,7 +179,13 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
           showCloseButton={false}
         >
           <DialogTitle className="sr-only">{projectName} — Vue plein écran</DialogTitle>
-          <div className="relative flex min-h-[min(60vh,28rem)] max-h-[calc(100dvh-1rem)] items-center justify-center pb-[env(safe-area-inset-bottom)]">
+          <div
+            className="relative flex min-h-[min(60vh,28rem)] max-h-[calc(100dvh-1rem)] items-center justify-center pb-[env(safe-area-inset-bottom)] focus-visible:outline-none"
+            role="region"
+            aria-label={`${projectName} — galerie plein écran`}
+            tabIndex={0}
+            onKeyDown={handleFullscreenKeyDown}
+          >
             <AnimatePresence mode="wait">
               <motion.img
                 key={activeIndex}
@@ -160,6 +205,7 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
               className="absolute right-3 top-3 size-11 rounded-full bg-white/10 text-white hover:bg-white/20"
               onClick={() => setFullscreenOpen(false)}
               aria-label="Fermer"
+              title="Fermer"
             >
               <X className="size-5" />
             </Button>
@@ -172,6 +218,7 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
                   className="absolute left-3 top-1/2 size-12 -translate-y-1/2 rounded-full bg-white/10 text-white hover:bg-white/20"
                   onClick={goPrev}
                   aria-label="Précédente"
+                  title="Précédente"
                 >
                   <ChevronLeft className="size-6" />
                 </Button>
@@ -181,6 +228,7 @@ export function ProjectGallery({ images, projectName, fallbackImage, filterType 
                   className="absolute right-3 top-1/2 size-12 -translate-y-1/2 rounded-full bg-white/10 text-white hover:bg-white/20"
                   onClick={goNext}
                   aria-label="Suivante"
+                  title="Suivante"
                 >
                   <ChevronRight className="size-6" />
                 </Button>
