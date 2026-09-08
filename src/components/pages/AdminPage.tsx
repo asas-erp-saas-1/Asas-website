@@ -26,7 +26,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/constants';
-import { getAdminRoute, adminRouteHref, subscribeToAdminRoute, type AdminWorkspaceId } from '@/lib/admin-route';
+import { getAdminRoute, subscribeToAdminRoute, navigateAdminRoute, type AdminWorkspaceId } from '@/lib/admin-route';
 import { canStartMutation, createMutationRequestId, mutationAfterFailure, mutationSuccess as mutationSucceeded, type AdminMutationSnapshot } from '@/lib/admin-mutation';
 
 /* ─── Types ─── */
@@ -4121,10 +4121,7 @@ export default function AdminPage() {
   useEffect(() => subscribeToAdminRoute((route) => setActiveTab(route.workspace as TabId)), []);
 
   function navigateAdmin(workspace: TabId, patch: { search?: string; filters?: Record<string, string | undefined>; sort?: string; page?: number; cursor?: string; subview?: string; entity?: import('@/lib/admin-route').AdminEntity; entityId?: string } = {}) {
-    const href = adminRouteHref({ workspace: workspace as AdminWorkspaceId, ...patch });
-    if (window.location.hash === href.slice(1)) return;
-    window.history.pushState(null, '', href);
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    navigateAdminRoute({ workspace: workspace as AdminWorkspaceId, ...patch }, 'push');
   }
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
