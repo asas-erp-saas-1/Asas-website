@@ -20,7 +20,7 @@ Exit: implementation CI green and evidence recorded.
 ## STAGE 1 — Apartment lifecycle
 **Status: IMPLEMENTED — VERIFICATION PENDING**
 
-Checkpoint: `7229e2b53916504225d3b222046846d376b79bc8` adds server-side publication preconditions, UI precondition guards, canonical status transition filtering, and explicit publication/unpublication audit actions. Do not mark COMPLETE until CI/static verification is green.
+Checkpoints: `7229e2b53916504225d3b222046846d376b79bc8` added server-side publication preconditions, UI guards, status transition filtering and explicit publication/unpublication audit actions. `cbc66fe85e436e380abe555f929cbf5d176a6ce5` converges API status/readiness rules onto the shared operational-unit contract, eliminating duplicate transition definitions and aligning publication blockers. Do not mark COMPLETE until CI/static verification is green.
 Prompt: Inspect actual Apartment schema/API/routes and current transition registry. Implement only supported status-change, price-change, publish/unpublish/archive actions. Every executable action requires preconditions, permission, validation, shared mutation lifecycle, deterministic retry, server result and cache invalidation. Unsupported capabilities remain non-executable and are documented.
 Exit: supported actions mapped; unsupported actions bounded; CI green.
 
