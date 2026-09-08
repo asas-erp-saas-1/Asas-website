@@ -107,7 +107,7 @@ export async function PUT(
     if (id && !UUID_RE.test(id)) {
       return withSecurityHeaders(NextResponse.json({ error: 'Identifiant d’appartement invalide' }, { status: 400 }));
     }
-    const existing = id ? await db.apartment.findUnique({ where: { id } }) : await db.apartment.findFirst({ where: { slug } });
+    const existing = id ? await db.apartment.findUnique({ where: { id }, include: { imagesRelation: { select: { id: true }, take: 1 } } }) : await db.apartment.findFirst({ where: { slug }, include: { imagesRelation: { select: { id: true }, take: 1 } } });
     if (!existing) {
       return withSecurityHeaders(NextResponse.json(
         { error: 'Apartment not found' },
@@ -131,6 +131,24 @@ export async function PUT(
         return withSecurityHeaders(NextResponse.json({ error: `Valeur numérique invalide: ${field}` }, { status: 400 }));
       }
     }
+    if (body.published === true && existing.published !== true) {
+      const hasIdentity = Boolean(existing.projectId && existing.slug && existing.apartmentNumber && existing.typeName);
+      const hasPhysical = existing.surface != null && Number(existing.surface) > 0 && existing.floor != null && existing.bedrooms != null && existing.bathrooms != null;
+      const hasCommercial = Boolean(existing.status) && (existing.priceOnRequest === true || existing.price != null);
+      const hasMedia = Boolean(existing.imagesRelation?.length) || Boolean(existing.floorPlanImage || existing.furnishedPlanImage || existing.renderImage || existing.images);
+      if (!hasIdentity || !hasPhysical || !hasCommercial || !hasMedia) {
+        return withSecurityHeaders(NextResponse.json({
+          error: 'Appartement non publiable : complétez identité, caractéristiques physiques, données commerciales et média avant publication.',
+          blockers: [
+            !hasIdentity ? 'identity' : null,
+            !hasPhysical ? 'physical' : null,
+            !hasCommercial ? 'commercial' : null,
+            !hasMedia ? 'media' : null,
+          ].filter(Boolean),
+        }, { status: 409 }));
+      }
+    }
+
     if (body.priceOnRequest === true && body.price !== undefined && body.price !== null) {
       return withSecurityHeaders(NextResponse.json({ error: 'Un appartement ne peut pas avoir simultanément un prix et « prix sur demande ».' }, { status: 400 }));
     }
