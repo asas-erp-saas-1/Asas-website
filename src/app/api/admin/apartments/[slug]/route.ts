@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { withSecurityHeaders } from '@/lib/with-security-headers';
 import { verifyAdminAuth, sessionHasRole } from '@/lib/admin-auth';
 import { logAudit } from '@/lib/audit';
+import { APARTMENT_STATUS_TRANSITIONS, evaluateApartmentOperationalCompleteness } from '@/lib/admin-operational-units';
 
 // Admin API routes are runtime-only. Never execute database reads during
 // `next build`; DATABASE_URL is a runtime secret configured in Vercel.
@@ -11,14 +12,8 @@ export const runtime = 'nodejs';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const VALID_APARTMENT_STATUSES = ['AVAILABLE', 'RESERVED', 'SOLD', 'COMING_SOON', 'OFF_MARKET', 'DRAFT'] as const;
-const VALID_STATUS_TRANSITIONS: Record<string, readonly string[]> = {
-  DRAFT: ['AVAILABLE', 'COMING_SOON', 'OFF_MARKET'],
-  COMING_SOON: ['AVAILABLE', 'OFF_MARKET'],
-  AVAILABLE: ['SOLD', 'OFF_MARKET'],
-  RESERVED: ['AVAILABLE', 'SOLD', 'OFF_MARKET'],
-  SOLD: ['OFF_MARKET'],
-  OFF_MARKET: ['AVAILABLE', 'COMING_SOON', 'DRAFT'],
-};
+const VALID_STATUS_TRANSITIONS = APARTMENT_STATUS_TRANSITIONS;
+
 
 /**
  * GET /api/admin/apartments/[slug]
@@ -132,19 +127,18 @@ export async function PUT(
       }
     }
     if (body.published === true && existing.published !== true) {
-      const hasIdentity = Boolean(existing.projectId && existing.slug && existing.apartmentNumber && existing.typeName);
-      const hasPhysical = existing.surface != null && Number(existing.surface) > 0 && existing.floor != null && existing.bedrooms != null && existing.bathrooms != null;
-      const hasCommercial = Boolean(existing.status) && (existing.priceOnRequest === true || existing.price != null);
-      const hasMedia = Boolean(existing.imagesRelation?.length) || Boolean(existing.floorPlanImage || existing.furnishedPlanImage || existing.renderImage || existing.images);
-      if (!hasIdentity || !hasPhysical || !hasCommercial || !hasMedia) {
+      const completeness = evaluateApartmentOperationalCompleteness(existing as unknown as Record<string, unknown>);
+      const blockers = [
+        !completeness.identity ? 'identity' : null,
+        !completeness.physical ? 'physical' : null,
+        !completeness.commercial ? 'commercial' : null,
+        !completeness.media ? 'media' : null,
+        !existing.projectId ? 'project' : null,
+      ].filter((value): value is string => Boolean(value));
+      if (blockers.length > 0) {
         return withSecurityHeaders(NextResponse.json({
-          error: 'Appartement non publiable : complétez identité, caractéristiques physiques, données commerciales et média avant publication.',
-          blockers: [
-            !hasIdentity ? 'identity' : null,
-            !hasPhysical ? 'physical' : null,
-            !hasCommercial ? 'commercial' : null,
-            !hasMedia ? 'media' : null,
-          ].filter(Boolean),
+          error: 'Appartement non publiable : des prérequis opérationnels sont manquants.',
+          blockers,
         }, { status: 409 }));
       }
     }
