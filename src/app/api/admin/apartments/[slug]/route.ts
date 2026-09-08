@@ -182,8 +182,10 @@ export async function PUT(
     }
     const priceChanged = body.price !== undefined && body.price !== existing.price;
     const statusChanged = body.status !== undefined && body.status !== existing.status;
+    const publicationChanged = body.published !== undefined && body.published !== existing.published;
     let action = 'UPDATE_APARTMENT';
-    if (priceChanged) action = 'PRICE_CHANGE';
+    if (publicationChanged) action = body.published === true ? 'PUBLISH_APARTMENT' : 'UNPUBLISH_APARTMENT';
+    else if (priceChanged) action = 'PRICE_CHANGE';
     else if (statusChanged) action = 'UPDATE_APARTMENT_STATUS';
     await logAudit({
       request, session,
