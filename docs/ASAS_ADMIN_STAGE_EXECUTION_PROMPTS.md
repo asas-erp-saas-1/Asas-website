@@ -18,15 +18,15 @@ Prompt: Verify branch existence and the latest implementation commit. For implem
 Exit: implementation CI green and evidence recorded.
 
 ## STAGE 1 — Apartment lifecycle
-**Status: IMPLEMENTED — VERIFICATION PENDING**
+**Status: VERIFIED — CI GREEN**
 
-Checkpoints: `7229e2b53916504225d3b222046846d376b79bc8` added server-side publication preconditions, UI guards, status transition filtering and explicit publication/unpublication audit actions. `cbc66fe85e436e380abe555f929cbf5d176a6ce5` converges API status/readiness rules onto the shared operational-unit contract, eliminating duplicate transition definitions and aligning publication blockers. Do not mark COMPLETE until CI/static verification is green.
+Checkpoints: `7229e2b53916504225d3b222046846d376b79bc8` added server-side publication preconditions, UI guards, status transition filtering and explicit publication/unpublication audit actions. `cbc66fe85e436e380abe555f929cbf5d176a6ce5` converges API status/readiness rules onto the shared operational-unit contract, eliminating duplicate transition definitions and aligning publication blockers. CI verification: Run #660 on checkpoint `247612bbe71a4d402e19340b87bfb6bd8fa1ffa8` = success (Typecheck/Lint/Build).
 Prompt: Inspect actual Apartment schema/API/routes and current transition registry. Implement only supported status-change, price-change, publish/unpublish/archive actions. Every executable action requires preconditions, permission, validation, shared mutation lifecycle, deterministic retry, server result and cache invalidation. Unsupported capabilities remain non-executable and are documented.
 Exit: supported actions mapped; unsupported actions bounded; CI green.
 
 ## STAGE 2 — Apartment contextual navigation
-**Status: PENDING**
-Prompt: Audit canonical Project ↔ Building ↔ Apartment navigation and supported Lead/Interest/Reservation relationships. Preserve URL context and eliminate duplicated route authority/cross-workspace leakage.
+**Status: ACTIVE**
+Prompt: Audit canonical Project ↔ Building ↔ Apartment navigation and supported Lead/Interest/Reservation relationships. Review the existing route authority before adding navigation. The current AdminPage still has a rendering-local `activeTab` synchronized from the route and a separate local `navigateAdmin` implementation that directly manipulates history; converge these call sites onto `navigateAdminRoute` rather than creating another route contract. Preserve URL context and eliminate duplicated route authority/cross-workspace leakage.
 Exit: canonical navigation + URL context; CI green.
 
 ## STAGE 3 — Project vertical slice
