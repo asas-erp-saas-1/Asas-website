@@ -309,3 +309,8 @@ Repository branch confirmed to exist: `feat/admin-ux-ui-foundation`. The last im
 ## 2026-09-08 verification + logic review checkpoint
 
 CI Run #654 for `57d0c09f05aca6f67acfc24d86bf5a33dd8cea9f` completed `success`; Typecheck, Lint and Build all completed successfully. During the Stage 1 logic review, duplicate Apartment status-transition/readiness rules were found between the API route and `admin-operational-units.ts`. Commit `cbc66fe85e436e380abe555f929cbf5d176a6ce5` converges the API onto the shared transition/readiness contract and adds the project prerequisite to publication blockers. This is a correctness/convergence fix, not visual polish. Current verification for the new commit remains pending until GitHub Actions runs and succeeds.
+
+
+## 2026-09-08 Stage 2 logic review checkpoint
+
+Stage 1 is verified by CI Run #660 = success on `247612bbe71a4d402e19340b87bfb6bd8fa1ffa8`. During Stage 2 review, a duplicate route mutation implementation was found in `AdminPage`: it constructed the canonical href itself and manually called `history.pushState` + synthetic `hashchange`, while `admin-route.ts` already owned navigation. Commit `496a6a24b4a6ea368737ed5f1109e158d825738a` hardened the canonical navigator against redundant route mutations. Commit `6245c8343ca3c17bf744a150f69e1b5a320578de` migrated `AdminPage` to `navigateAdminRoute`, removing that duplicate navigation authority. Verification of these new commits is pending CI.
