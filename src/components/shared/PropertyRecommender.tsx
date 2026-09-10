@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useApartmentSearch } from '@/lib/api';
 import { ApartmentCard } from '@/components/shared/ApartmentCard';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 
 interface PropertyRecommenderProps { currentApartmentType: string; currentProjectId: string; excludeId: string; }
 
@@ -20,21 +20,25 @@ export function PropertyRecommender({ currentApartmentType, currentProjectId, ex
   if (similarApartments.length === 0) return null;
 
   return (
-    <section className="border-t border-border py-10 sm:py-12" aria-labelledby="similar-properties-heading">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <section className="border-t border-border py-12 sm:py-14" aria-labelledby="similar-properties-heading">
+      <div className="mb-7 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
         <div className="min-w-0">
-          <div className="mb-2 flex items-center gap-2 text-sm font-medium text-forest">
+          <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-forest">
             <Sparkles className="size-4" aria-hidden="true" />
-            <span>Autres options disponibles</span>
+            <span>Comparer avant de décider</span>
           </div>
-          <h3 id="similar-properties-heading" className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-            Vous souhaitez comparer ?
+          <h3 id="similar-properties-heading" className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            D'autres logements du même type sont disponibles.
           </h3>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Découvrez des logements disponibles du même type dans d’autres projets ASAS. Comparez sereinement avant de nous contacter.
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+            Si ce logement n'est pas exactement ce que vous recherchez, comparez ces options réelles dans d'autres projets ASAS avant de nous contacter.
           </p>
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs font-medium text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="size-3.5 text-forest" />Même type de logement</span>
+            <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="size-3.5 text-forest" />Disponibilités publiées</span>
+          </div>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
+        <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-forest">
           {similarApartments.length} option{similarApartments.length > 1 ? 's' : ''}
           <ArrowRight className="size-4" aria-hidden="true" />
         </span>
@@ -57,11 +61,11 @@ export function PropertyRecommender({ currentApartmentType, currentProjectId, ex
 
 function PropertyRecommenderSkeleton() {
   return (
-    <section className="border-t border-border py-10 sm:py-12" aria-label="Chargement des logements similaires">
-      <div className="mb-6">
+    <section className="border-t border-border py-12 sm:py-14" aria-label="Chargement des logements similaires">
+      <div className="mb-7">
         <div className="mb-2 h-4 w-40 animate-pulse rounded bg-muted" />
-        <div className="h-7 w-64 animate-pulse rounded bg-muted" />
-        <div className="mt-2 h-4 w-full max-w-xl animate-pulse rounded bg-muted" />
+        <div className="h-7 w-72 animate-pulse rounded bg-muted" />
+        <div className="mt-2 h-4 w-full max-w-xl rounded bg-muted" />
       </div>
       <div className="flex gap-4 overflow-x-auto md:grid md:grid-cols-3 md:overflow-visible">
         {Array.from({ length: 3 }).map((_, i) => (
