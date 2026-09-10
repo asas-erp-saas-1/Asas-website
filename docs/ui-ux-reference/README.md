@@ -1,36 +1,95 @@
 # ASAS UI/UX visual reference
 
-This directory is the visual source of truth for the public ASAS Immobilier experience.
+![ASAS platform master visual reference](./ASAS_UI_UX_MASTER.jpg)
 
-## Master visual board
+## Purpose
 
-`ASAS_UI_UX_MASTER.jpg` contains the generated visual direction for the public platform: desktop layouts, responsive compositions, project catalogue, project detail, apartment detail, services, about, developers, contact, insights and legal surfaces.
+This directory is the visual source of truth for the public ASAS Immobilier experience. The generated board is the visual baseline to compare against during implementation and QA.
 
-## Implementation rule
+## Routes represented in the master board
 
-The implementation must reproduce the approved visual direction in the real application, not merely imitate the thumbnail. Preserve real data and existing business logic. Never invent property imagery, availability, prices, testimonials, statistics or location facts.
+| # | Route | Visual objective |
+|---|---|---|
+| 01 | Home | Editorial discovery, real-project proof, one dominant next action |
+| 02 | Projects / catalogue | Search, filtering, inventory discovery and map context |
+| 03 | Project detail | Desire → proof → inventory → risk reduction → conversation |
+| 04 | Apartment detail | Emotional opening → decision facts → visual proof → visit request |
+| 05 | Services | Premium advisory positioning and clear commercial process |
+| 06 | About | Brand trust, mission, values and human credibility |
+| 07 | For developers | B2B proposition, proof, process and contact |
+| 08 | Contact | Low-friction contact, qualification and location/context |
+| 09 | Insights / blog | Editorial content discovery and trust building |
+| 10 | Legal | Clear, readable, restrained utility experience |
+| 11 | Campaign landing | Focused acquisition experience without competing navigation |
+| 12 | Privacy / Terms | Legible legal information with the same brand system |
+| 13 | Not found / utility | Helpful recovery path, not a dead end |
 
-## Responsive review matrix
+## Responsive contract
 
-Every public route must be reviewed at Mobile 360–430 px, Tablet 768–1024 px, Desktop 1280–1536 px and Desktop wide 1440 px+.
+Every page must be reviewed at these exact classes of viewport:
 
-## Routes covered
+- **Mobile:** 360, 375, 390 and 430 px widths
+- **Tablet:** 768, 820, 912 and 1024 px widths
+- **Desktop:** 1280 and 1366 px widths
+- **Large desktop:** 1440 and 1536 px widths
 
-1. Home
-2. Projects / catalogue
-3. Project detail
-4. Apartment detail
-5. Services
-6. About
-7. For developers
-8. Contact
-9. Insights / blog
-10. Campaign landing pages
-11. Privacy
-12. Terms
-13. Not found / utility states
-14. Admin remains functionally separate from the public visual language.
+The layout must adapt intentionally; it must not simply shrink the desktop composition.
 
-## Conversion constraint
+### Mobile requirements
 
-Bank-credit / mortgage simulation is intentionally excluded from the public product experience. The primary conversion path is property understanding → qualification → human conversation / visit.
+- Thumb-safe controls and minimum 44 px interactive targets where practical.
+- No horizontal overflow.
+- Sticky primary CTA only when it improves the current decision step.
+- Navigation becomes a focused sheet/menu.
+- Cards collapse to a readable single-column hierarchy.
+- Images preserve meaningful crops; no distorted property imagery.
+- Forms remain short, scannable and keyboard-friendly.
+
+### Tablet requirements
+
+- Preserve editorial hierarchy while using available width efficiently.
+- Avoid awkward two-column layouts that become cramped.
+- Gallery, inventory and maps must have deliberate intermediate states.
+- Navigation and CTA hierarchy must remain identical to the approved desktop intent.
+
+### Desktop requirements
+
+- Large editorial typography and architectural imagery.
+- Generous whitespace and restrained borders/shadows.
+- Strong alignment grid and consistent content measure.
+- One dominant conversion action per decision section.
+
+## Visual system
+
+- Ivory / white backgrounds
+- Charcoal typography and navigation
+- Forest green for premium brand emphasis
+- Restrained gold for accents and primary conversion emphasis
+- Editorial serif display typography paired with clean UI typography
+- Architectural photography and real inventory imagery only
+- No SaaS/dashboard visual language on buyer-facing pages
+- No gradients/blobs/excessive animation as decorative substitutes for hierarchy
+
+## Data integrity
+
+The visuals are a design reference, not permission to fabricate content. The implementation must use the actual ASAS data layer. Never invent prices, availability, apartment images, testimonials, statistics, maps, neighbourhood facts or developer claims.
+
+## Conversion architecture
+
+Visitor → Interest → Understanding → Trust → Qualified lead → Conversation → Visit → Decision.
+
+The public experience must make the safest next step obvious at every stage. Primary actions should be property discovery, availability, contact, qualification or visit requests as appropriate to the page.
+
+## Explicit exclusion
+
+**Bank-credit / mortgage simulation is removed from the public platform.** Do not reintroduce mortgage calculators, monthly-payment simulation, interest-rate inputs, down-payment calculators or financing widgets into the public buyer journey.
+
+## Implementation protocol
+
+1. Compare the current route against the master visual.
+2. Rebuild the hierarchy before polishing details.
+3. Implement desktop, tablet and mobile states explicitly.
+4. Preserve real business logic and API contracts.
+5. Validate at the viewport matrix above.
+6. Run lint, typecheck and production build.
+7. Verify the deployed route and critical interactions before marking the page complete.
