@@ -53,18 +53,38 @@ export function StickyMobileCTA() {
       }
     }
 
+    const leadForm = document.querySelector('form[aria-label="Formulaire de contact"]');
+    if (leadForm instanceof HTMLElement) {
+      leadForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const firstField = leadForm.querySelector('input:not([type="hidden"])');
+      if (firstField instanceof HTMLElement) {
+        window.setTimeout(() => firstField.focus({ preventScroll: true }), 450);
+      }
+      return;
+    }
+
     navigate({ page: 'contact' });
   };
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 md:hidden bg-background/95 backdrop-blur border-t border-border px-[max(0.75rem,env(safe-area-inset-left))] py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto flex w-full max-w-xl items-center gap-2">
+        <Button
+          size="sm"
+          className="order-1 min-h-11 flex-[1.4] text-xs bg-forest hover:bg-forest-dark text-white border-forest hover:border-forest-dark shadow-sm"
+          onClick={handlePrimaryAction}
+          aria-label={primaryLabel}
+        >
+          <CalendarCheck className="size-4 shrink-0" aria-hidden="true" />
+          <span>{primaryLabel}</span>
+        </Button>
+
         <a
           href={getWhatsAppUrl(whatsappMessage)}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Contacter ASAS sur WhatsApp"
-          className="flex-1 flex items-center justify-center gap-1.5 min-h-11 rounded-md text-sm font-medium text-white transition-colors"
+          className="order-2 flex-1 flex items-center justify-center gap-1.5 min-h-11 rounded-md text-sm font-medium text-white transition-colors"
           style={{ backgroundColor: '#25D366' }}
         >
           <MessageCircle className="size-4" aria-hidden="true" />
@@ -74,21 +94,11 @@ export function StickyMobileCTA() {
         <a
           href={getPhoneUrl()}
           aria-label="Appeler ASAS"
-          className="flex-1 flex items-center justify-center gap-1.5 min-h-11 rounded-md bg-primary text-primary-foreground text-sm font-medium transition-colors hover:bg-primary/90"
+          className="order-3 inline-flex size-11 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
         >
           <Phone className="size-4" aria-hidden="true" />
-          <span>Appeler</span>
+          <span className="sr-only">Appeler</span>
         </a>
-
-        <Button
-          size="sm"
-          className="flex-1 min-h-11 text-xs bg-forest hover:bg-forest-dark text-white border-forest hover:border-forest-dark"
-          onClick={handlePrimaryAction}
-          aria-label={primaryLabel}
-        >
-          <CalendarCheck className="size-4 shrink-0" aria-hidden="true" />
-          <span>{primaryLabel}</span>
-        </Button>
       </div>
     </div>
   );
