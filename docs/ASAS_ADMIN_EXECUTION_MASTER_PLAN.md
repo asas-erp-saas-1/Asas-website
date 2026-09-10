@@ -319,3 +319,10 @@ Stage 1 is verified by CI Run #660 = success on `247612bbe71a4d402e19340b87bfb6b
 ## 2026-09-08 Stage 2 route correctness checkpoint
 
 CI Run #668 for `1f2f1d849861bf37afd44a8862b91a45e9008a05` was still `in_progress` when reviewed. Static route review identified two correctness issues: path-based admin query parameters were not read from `window.location.search`, and no-op navigation compared a full URL representation against a hash-based canonical href, so equivalent routes could still trigger history mutations. Commit `eb020284846618e3975e163379d578191beda6cc` adds explicit `search` parsing and canonical hash/path no-op comparison. New commit verification is pending CI.
+
+
+## 2026-09-10 execution checkpoint
+
+`0f0db7d1b014d3f37580aa7ded393a737c4c0210` CI Run #672 completed successfully. Combined commit status reports Vercel = success. Stage 2 route fixes are therefore CI-verified. Next engineering focus remains contextual navigation and route/state convergence, followed by the Apartment operational vertical slice.
+
+Verification boundary: Vercel deployment status is green, but no browser-session evidence is available in this execution context; visual/browser certification remains unclaimed.
