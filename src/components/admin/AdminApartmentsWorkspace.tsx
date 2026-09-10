@@ -239,10 +239,10 @@ export function AdminApartmentsWorkspace() {
   const operationalReadiness = useMemo(() => apartments.map((apartment) => {
     const completeness = evaluateApartmentOperationalCompleteness(apartment as unknown as Record<string, unknown>);
     const signals: OperationalSignal[] = [
-      completeness.identity,
-      completeness.physical,
-      completeness.commercial,
-      completeness.media,
+      completeness.identity ? 'complete' : 'incomplete',
+      completeness.physical ? 'complete' : 'incomplete',
+      completeness.commercial ? 'complete' : 'incomplete',
+      completeness.media ? 'complete' : 'incomplete',
     ];
     return { id: apartment.id, ...completeness, ...evaluateOperationalSignals(signals) };
   }), [apartments]);
