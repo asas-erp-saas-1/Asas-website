@@ -41,6 +41,16 @@
 .site-experience-public .gradient-text-forest { animation: none; }
 .site-experience-public .forest-glow { box-shadow: 0 12px 34px rgba(16,24,32,.08); }
 
+/* Homepage: keep the real project image, but use a restrained editorial treatment. */
+.site-route-home main > section:first-child .bg-gradient-to-r,
+.site-route-home main > section:first-child .bg-gradient-to-t { display: none !important; }
+.site-route-home main > section:first-child > div:first-child { background: #17232a; }
+.site-route-home main > section:first-child > div:first-child > img { opacity: .28; }
+.site-route-home main > section:first-child .rounded-full { border-radius: 2px; }
+.site-route-home main > section:first-child h1 { font-family: Georgia, 'Times New Roman', serif; font-weight: 500; }
+
 @media (max-width: 760px) {
   .site-experience-public main { padding-bottom: 0; }
+  .site-route-home main > section:first-child { min-height: 590px; }
+  .site-route-home main > section:first-child > div:nth-child(2) { min-height: 590px; }
 }
