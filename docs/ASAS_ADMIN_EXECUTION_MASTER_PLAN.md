@@ -336,3 +336,8 @@ CI Run #672 for `0f0db7d1b014d3f37580aa7ded393a737c4c0210` completed successfull
 ## 2026-09-10 Apartment workspace consistency checkpoint
 
 The shared completeness contract was already used by the API and AdminPage list, but `AdminApartmentsWorkspace` still computed a separate readiness signal set from apartment fields and publication state. Commit `a1f811cab59d9a44e1c0130066298fcff8a6bdcb` converges the workspace onto `evaluateApartmentOperationalCompleteness()`, keeping publication separate from completeness and eliminating another UI-level domain definition. Verification pending CI.
+
+
+## 2026-09-10 CI failure + search request-storm fix
+
+CI Run #699 for `6145948ad795976539680215868ab702fef379a9` failed at Typecheck before Lint/Build. The workspace review also identified a request-storm risk: Apartment search updated the URL on every keystroke while the API fetch is driven by debounced search. Commit `f2eb5de91bf13c5b7763771747c79ef2bcf15d9f` changes URL synchronization to the same 300ms debounce boundary and uses replace navigation, while retaining the existing AbortController for stale request cancellation. The failing CI root cause remains to be isolated from the Typecheck log before further stacking changes.
