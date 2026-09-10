@@ -315,8 +315,9 @@ export function evaluateApartmentOperationalCompleteness(apartment: Record<strin
     const value = apartment[key];
     return value !== null && value !== undefined && value !== '';
   };
+  const hasProjectContext = has('projectId') || has('project');
   return {
-    identity: (has('id') || has('slug')) && has('apartmentType') && has('typeName'),
+    identity: (has('id') || has('slug')) && has('apartmentType') && has('typeName') && hasProjectContext,
     physical: has('surface') && has('floor') && has('bedrooms') && has('bathrooms'),
     commercial: has('status') && (Boolean(apartment.priceOnRequest) || has('price')),
     media: Boolean(apartment.heroImage) || (Array.isArray(apartment.imagesRelation) && apartment.imagesRelation.length > 0),
