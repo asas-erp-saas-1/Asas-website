@@ -6,7 +6,7 @@ import { SiteShell } from '@/components/layout/SiteShell';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 
 const HomePage = lazy(() => import('@/components/pages/HomePage'));
-const ProjectsPage = lazy(() => import('@/components/pages/ProjectsPage'));
+const ProjectsPage = lazy(() => import('@/components/pages/ProjectsPageV2'));
 const ProjectDetailPage = lazy(() => import('@/components/pages/ProjectDetailPageV6'));
 const ApartmentDetailPage = lazy(() => import('@/components/pages/ApartmentDetailPageV3'));
 const ServicesPage = lazy(() => import('@/components/pages/ServicesPageV2'));
@@ -24,7 +24,7 @@ function PageLoader() {
   return <div className="flex min-h-[60vh] items-center justify-center bg-ivory"><div className="flex flex-col items-center gap-4"><div className="h-10 w-10 animate-spin rounded-full border-4 border-forest border-t-transparent" /><p className="text-sm text-muted-foreground">Chargement...</p></div></div>;
 }
 
-function LegacyRouter() {
+function AppRouter() {
   const { route } = useRouter();
   return <Suspense fallback={<PageLoader />}>
     {route.page === 'home' && <HomePage />}
@@ -47,5 +47,5 @@ function LegacyRouter() {
 export default function Home() {
   const syncFromLocation = useRouter((state) => state.syncFromLocation);
   useEffect(() => { syncFromLocation(); }, [syncFromLocation]);
-  return <SiteShell><ErrorBoundary><LegacyRouter /></ErrorBoundary></SiteShell>;
+  return <SiteShell><ErrorBoundary><AppRouter /></ErrorBoundary></SiteShell>;
 }
