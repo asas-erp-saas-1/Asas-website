@@ -371,3 +371,8 @@ Commit `db3eec8dcb82e691d322b7269be122f3f5ceee3f` separates the free-text Lead s
 ## 2026-09-10 Workspace authority convergence — major step
 
 Commit `efcf24d0987937bd098985855d00b2ace1e0625c` changes the Admin shell so Projects, Buildings, and Leads tabs render their canonical operational Workspace implementations instead of the legacy CRUD tab implementations embedded in `AdminPage.tsx`. Apartments was already routed through its canonical Workspace. This is an intentional convergence step: one operational implementation per major workspace, reducing duplicated route/data/interaction authority. Legacy components and queries remain in `AdminPage.tsx` temporarily and are not deleted in this pass; removal follows after CI/runtime verification and dependency inventory. CI pending.
+
+
+## 2026-09-10 Legacy workspace state/query removal
+
+Commit `295de6ffdf526d8a302d41ca6dab47f960920c61` removes obsolete Projects/Buildings/Apartments/Leads collection state, filters, entity editor state, and duplicated React Query calls from the Admin shell. The shell now owns only authentication/session-adjacent state, dashboard aggregate state, and global navigation chrome; operational workspaces own their domain data. This follows the canonical-workspace convergence decision. Legacy editor/helper functions remain temporarily where still referenced by other shell surfaces; deletion requires a separate dependency-verified pass. CI pending.
