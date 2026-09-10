@@ -1,8 +1,9 @@
 # ASAS UX / CRO Source of Truth
 
 **Status:** ACTIVE
-**Last updated:** 2026-09-08
+**Last updated:** 2026-09-10
 **Branch:** `fix/responsive-viewport-hardening`
+**Latest implementation checkpoint:** `100eb1c96bb695ba2c5982f7b1e6ed27546ed0c9`
 **Scope:** Public real-estate website and sales journey only.
 
 ## 1. Purpose
@@ -106,6 +107,7 @@ Therefore, apartment listing cards must not invent or guess an image source. Vis
 - Status/availability badges standardized to ASAS visual language.
 - Typography and button primitives standardized.
 - Project gallery made touch-friendly with eager hero loading and fullscreen support.
+- Shared apartment `Gallery` now supports keyboard navigation/activation and eager loading of the first image while preserving lazy loading for subsequent images.
 - Floor-plan viewer made responsive and its download action made functional.
 - Public project catalog discovery/filtering hierarchy improved.
 - Neighbourhood content corrected to avoid fabricated quantitative claims.
