@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   MapPin,
   CalendarDays,
+  RefreshCw,
   type LucideIcon,
 } from 'lucide-react';
 import type { PublicProjectCard } from '@/lib/catalog-contracts';
@@ -28,7 +29,7 @@ import type { PublicProjectCard } from '@/lib/catalog-contracts';
 /** Homepage consumes only the public catalog contract. */
 export default function HomePage() {
   const router = useRouter();
-  const { data: projects, isLoading } = usePublicProjectCards();
+  const { data: projects, isLoading, isError, refetch } = usePublicProjectCards();
   const featuredProjects = useMemo(
     () => projects?.filter((p: PublicProjectCard) => p.featured) ?? [],
     [projects]
@@ -36,9 +37,9 @@ export default function HomePage() {
   const displayedProjects = featuredProjects.length > 0 ? featuredProjects : (projects ?? []);
   const leadProject = displayedProjects[0];
   const stats: Array<[string, string | number, LucideIcon]> = [
-    ['Projets commercialisés', projects?.length ?? 0, Building2],
-    ['Appartements', projects?.reduce((sum, p) => sum + p.apartmentCount, 0) ?? 0, Home],
-    ['Disponibilités', projects?.reduce((sum, p) => sum + p.availableApartmentCount, 0) ?? 0, Search],
+    ['Projets commercialisés', isLoading ? '—' : (projects?.length ?? 0), Building2],
+    ['Appartements', isLoading ? '—' : (projects?.reduce((sum, p) => sum + p.apartmentCount, 0) ?? 0), Home],
+    ['Disponibilités', isLoading ? '—' : (projects?.reduce((sum, p) => sum + p.availableApartmentCount, 0) ?? 0), Search],
     ['Accompagnement', 'Sur mesure', Users],
   ];
 
@@ -108,8 +109,8 @@ export default function HomePage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/65">À découvrir</p>
                 <h2 className="mt-1 text-xl font-bold text-white sm:text-2xl">{leadProject.name}</h2>
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/75">
-                  <span className="inline-flex items-center gap-1.5"><MapPin className="size-3.5" />{leadProject.district}, {leadProject.city}</span>
-                  {leadProject.deliveryYear && <span className="inline-flex items-center gap-1.5"><CalendarDays className="size-3.5" />Livraison {leadProject.deliveryQuarter ? `Q${leadProject.deliveryQuarter} ` : ''}{leadProject.deliveryYear}</span>}
+                  <span className="inline-flex items-center gap-1.5"><MapPin className="size-3.5" aria-hidden="true" />{leadProject.district}, {leadProject.city}</span>
+                  {leadProject.deliveryYear && <span className="inline-flex items-center gap-1.5"><CalendarDays className="size-3.5" aria-hidden="true" />Livraison {leadProject.deliveryQuarter ? `Q${leadProject.deliveryQuarter} ` : ''}{leadProject.deliveryYear}</span>}
                 </div>
                 <div className="mt-3 flex items-end justify-between gap-4">
                   <div>
@@ -118,7 +119,9 @@ export default function HomePage() {
                     ) : (
                       <p className="text-sm font-semibold text-white/85">Prix sur demande</p>
                     )}
-                    <p className="mt-0.5 text-xs text-white/60">{leadProject.availableApartmentCount} disponibilité{leadProject.availableApartmentCount > 1 ? 's' : ''}</p>
+                    {leadProject.availableApartmentCount > 0 && (
+                      <p className="mt-0.5 text-xs text-white/60">{leadProject.availableApartmentCount} disponibilité{leadProject.availableApartmentCount > 1 ? 's' : ''}</p>
+                    )}
                   </div>
                   <button
                     type="button"
@@ -173,6 +176,21 @@ export default function HomePage() {
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 3 }).map((_, i) => <ProjectCardSkeleton key={i} />)}
             </div>
+          ) : isError ? (
+            <div className="rounded-2xl border border-border bg-card p-8 text-center sm:p-10" role="alert">
+              <p className="text-base font-semibold text-foreground">Les projets ne peuvent pas être chargés pour le moment.</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">Réessayez maintenant ou explorez la page projets directement.</p>
+              <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
+                <Button variant="outline" onClick={() => void refetch()}>
+                  <RefreshCw className="mr-2 size-4" />
+                  Réessayer
+                </Button>
+                <Button onClick={() => router.goProjects()}>
+                  Ouvrir les projets
+                  <ArrowRight className="ml-2 size-4" />
+                </Button>
+              </div>
+            </div>
           ) : displayedProjects.length > 0 ? (
             <>
               <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -203,7 +221,7 @@ export default function HomePage() {
           <div className="mb-8 max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-forest">Une démarche simple</p>
             <h2 className="mt-2 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
-              Ne contactez pas ASAS à l'aveugle. Décidez d'abord si le projet vous convient.
+              Avancez avec une méthode simple.
             </h2>
           </div>
           <div className="grid overflow-hidden rounded-2xl border border-border bg-card md:grid-cols-3">
