@@ -1,10 +1,10 @@
 # ASAS UX / CRO Roadmap
 
-**Version:** 1.1
-**Date:** 2026-09-08
+**Version:** 1.2
+**Date:** 2026-09-10
 **Current phase:** Phase 3 — Sales Experience & Conversion System
 **Current branch:** `fix/responsive-viewport-hardening`
-**Latest implementation checkpoint:** `6455b0c8f7ca92ed9cfd01705461a5ba52f47559`
+**Latest implementation checkpoint:** `82345a341fc8d0f9fc8f7223b3b805f3703be5d3`
 
 ## Execution ledger
 
@@ -46,14 +46,20 @@ Target structure:
 7. Human consultation / visit.
 8. Alternatives.
 
-Current checkpoint:
+Latest implementation checkpoint:
 
-- project gallery already provides the functional fullscreen control; the duplicate top-right overlay is still identified as a dead control in `ProjectDetailPage.tsx` and must be removed or explicitly wired before release
-- hero WhatsApp control is currently 40px high and should be brought to the shared 44px minimum
-- CTA hierarchy still needs final consolidation
-- verify whether page-level mobile sticky CTA duplicates the shared global CTA
+- Shared mobile project CTA was corrected so **«Voir les disponibilités»** now targets the existing `#apartments` inventory section when that section exists, instead of promising availability and immediately opening generic contact.
+- The CTA keeps the existing contact fallback for apartment/general contexts and when project inventory is unavailable.
+- No catalog/API/database contract was changed.
+- Touch target remains at the shared 44px minimum.
+
+Remaining project-detail checks:
+
+- verify/remove the duplicate dead fullscreen overlay in `ProjectDetailPage.tsx` if it is still present at the current branch head
+- bring any remaining hero action below 44px to the shared minimum
+- final CTA hierarchy consolidation
+- verify sticky CTA placement against compare bar and floating contact widget
 - remove unused imports/components where confirmed by lint
-- apartment alternatives were clarified to communicate comparison intent without implying fabricated personalization
 
 ### 3.5 Apartment Decision Room
 **State:** NEXT execution target.
@@ -65,10 +71,9 @@ Target structure:
 3. Price / price-on-request clarity.
 4. Key decision facts.
 5. Gallery and floor plan.
-6. Description/features.
-7. payment/financial information where real data exists.
-8. visit/contact action.
-9. relevant alternatives.
+6. payment/financial information where real data exists.
+7. visit/contact action.
+8. relevant alternatives.
 
 Hard rule: do not create fake apartment imagery. The current lean apartment card DTO intentionally contains no images; apartment detail contains real apartment images.
 
