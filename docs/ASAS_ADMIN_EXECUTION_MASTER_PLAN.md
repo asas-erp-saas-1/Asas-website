@@ -381,3 +381,8 @@ Commit `295de6ffdf526d8a302d41ca6dab47f960920c61` removes obsolete Projects/Buil
 ## 2026-09-10 CI failure RCA and shell preview isolation
 
 Commit `d98065e89853c41ebad8d4b9783580678ccee5` fixes CI TypeScript failures introduced by the legacy-state removal. Root cause: render-only Dashboard/Media/Dialog surfaces still referenced preview collections and create/edit state, while the initial cleanup removed those declarations wholesale. The corrected architecture keeps bounded preview queries in the Admin shell only when Dashboard/Media is active; canonical operational workspaces remain the sole owners of their operational datasets. Duplicate sidebar state was also removed. CI must pass before further cleanup.
+
+
+## 2026-09-10 Legacy entity-dialog removal
+
+Commit `8c2862834e51f83be0d039119a1e10efb8e48e43` removes the obsolete Project/Apartment edit/create dialogs from the Admin shell. Dashboard create actions now navigate to the canonical Project/Apartment Workspace using URL subview context (`create`) instead of opening shell-owned dialogs. This completes another authority-convergence step: entity mutations must live in the canonical operational workspace rather than a parallel shell implementation. CI pending.
