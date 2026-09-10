@@ -326,3 +326,8 @@ CI Run #668 for `1f2f1d849861bf37afd44a8862b91a45e9008a05` was still `in_progres
 `0f0db7d1b014d3f37580aa7ded393a737c4c0210` CI Run #672 completed successfully. Combined commit status reports Vercel = success. Stage 2 route fixes are therefore CI-verified. Next engineering focus remains contextual navigation and route/state convergence, followed by the Apartment operational vertical slice.
 
 Verification boundary: Vercel deployment status is green, but no browser-session evidence is available in this execution context; visual/browser certification remains unclaimed.
+
+
+## 2026-09-10 Stage 2 domain/UI consistency checkpoint
+
+CI Run #672 for `0f0db7d1b014d3f37580aa7ded393a737c4c0210` completed successfully and Vercel status was success. Logic review then found another operational-model violation: `AdminPage` computed Apartment completeness locally from ad-hoc fields and included `published` in the percentage, while the authoritative contract requires components to consume shared deterministic readiness/completeness and publication is a separate operational state. Commit `0285f07b49e729796968c4c46ba29288b4e49a0d` strengthens shared identity completeness with Project context; commit `60221c3fd417643928761a7856cedbbafd75def8` replaces the local list score with `evaluateApartmentOperationalCompleteness()` and excludes publication from the completeness score. New checkpoint verification is pending CI.
