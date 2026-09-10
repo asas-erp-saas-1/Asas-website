@@ -28,6 +28,7 @@ import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/constants';
 import { getAdminRoute, subscribeToAdminRoute, navigateAdminRoute, type AdminWorkspaceId } from '@/lib/admin-route';
 import { canStartMutation, createMutationRequestId, mutationAfterFailure, mutationSuccess as mutationSucceeded, type AdminMutationSnapshot } from '@/lib/admin-mutation';
+import { evaluateApartmentOperationalCompleteness } from '@/lib/admin-operational-units';
 
 /* ─── Types ─── */
 
@@ -986,9 +987,12 @@ function ApartmentsTab({
                     </TableCell>
                     <TableCell className="text-center">
                       {(() => {
+                        const completeness = evaluateApartmentOperationalCompleteness(apt as unknown as Record<string, unknown>);
                         const checks = [
-                          !!apt.typeName, apt.surface > 0, apt.floor !== undefined && apt.floor !== null,
-                          apt.bedrooms > 0, !!apt.price || apt.priceOnRequest, !!apt.orientation, !!apt.heroImage, apt.published,
+                          completeness.identity,
+                          completeness.physical,
+                          completeness.commercial,
+                          completeness.media,
                         ];
                         const score = Math.round((checks.filter(Boolean).length / checks.length) * 100);
                         return (
