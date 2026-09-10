@@ -15,7 +15,6 @@ import { SearchCommandPalette } from '@/components/shared/SearchCommandPalette';
 import { StoreHydration } from '@/components/shared/StoreHydration';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { CookieConsent } from '@/components/shared/CookieConsent';
-import { ContactFloatingWidget } from '@/components/shared/ContactFloatingWidget';
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -32,12 +31,10 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           Aller au contenu principal
         </a>
         <NavbarV3 />
-        <ScrollProgress />
-        <BackToTop />
+        {isAdmin && <><ScrollProgress /><BackToTop /></>}
         <main id="main-content" className="min-w-0 flex-1"><ErrorBoundary>{children}</ErrorBoundary></main>
         <FooterV3 />
-        <StickyMobileCTA />
-        <ContactFloatingWidget />
+        {!isAdmin && <StickyMobileCTA />}
         <CompareBar />
         <CompareModal />
         <ToastContainer />
