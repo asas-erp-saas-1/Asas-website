@@ -110,7 +110,7 @@ export function FloorPlanViewer({ src, alt = 'Plan d\'appartement' }: FloorPlanV
       </div>
 
       <div className="pointer-events-none absolute bottom-14 left-1/2 z-10 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 text-center">
-        <p className="text-[10px] font-medium text-forest/40 sm:text-xs">Pincez ou utilisez la molette pour zoomer • Faites glisser pour déplacer</p>
+        <p className="text-[10px] font-medium text-forest/40 sm:text-xs">Utilisez les contrôles ou la molette pour zoomer • Faites glisser pour déplacer</p>
       </div>
 
       <div className="absolute bottom-3 right-3 z-20 flex max-w-[calc(100%-1.5rem)] items-center gap-0.5 rounded-lg bg-white/90 p-1 shadow-md backdrop-blur sm:gap-1">
