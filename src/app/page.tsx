@@ -10,7 +10,7 @@ const ProjectsPage = lazy(() => import('@/components/pages/ProjectsPage'));
 const ProjectDetailPage = lazy(() => import('@/components/pages/ProjectDetailPage'));
 const ApartmentDetailPage = lazy(() => import('@/components/pages/ApartmentDetailPage'));
 const ServicesPage = lazy(() => import('@/components/pages/ServicesPage'));
-const AboutPage = lazy(() => import('@/components/pages/AboutPage'));
+const AboutPage = lazy(() => import('@/components/pages/AboutPageV2'));
 const ForDevelopersPage = lazy(() => import('@/components/pages/ForDevelopersPage'));
 const ContactPage = lazy(() => import('@/components/pages/ContactPage'));
 const InsightsPage = lazy(() => import('@/components/pages/InsightsPage'));
