@@ -366,3 +366,8 @@ Commit `4e7ebac324112b9f1a904869070fb6cdf02fa3c7` aligns Lead search with the sa
 ## 2026-09-10 Lead source filter lifecycle hardening
 
 Commit `db3eec8dcb82e691d322b7269be122f3f5ceee3f` separates the free-text Lead source filter from immediate categorical filters. Source now has a debounced server/URL boundary, preventing one request per keystroke while status/intent remain immediate. Route hydration initializes both source states. CI verification pending.
+
+
+## 2026-09-10 Workspace authority convergence — major step
+
+Commit `efcf24d0987937bd098985855d00b2ace1e0625c` changes the Admin shell so Projects, Buildings, and Leads tabs render their canonical operational Workspace implementations instead of the legacy CRUD tab implementations embedded in `AdminPage.tsx`. Apartments was already routed through its canonical Workspace. This is an intentional convergence step: one operational implementation per major workspace, reducing duplicated route/data/interaction authority. Legacy components and queries remain in `AdminPage.tsx` temporarily and are not deleted in this pass; removal follows after CI/runtime verification and dependency inventory. CI pending.
