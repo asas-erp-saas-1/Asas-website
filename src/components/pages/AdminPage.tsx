@@ -4132,8 +4132,26 @@ export default function AdminPage() {
   }
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Filter state
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Shell-owned bounded previews are used only by Dashboard/Media surfaces.
+  // Operational workspace data remains owned by its canonical Workspace.
+  const projectsPreviewQuery = useQuery({
+    queryKey: ['admin', 'shell-preview', 'projects'],
+    queryFn: fetchAdminProjects,
+    enabled: isAuthenticated && (activeTab === 'dashboard' || activeTab === 'media'),
+    staleTime: 30_000,
+  });
+  const apartmentsPreviewQuery = useQuery({
+    queryKey: ['admin', 'shell-preview', 'apartments'],
+    queryFn: () => fetchAdminApartments({}),
+    enabled: isAuthenticated && (activeTab === 'dashboard' || activeTab === 'media'),
+    staleTime: 30_000,
+  });
+  const leadsPreviewQuery = useQuery({
+    queryKey: ['admin', 'shell-preview', 'leads'],
+    queryFn: () => fetchAdminLeads(),
+    enabled: isAuthenticated && activeTab === 'dashboard',
+    staleTime: 30_000,
+  });
 
   const dashboardStatsQuery = useQuery({
     queryKey: ['admin', 'dashboard-stats'],
@@ -4141,6 +4159,10 @@ export default function AdminPage() {
     enabled: isAuthenticated && activeTab === 'dashboard',
     staleTime: 30_000,
   });
+
+  const projects = projectsPreviewQuery.data ?? [];
+  const apartments = apartmentsPreviewQuery.data ?? [];
+  const leads = leadsPreviewQuery.data ?? [];
 
   const stats: AdminDashboardStats = dashboardStatsQuery.data ?? {
     totalProjects: 0,
