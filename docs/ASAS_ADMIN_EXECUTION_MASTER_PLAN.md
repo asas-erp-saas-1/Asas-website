@@ -351,3 +351,8 @@ CI Run #703 exposed the exact failure: `AdminApartmentsWorkspace.tsx` passed fou
 ## 2026-09-10 Project search synchronization hardening
 
 Commit `0dc50e8cd75481f0583111017ccec9c8306c9c07` removes per-keystroke URL synchronization from the Project workspace. Search remains local while typing, then after 300ms the normalized query is written to the canonical admin route with `replace` navigation and the debounced server query follows. This mirrors the Apartment workspace request/URL contract and avoids history/request churn. CI verification pending.
+
+
+## 2026-09-10 Building search synchronization hardening
+
+Commit `333eab6091664ac3db24bbb16ed1cd694b54aa66` aligns Building search with the canonical search lifecycle: local typing, 300ms debounce, normalized query, replace URL synchronization, and existing AbortController-backed fetch cancellation. The Project and Apartment workspaces now share the same search contract. CI verification pending.
