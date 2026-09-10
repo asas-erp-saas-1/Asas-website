@@ -7,7 +7,7 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 
 const HomePage = lazy(() => import('@/components/pages/HomePage'));
 const ProjectsPage = lazy(() => import('@/components/pages/ProjectsPage'));
-const ProjectDetailPage = lazy(() => import('@/components/pages/ProjectDetailPageV2'));
+const ProjectDetailPage = lazy(() => import('@/components/pages/ProjectDetailPageV5'));
 const ApartmentDetailPage = lazy(() => import('@/components/pages/ApartmentDetailPageV2'));
 const ServicesPage = lazy(() => import('@/components/pages/ServicesPageV2'));
 const AboutPage = lazy(() => import('@/components/pages/AboutPageV2'));
