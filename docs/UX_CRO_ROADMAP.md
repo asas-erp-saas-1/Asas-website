@@ -1,10 +1,10 @@
 # ASAS UX / CRO Roadmap
 
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-09-10
 **Current phase:** Phase 3 — Sales Experience & Conversion System
 **Current branch:** `fix/responsive-viewport-hardening`
-**Latest implementation checkpoint:** `1a7fc493aaa1f29e24cd5577b9a113ff18193729`
+**Latest implementation checkpoint:** `d47d7795107ab1b9a50ce4f7563ea3ede8381650`
 
 ## Execution ledger
 
@@ -48,17 +48,10 @@ Target structure:
 
 Latest implementation checkpoints:
 
-- Shared mobile project CTA was corrected so **«Voir les disponibilités»** now targets the existing `#apartments` inventory section when that section exists, instead of promising availability and immediately opening generic contact.
-- The CTA keeps the existing contact fallback for apartment/general contexts and when project inventory is unavailable.
+- Shared mobile project CTA targets the existing `#apartments` inventory section when that section exists.
+- Project gallery already provides functional fullscreen and keyboard controls; the remaining page-level duplicate fullscreen control is still identified as cleanup debt and must be removed at page level rather than duplicated elsewhere.
+- The project page remains the next page-level conversion refactor: hero → proof → visual story → inventory → reassurance → human action.
 - No catalog/API/database contract was changed.
-- Touch target remains at the shared 44px minimum.
-
-Remaining project-detail checks:
-
-- verify/remove the duplicate dead fullscreen overlay in `ProjectDetailPage.tsx` if it is still present at the current branch head
-- final CTA hierarchy consolidation
-- verify sticky CTA placement against compare bar and floating contact widget
-- remove unused imports/components where confirmed by lint
 
 ### 3.5 Apartment Decision Room
 **State:** ACTIVE.
@@ -76,33 +69,34 @@ Target structure:
 
 Hard rule: do not create fake apartment imagery. The current lean apartment card DTO intentionally contains no images; apartment detail contains real apartment images.
 
-Latest implementation checkpoint:
+Latest implementation checkpoints:
 
-- Shared `Gallery` now provides keyboard navigation with ArrowLeft/ArrowRight and keyboard activation with Enter/Space, while preserving touch swipe and mouse controls.
-- The first gallery image is eagerly loaded with high fetch priority; subsequent images remain lazy-loaded. This supports the visual opening of an apartment decision page without eagerly loading the whole gallery.
-- The gallery's focus treatment and accessible label now make the image surface operable by keyboard users.
+- Shared apartment gallery interaction is keyboard/touch safe and prioritizes only the first real visual.
+- Floor-plan guidance now describes only supported controls: wheel/buttons for zoom and drag for panning; it no longer claims unsupported pinch behavior.
+- Alternative apartment section now explicitly frames itself as a comparison step, using only real available apartments from the public search contract.
 - No apartment data, API contract, pricing logic or image source was changed.
 
 Next apartment-detail checks:
 
-- audit the exact hero CTA hierarchy and mobile sticky CTA against the page-level actions
+- page-level hero CTA hierarchy and mobile sticky CTA deduplication
+- visual opening must prioritize real apartment media before secondary content
 - verify price/price-on-request and availability are visually unambiguous
-- verify real gallery/floor-plan sequencing and action labels
+- verify gallery/floor-plan sequencing and action labels
 - verify financial/payment information is shown only when sourced from real data
-- verify relevant alternatives remain comparison-oriented and non-manipulative
 
 ### 3.6 Shared conversion system
-**State:** NEXT after detail surfaces.
+**State:** ACTIVE after the first landing-page pass.
 
-Audit and standardize:
+The homepage has now been restructured as a high-intent landing page rather than a generic catalogue entry:
 
-- primary CTA semantics
-- WhatsApp message context
-- phone/contact paths
-- lead form headings and intents
-- sticky mobile CTA
-- success states
-- post-contact expectations
+- one dominant hero promise and primary project-discovery CTA
+- immediate real featured-project visual proof when project media exists
+- real catalogue counters as proof, without fabricated testimonials or social proof
+- project selection before contact
+- explicit three-step decision path: explore → verify → advance
+- final conversion block with one dominant advisor action and lower-friction WhatsApp/phone alternatives
+
+Shared apartment/project surfaces still require final CTA deduplication so page-level actions do not compete with the global mobile CTA.
 
 ### 3.7 Trust and risk reduction
 **State:** PLANNED.
@@ -123,8 +117,8 @@ Review Home, Projects, Project Detail, Apartments, Apartment Detail, Services, A
 
 Before Phase 3 is closed:
 
-1. Finish project detail corrections.
-2. Finish apartment detail corrections.
+1. Finish project detail page-level conversion refactor.
+2. Finish apartment detail page-level conversion refactor.
 3. Finish shared CTA consistency and deduplication.
 4. Finish trust/risk-reduction pass.
 5. Finish accessibility/performance pass.
