@@ -18,7 +18,11 @@ interface ProjectGalleryProps {
 export function ProjectGallery({ images, projectName, fallbackImage, filterType }: ProjectGalleryProps) {
   const filteredImages = filterType ? images.filter((img) => img.type === filterType) : images;
   const validImages = filteredImages.filter((img) => img.url).sort((a, b) => a.order - b.order);
-  const fallback = fallbackImage?.trim() || '';
+  // Never use the generic brand hero as a substitute for missing project photography.
+  // Project pages must show only verified project media or the neutral empty state.
+  const fallback = fallbackImage?.trim() && fallbackImage.trim() !== '/images/brand/hero.jpg'
+    ? fallbackImage.trim()
+    : '';
   const displayImages = validImages.length > 0
     ? validImages
     : fallback
