@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, PhoneCall, MailOpen, MessageSquareText, Plus, ChevronRight } from 'lucide-react';
 import { ASAS, getWhatsAppUrl, getPhoneUrl } from '@/lib/constants';
 import { useRouter } from '@/lib/router';
@@ -49,6 +48,19 @@ export function ContactFloatingWidget() {
     }
   }, []);
 
+  const openLeadForm = useCallback(() => {
+    const leadForm = document.querySelector('form[aria-label="Formulaire de contact"]');
+    if (leadForm instanceof HTMLElement) {
+      leadForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const firstField = leadForm.querySelector('input:not([type="hidden"])');
+      if (firstField instanceof HTMLElement) {
+        window.setTimeout(() => firstField.focus({ preventScroll: true }), 450);
+      }
+      return;
+    }
+    router.navigate({ page: 'contact' });
+  }, [router]);
+
   const options: ContactOption[] = [
     {
       id: 'whatsapp',
@@ -86,14 +98,7 @@ export function ContactFloatingWidget() {
       icon: MessageSquareText,
       color: 'bg-forest',
       hoverColor: 'hover:bg-forest-dark',
-      action: () => {
-        const leadForm = document.getElementById('lead-form');
-        if (leadForm) {
-          leadForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else {
-          router.navigate({ page: 'contact' });
-        }
-      },
+      action: openLeadForm,
     },
   ];
 
@@ -143,11 +148,6 @@ export function ContactFloatingWidget() {
     hidden: { opacity: 0, scale: 0.5, y: 20 },
     visible: (i: number) => ({ opacity: 1, scale: 1, y: 0, transition: { delay: i * 0.06, type: 'spring' as const, stiffness: 300, damping: 20 } }),
     exit: (i: number) => ({ opacity: 0, scale: 0.5, y: 10, transition: { delay: (3 - i) * 0.04, duration: 0.2, ease: 'easeIn' as const } }),
-  };
-
-  const fabBreathing = {
-    scale: [1, 1.06, 1],
-    transition: { duration: 2.5, repeat: Infinity, ease: 'easeInOut' as const },
   };
 
   return (
@@ -216,19 +216,16 @@ export function ContactFloatingWidget() {
           )}
         </AnimatePresence>
 
-        <motion.button
+        <button
           onClick={toggleOpen}
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.92 }}
-          animate={!isOpen ? fabBreathing : { scale: 1 }}
-          className="flex items-center justify-center h-14 w-14 rounded-full bg-forest text-white shadow-xl transition-shadow duration-200 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2"
+          className="flex items-center justify-center h-14 w-14 rounded-full bg-forest text-white shadow-xl transition-transform duration-200 hover:scale-105 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2"
           aria-label={isOpen ? 'Fermer le menu de contact' : 'Ouvrir le menu de contact'}
           aria-expanded={isOpen}
         >
           <motion.div animate={{ rotate: isOpen ? 45 : 0 }} transition={{ duration: 0.2 }}>
             <Plus className="h-6 w-6" />
           </motion.div>
-        </motion.button>
+        </button>
       </div>
     </>
   );
