@@ -1,6 +1,9 @@
 'use client';
 
 import { AdminApartmentsWorkspace } from '@/components/admin/AdminApartmentsWorkspace';
+import { AdminProjectsWorkspace } from '@/components/admin/AdminProjectsWorkspace';
+import AdminBuildingsWorkspace from '@/components/admin/AdminBuildingsWorkspace';
+import { AdminLeadsPremiumWorkspace } from '@/components/admin/AdminLeadsPremiumWorkspace';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -4317,34 +4320,15 @@ export default function AdminPage() {
             onCreateApartment={() => setShowCreateApartment(true)}
           />
         )}
-        {activeTab === 'projects' && (
-          <ProjectsTab
-            projects={projects}
-            isLoading={projectsQuery.isLoading}
-            onEdit={setEditProject}
-            onCreate={() => setShowCreateProject(true)}
-          />
-        )}
+        {activeTab === 'projects' && <AdminProjectsWorkspace />}
         {activeTab === 'apartments' && (
           <AdminApartmentsWorkspace />
         )}
-        {activeTab === 'buildings' && (
-          <BuildingsTab
-            buildings={buildingsQuery.data ?? []}
-            isLoading={buildingsQuery.isLoading}
-          />
-        )}
+        {activeTab === 'buildings' && <AdminBuildingsWorkspace />}
         {activeTab === 'media' && (
           <MediaTab projects={projects} apartments={apartments} />
         )}
-        {activeTab === 'leads' && (
-          <LeadsTab
-            leads={leads}
-            isLoading={leadsQuery.isLoading}
-            leadStatusFilter={leadStatusFilter}
-            onStatusFilterChange={setLeadStatusFilter}
-          />
-        )}
+        {activeTab === 'leads' && <AdminLeadsPremiumWorkspace />}
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'audit' && <AuditLogTab />}
         {activeTab === 'settings' && <SettingsTab />}
