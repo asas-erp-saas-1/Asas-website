@@ -4133,24 +4133,7 @@ export default function AdminPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Filter state
-  const [projectFilter, setProjectFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [leadStatusFilter, setLeadStatusFilter] = useState<string>('all');
-
-  // Dialog state
-  const [editProject, setEditProject] = useState<AdminProject | null>(null);
-  const [editApartment, setEditApartment] = useState<AdminApartment | null>(null);
-  const [showCreateProject, setShowCreateProject] = useState(false);
-  const [showCreateApartment, setShowCreateApartment] = useState(false);
-
-  /* ─── Queries ─── */
-
-  const projectsQuery = useQuery({
-    queryKey: ['admin', 'projects'],
-    queryFn: fetchAdminProjects,
-    enabled: isAuthenticated,
-  });
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const dashboardStatsQuery = useQuery({
     queryKey: ['admin', 'dashboard-stats'],
@@ -4159,62 +4142,6 @@ export default function AdminPage() {
     staleTime: 30_000,
   });
 
-  const apartmentsQuery = useQuery({
-    queryKey: ['admin', 'apartments', projectFilter, statusFilter, typeFilter],
-    queryFn: () => fetchAdminApartments({
-      projectSlug: projectFilter !== 'all' ? projectFilter : undefined,
-      status: statusFilter !== 'all' ? statusFilter : undefined,
-      type: typeFilter !== 'all' ? typeFilter : undefined,
-    }),
-    enabled: isAuthenticated,
-  });
-
-
-  // Entity URLs are authoritative entry points into the existing editor surface.
-  // This preserves deep links without creating a second apartment-detail state owner.
-  useEffect(() => {
-    const syncEntity = () => {
-      const route = getAdminRoute();
-      if (route.workspace !== 'apartments' || route.entity !== 'apartment' || !route.entityId) return;
-      const match = (apartmentsQuery.data ?? []).find((apartment) => apartment.id === route.entityId || apartment.slug === route.entityId);
-      if (match) setEditApartment(match);
-    };
-    syncEntity();
-    return subscribeToAdminRoute(syncEntity);
-  }, [apartmentsQuery.data]);
-
-  // Project entity URLs reuse the existing editor surface; no second detail owner is introduced.
-  useEffect(() => {
-    const syncEntity = () => {
-      const route = getAdminRoute();
-      if (route.workspace !== 'projects' || route.entity !== 'project' || !route.entityId) return;
-      const match = (projectsQuery.data ?? []).find((project) => project.id === route.entityId || project.slug === route.entityId);
-      if (match) setEditProject(match);
-    };
-    syncEntity();
-    return subscribeToAdminRoute(syncEntity);
-  }, [projectsQuery.data]);
-
-  const buildingsQuery = useQuery({
-    queryKey: ['admin', 'buildings'],
-    queryFn: fetchAdminBuildings,
-    enabled: isAuthenticated,
-  });
-
-  const leadsQuery = useQuery({
-    queryKey: ['admin', 'leads', leadStatusFilter],
-    queryFn: () => fetchAdminLeads(leadStatusFilter !== 'all' ? leadStatusFilter : undefined),
-    enabled: isAuthenticated,
-  });
-
-  // These collections are bounded workspace previews only. Dashboard KPIs must
-  // not be inferred from paginated results; aggregate contracts are required.
-  const projects = projectsQuery.data ?? [];
-  const apartments = apartmentsQuery.data ?? [];
-  const leads = leadsQuery.data ?? [];
-
-  // Dashboard KPIs come from the aggregate endpoint, never from paginated previews.
-  // The collections below remain bounded previews for recent items / breakdowns.
   const stats: AdminDashboardStats = dashboardStatsQuery.data ?? {
     totalProjects: 0,
     totalApartments: 0,
@@ -4225,12 +4152,7 @@ export default function AdminPage() {
     newLeadsCount: 0,
   };
 
-  const activeLoading = activeTab === 'projects' ? projectsQuery.isLoading
-    : activeTab === 'apartments' ? apartmentsQuery.isLoading
-    : activeTab === 'buildings' ? buildingsQuery.isLoading
-    : activeTab === 'leads' ? leadsQuery.isLoading
-    : activeTab === 'dashboard' ? dashboardStatsQuery.isLoading
-    : false;
+  const activeLoading = activeTab === 'dashboard' ? dashboardStatsQuery.isLoading : false;
 
   /* ─── Render ─── */
 
