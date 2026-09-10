@@ -376,3 +376,8 @@ Commit `efcf24d0987937bd098985855d00b2ace1e0625c` changes the Admin shell so Pro
 ## 2026-09-10 Legacy workspace state/query removal
 
 Commit `295de6ffdf526d8a302d41ca6dab47f960920c61` removes obsolete Projects/Buildings/Apartments/Leads collection state, filters, entity editor state, and duplicated React Query calls from the Admin shell. The shell now owns only authentication/session-adjacent state, dashboard aggregate state, and global navigation chrome; operational workspaces own their domain data. This follows the canonical-workspace convergence decision. Legacy editor/helper functions remain temporarily where still referenced by other shell surfaces; deletion requires a separate dependency-verified pass. CI pending.
+
+
+## 2026-09-10 CI failure RCA and shell preview isolation
+
+Commit `d98065e89853c41ebad8d4b9783580678ccee5` fixes CI TypeScript failures introduced by the legacy-state removal. Root cause: render-only Dashboard/Media/Dialog surfaces still referenced preview collections and create/edit state, while the initial cleanup removed those declarations wholesale. The corrected architecture keeps bounded preview queries in the Admin shell only when Dashboard/Media is active; canonical operational workspaces remain the sole owners of their operational datasets. Duplicate sidebar state was also removed. CI must pass before further cleanup.
