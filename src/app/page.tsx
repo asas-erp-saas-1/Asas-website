@@ -7,7 +7,7 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 
 const HomePage = lazy(() => import('@/components/pages/HomePage'));
 const ProjectsPage = lazy(() => import('@/components/pages/ProjectsPage'));
-const ProjectDetailPage = lazy(() => import('@/components/pages/ProjectDetailPageV5'));
+const ProjectDetailPage = lazy(() => import('@/components/pages/ProjectDetailPageV6'));
 const ApartmentDetailPage = lazy(() => import('@/components/pages/ApartmentDetailPageV2'));
 const ServicesPage = lazy(() => import('@/components/pages/ServicesPageV2'));
 const AboutPage = lazy(() => import('@/components/pages/AboutPageV2'));
@@ -21,52 +21,31 @@ const AdminPage = lazy(() => import('@/components/pages/AdminPage'));
 const NotFoundPage = lazy(() => import('@/components/pages/NotFoundPage'));
 
 function PageLoader() {
-  return (
-    <div className="min-h-[60vh] flex items-center justify-center bg-ivory">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 border-3 border-forest border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-muted-foreground">Chargement...</p>
-      </div>
-    </div>
-  );
+  return <div className="flex min-h-[60vh] items-center justify-center bg-ivory"><div className="flex flex-col items-center gap-4"><div className="h-10 w-10 animate-spin rounded-full border-4 border-forest border-t-transparent" /><p className="text-sm text-muted-foreground">Chargement...</p></div></div>;
 }
 
 function LegacyRouter() {
   const { route } = useRouter();
-  return (
-    <Suspense fallback={<PageLoader />}>
-      {route.page === 'home' && <HomePage />}
-      {route.page === 'projects' && <ProjectsPage />}
-      {route.page === 'project' && route.projectSlug && <ProjectDetailPage projectSlug={route.projectSlug} />}
-      {route.page === 'apartment' && route.projectSlug && route.apartmentSlug && (
-        <ApartmentDetailPage projectSlug={route.projectSlug} apartmentSlug={route.apartmentSlug} />
-      )}
-      {route.page === 'services' && <ServicesPage />}
-      {route.page === 'about' && <AboutPage />}
-      {route.page === 'for-developers' && <ForDevelopersPage />}
-      {route.page === 'contact' && <ContactPage />}
-      {route.page === 'insights' && <InsightsPage />}
-      {route.page === 'campaign' && route.campaignSlug && <CampaignLandingPage campaignSlug={route.campaignSlug} />}
-      {route.page === 'privacy' && <PrivacyPage />}
-      {route.page === 'terms' && <TermsPage />}
-      {route.page === 'admin' && <AdminPage />}
-      {route.page === 'not-found' && <NotFoundPage />}
-    </Suspense>
-  );
+  return <Suspense fallback={<PageLoader />}>
+    {route.page === 'home' && <HomePage />}
+    {route.page === 'projects' && <ProjectsPage />}
+    {route.page === 'project' && route.projectSlug && <ProjectDetailPage projectSlug={route.projectSlug} />}
+    {route.page === 'apartment' && route.projectSlug && route.apartmentSlug && <ApartmentDetailPage projectSlug={route.projectSlug} apartmentSlug={route.apartmentSlug} />}
+    {route.page === 'services' && <ServicesPage />}
+    {route.page === 'about' && <AboutPage />}
+    {route.page === 'for-developers' && <ForDevelopersPage />}
+    {route.page === 'contact' && <ContactPage />}
+    {route.page === 'insights' && <InsightsPage />}
+    {route.page === 'campaign' && route.campaignSlug && <CampaignLandingPage campaignSlug={route.campaignSlug} />}
+    {route.page === 'privacy' && <PrivacyPage />}
+    {route.page === 'terms' && <TermsPage />}
+    {route.page === 'admin' && <AdminPage />}
+    {route.page === 'not-found' && <NotFoundPage />}
+  </Suspense>;
 }
 
 export default function Home() {
   const syncFromLocation = useRouter((state) => state.syncFromLocation);
-
-  useEffect(() => {
-    syncFromLocation();
-  }, [syncFromLocation]);
-
-  return (
-    <SiteShell>
-      <ErrorBoundary>
-        <LegacyRouter />
-      </ErrorBoundary>
-    </SiteShell>
-  );
+  useEffect(() => { syncFromLocation(); }, [syncFromLocation]);
+  return <SiteShell><ErrorBoundary><LegacyRouter /></ErrorBoundary></SiteShell>;
 }
