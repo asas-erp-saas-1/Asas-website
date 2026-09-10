@@ -30,7 +30,6 @@ export function StickyMobileCTA() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Hide the sticky CTA when the CompareBar is showing (2+ items in comparison)
   if (!visible || compareCount >= 2) return null;
 
   const whatsappMessage = context === 'apartment'
@@ -44,6 +43,18 @@ export function StickyMobileCTA() {
     : context === 'project'
       ? 'Voir les disponibilités'
       : 'Parler à un conseiller';
+
+  const handlePrimaryAction = () => {
+    if (context === 'project') {
+      const inventory = document.getElementById('apartments');
+      if (inventory) {
+        inventory.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+    }
+
+    navigate({ page: 'contact' });
+  };
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 md:hidden bg-background/95 backdrop-blur border-t border-border px-[max(0.75rem,env(safe-area-inset-left))] py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
@@ -72,7 +83,7 @@ export function StickyMobileCTA() {
         <Button
           size="sm"
           className="flex-1 min-h-11 text-xs bg-forest hover:bg-forest-dark text-white border-forest hover:border-forest-dark"
-          onClick={() => navigate({ page: 'contact' })}
+          onClick={handlePrimaryAction}
           aria-label={primaryLabel}
         >
           <CalendarCheck className="size-4 shrink-0" aria-hidden="true" />
