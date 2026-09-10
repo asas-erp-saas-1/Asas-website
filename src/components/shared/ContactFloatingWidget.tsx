@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, PhoneCall, MailOpen, MessageSquareText, Plus, ChevronRight } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ASAS, getWhatsAppUrl, getPhoneUrl } from '@/lib/constants';
 import { useRouter } from '@/lib/router';
 import { useComparison } from '@/lib/favorites';
