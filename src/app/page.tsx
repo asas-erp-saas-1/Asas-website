@@ -11,7 +11,7 @@ const ProjectDetailPage = lazy(() => import('@/components/pages/ProjectDetailPag
 const ApartmentDetailPage = lazy(() => import('@/components/pages/ApartmentDetailPage'));
 const ServicesPage = lazy(() => import('@/components/pages/ServicesPageV2'));
 const AboutPage = lazy(() => import('@/components/pages/AboutPageV2'));
-const ForDevelopersPage = lazy(() => import('@/components/pages/ForDevelopersPage'));
+const ForDevelopersPage = lazy(() => import('@/components/pages/ForDevelopersPageV2'));
 const ContactPage = lazy(() => import('@/components/pages/ContactPage'));
 const InsightsPage = lazy(() => import('@/components/pages/InsightsPage'));
 const CampaignLandingPage = lazy(() => import('@/components/pages/CampaignLandingPage'));
