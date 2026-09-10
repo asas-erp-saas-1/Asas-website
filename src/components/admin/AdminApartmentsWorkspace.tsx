@@ -178,7 +178,13 @@ export function AdminApartmentsWorkspace() {
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    const timer = window.setTimeout(() => {
+      const normalized = search.trim();
+      setDebouncedSearch(normalized);
+      if (normalized !== (getAdminRoute().search ?? '')) {
+        navigateAdminRoute({ workspace: 'apartments', search: normalized || undefined, page: 1 }, 'replace');
+      }
+    }, 300);
     return () => window.clearTimeout(timer);
   }, [search]);
 
@@ -354,7 +360,7 @@ export function AdminApartmentsWorkspace() {
         {mutationError && <div role="alert" className="flex flex-col gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 sm:flex-row sm:items-center sm:justify-between"><span>{mutationError}</span><Button variant="outline" size="sm" onClick={() => setMutationError(null)}>Fermer</Button></div>}
         {mutationSuccess && <div role="status" className="flex flex-col gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 sm:flex-row sm:items-center sm:justify-between"><span>{mutationSuccess}</span><Button variant="outline" size="sm" onClick={() => setMutationSuccess(null)}>Fermer</Button></div>}
         <Card><CardHeader className="pb-3"><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"><CardTitle className="flex items-center gap-2 text-base"><Filter className="h-4 w-4" /> Filtres</CardTitle>{hasFilters && <Button variant="ghost" size="sm" onClick={clearFilters} className="w-fit gap-2"><X className="h-4 w-4" /> Effacer</Button>}</div></CardHeader><CardContent><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="space-y-1.5 text-sm font-medium"><span>Recherche</span><div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(e) => { setSearch(e.target.value); resetPage(); syncRoute({ search: e.target.value, page: 1 }); }} placeholder="N° unité, type, projet…" className="pl-9" /></div></label>
+          <label className="space-y-1.5 text-sm font-medium"><span>Recherche</span><div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(e) => { setSearch(e.target.value); resetPage(); }} placeholder="N° unité, type, projet…" className="pl-9" /></div></label>
           <label className="space-y-1.5 text-sm font-medium"><span>Projet</span><Select value={projectSlug} onValueChange={(value) => { setProjectSlug(value); resetPage(); syncRoute({ projectSlug: value, page: 1 }); }}><SelectTrigger><SelectValue placeholder="Tous les projets" /></SelectTrigger><SelectContent><SelectItem value="all">Tous les projets</SelectItem>{projects.map((p) => <SelectItem key={p.id} value={p.slug}>{p.name}</SelectItem>)}</SelectContent></Select></label>
           <label className="space-y-1.5 text-sm font-medium"><span>Statut</span><Select value={status} onValueChange={(value) => { setStatus(value); resetPage(); syncRoute({ status: value, page: 1 }); }}><SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger><SelectContent><SelectItem value="all">Tous les statuts</SelectItem>{STATUS_OPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></label>
           <label className="space-y-1.5 text-sm font-medium"><span>Type</span><Select value={type} onValueChange={(value) => { setType(value); resetPage(); syncRoute({ type: value, page: 1 }); }}><SelectTrigger><SelectValue placeholder="Tous les types" /></SelectTrigger><SelectContent><SelectItem value="all">Tous les types</SelectItem><SelectItem value="F1">F1</SelectItem><SelectItem value="F2">F2</SelectItem><SelectItem value="F3">F3</SelectItem><SelectItem value="F4">F4</SelectItem><SelectItem value="F5">F5+</SelectItem><SelectItem value="Duplex">Duplex</SelectItem><SelectItem value="Studio">Studio</SelectItem><SelectItem value="Villa">Villa</SelectItem></SelectContent></Select></label>
