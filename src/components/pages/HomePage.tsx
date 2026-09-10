@@ -17,6 +17,12 @@ export default function HomePage() {
   const heroProject = displayedProjects[0];
   const available = projects?.reduce((sum, p) => sum + p.availableApartmentCount, 0) ?? 0;
   const apartments = projects?.reduce((sum, p) => sum + p.apartmentCount, 0) ?? 0;
+  const stats = [
+    { label: 'Projets', value: isLoading ? '—' : String(projects?.length ?? 0), Icon: Landmark },
+    { label: 'Appartements', value: isLoading ? '—' : String(apartments), Icon: Home },
+    { label: 'Disponibilités', value: isLoading ? '—' : String(available), Icon: Search },
+    { label: 'Accompagnement', value: 'Sur mesure', Icon: ShieldCheck },
+  ];
   const openWhatsApp = () => window.open(getWhatsAppUrl('Bonjour ASAS, je souhaite être accompagné dans ma recherche immobilière.'), '_blank', 'noopener,noreferrer');
 
   return (
@@ -38,7 +44,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="bg-white px-5 py-5 sm:px-8 lg:px-10"><div className="mx-auto grid max-w-[1440px] grid-cols-2 overflow-hidden rounded-xl border border-[#e5e1d7] sm:grid-cols-4">{[['Projets', isLoading ? '—' : projects?.length ?? 0, Landmark], ['Appartements', isLoading ? '—' : apartments, Home], ['Disponibilités', isLoading ? '—' : available, Search], ['Accompagnement', 'Sur mesure', ShieldCheck]].map(([label, value, Icon]) => <div key={String(label)} className="min-h-[108px] border-b border-[#ebe8df] px-5 py-5 sm:border-b-0 sm:border-r last:border-r-0"><Icon className="size-5 text-[#17232a]" /><p className="mt-3 text-[10px] font-semibold uppercase tracking-[.14em] text-[#85877f]">{label}</p><p className="mt-1 text-lg font-semibold text-[#17232a]">{value}</p></div>)}</div></section>
+      <section className="bg-white px-5 py-5 sm:px-8 lg:px-10"><div className="mx-auto grid max-w-[1440px] grid-cols-2 overflow-hidden rounded-xl border border-[#e5e1d7] sm:grid-cols-4">{stats.map(({ label, value, Icon }) => <div key={label} className="min-h-[108px] border-b border-[#ebe8df] px-5 py-5 sm:border-b-0 sm:border-r last:border-r-0"><Icon className="size-5 text-[#17232a]" /><p className="mt-3 text-[10px] font-semibold uppercase tracking-[.14em] text-[#85877f]">{label}</p><p className="mt-1 text-lg font-semibold text-[#17232a]">{value}</p></div>)}</div></section>
 
       <section className="bg-white px-5 py-12 sm:px-8 sm:py-16 lg:px-10"><div className="mx-auto max-w-[1440px]"><div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[11px] font-semibold uppercase tracking-[.17em] text-[#6c806f]">Sélection ASAS</p><h2 className="mt-2 font-semibold text-3xl tracking-[-.03em] sm:text-4xl">Des projets à découvrir.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-[#777a72]">Commencez par les programmes actuellement commercialisés et ouvrez leur fiche pour vérifier les disponibilités.</p></div><Button variant="outline" onClick={() => router.goProjects()} className="min-h-11 border-[#cfc7b8] bg-white">Voir tous les projets <ArrowRight className="ml-2 size-4" /></Button></div>{isLoading ? <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{[0,1,2].map((i) => <ProjectCardSkeleton key={i} />)}</div> : isError ? <div className="rounded-xl border border-[#e5e1d7] bg-[#f8f7f2] p-8 text-center"><p className="font-semibold">Les projets ne peuvent pas être chargés pour le moment.</p><Button variant="outline" className="mt-5" onClick={() => void refetch()}><RefreshCw className="mr-2 size-4" />Réessayer</Button></div> : displayedProjects.length ? <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{displayedProjects.slice(0,6).map((project) => <ProjectCard key={project.id} project={project} />)}</div> : <div className="rounded-xl border border-dashed border-[#d9d4c9] p-10 text-center text-sm text-[#777a72]">Aucun projet publié pour le moment.</div>}</div></section>
 
