@@ -125,9 +125,15 @@ export function AdminLeadsPremiumWorkspace() {
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    const timer = window.setTimeout(() => {
+      const normalized = search.trim();
+      setDebouncedSearch(normalized);
+      if (normalized !== (getAdminRoute().search ?? '')) {
+        navigateAdminRoute({ workspace: 'leads', search: normalized || undefined, filters: { status, intent, source }, page: 1 }, 'replace');
+      }
+    }, 300);
     return () => window.clearTimeout(timer);
-  }, [search]);
+  }, [search, status, intent, source]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -278,7 +284,7 @@ export function AdminLeadsPremiumWorkspace() {
         {feedback && <div role={feedback.type === 'error' ? 'alert' : 'status'} className="flex flex-col gap-2 rounded-md border border-border bg-background p-3 text-sm sm:flex-row sm:items-center sm:justify-between"><span>{feedback.text}</span><Button variant="ghost" size="sm" onClick={() => setFeedback(null)}>Fermer</Button></div>}
 
         <Card><CardHeader className="pb-3"><div className="flex items-center justify-between gap-3"><CardTitle className="flex items-center gap-2 text-base"><Search className="h-4 w-4" /> Recherche et filtres</CardTitle>{hasFilters && <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2"><X className="h-4 w-4" /> Effacer</Button>}</div></CardHeader><CardContent><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="space-y-1.5 text-sm font-medium lg:col-span-2"><span>Recherche</span><Input value={search} onChange={(event) => { setSearch(event.target.value); resetPage(); syncRoute({ search: event.target.value, page: 1 }); }} placeholder="Nom, téléphone, email, projet…" aria-describedby="lead-search-help" /><span id="lead-search-help" className="text-xs font-normal text-muted-foreground">Recherche serveur après stabilisation de la saisie.</span></label>
+          <label className="space-y-1.5 text-sm font-medium lg:col-span-2"><span>Recherche</span><Input value={search} onChange={(event) => { setSearch(event.target.value); resetPage(); }} placeholder="Nom, téléphone, email, projet…" aria-describedby="lead-search-help" /><span id="lead-search-help" className="text-xs font-normal text-muted-foreground">Recherche serveur après stabilisation de la saisie.</span></label>
           <label className="space-y-1.5 text-sm font-medium"><span>Statut</span><select value={status} onChange={(event) => { setStatus(event.target.value); resetPage(); syncRoute({ status: event.target.value, page: 1 }); }} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="all">Tous les statuts</option>{STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label className="space-y-1.5 text-sm font-medium"><span>Intention</span><select value={intent} onChange={(event) => { setIntent(event.target.value); resetPage(); syncRoute({ intent: event.target.value, page: 1 }); }} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="all">Toutes</option>{INTENT_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label className="space-y-1.5 text-sm font-medium"><span>Source</span><Input value={source} onChange={(event) => { setSource(event.target.value); resetPage(); syncRoute({ source: event.target.value, page: 1 }); }} placeholder="Facebook, Google…" /></label>
