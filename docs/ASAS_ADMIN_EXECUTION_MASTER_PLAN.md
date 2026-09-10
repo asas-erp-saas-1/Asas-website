@@ -341,3 +341,8 @@ The shared completeness contract was already used by the API and AdminPage list,
 ## 2026-09-10 CI failure + search request-storm fix
 
 CI Run #699 for `6145948ad795976539680215868ab702fef379a9` failed at Typecheck before Lint/Build. The workspace review also identified a request-storm risk: Apartment search updated the URL on every keystroke while the API fetch is driven by debounced search. Commit `f2eb5de91bf13c5b7763771747c79ef2bcf15d9f` changes URL synchronization to the same 300ms debounce boundary and uses replace navigation, while retaining the existing AbortController for stale request cancellation. The failing CI root cause remains to be isolated from the Typecheck log before further stacking changes.
+
+
+## 2026-09-10 Typecheck root-cause checkpoint
+
+CI Run #703 exposed the exact failure: `AdminApartmentsWorkspace.tsx` passed four boolean completeness fields into `OperationalSignal[]`, which requires signal literals. Commit `bb902295c311601d9b08190f5775472dfe1eb159` maps each boolean deterministically to `complete`/`incomplete`. This is the minimal type-correct fix; no domain semantics were changed. Verification pending CI.
