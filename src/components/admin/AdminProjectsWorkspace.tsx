@@ -154,7 +154,18 @@ export function AdminProjectsWorkspace() {
     }, 'replace');
   }
   function clearFilters() { setSearch(''); setStatus('all'); setPage(1); syncRoute({ search: '', status: 'all', page: 1 }); }
-  function changeSearch(value: string) { setSearch(value); setPage(1); syncRoute({ search: value, page: 1 }); }
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const normalized = search.trim();
+      if (normalized !== (getAdminRoute().search ?? '')) {
+        navigateAdminRoute({ workspace: 'projects', search: normalized || undefined, filters: { status }, page: 1 }, 'replace');
+      }
+      setDebouncedSearch(normalized);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [search, status]);
+
+  function changeSearch(value: string) { setSearch(value); setPage(1); }
   function changeStatus(value: string) { setStatus(value); setPage(1); syncRoute({ status: value, page: 1 }); }
 
   async function executeMutation() {
