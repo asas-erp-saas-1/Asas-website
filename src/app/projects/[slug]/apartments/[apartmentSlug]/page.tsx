@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import ApartmentDetailPage from '@/components/pages/ApartmentDetailPage';
+import ApartmentDetailPage from '@/components/pages/ApartmentDetailPageV2';
 import { getPublicApartment } from '@/lib/catalog-server';
 import { absoluteUrl } from '@/lib/site-config';
 
