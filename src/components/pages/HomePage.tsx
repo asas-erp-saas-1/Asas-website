@@ -5,290 +5,46 @@ import { useRouter } from '@/lib/router';
 import { usePublicProjectCards } from '@/lib/api';
 import { ASAS, formatPrice, getWhatsAppUrl } from '@/lib/constants';
 import { ProjectCard, ProjectCardSkeleton } from '@/components/shared/ProjectCard';
-import { PremiumTrustSection } from '@/components/shared/PremiumTrustSection';
 import { Button } from '@/components/ui/button';
-import {
-  ArrowRight,
-  Check,
-  ChevronRight,
-  MessageCircle,
-  Phone,
-  Building2,
-  Home,
-  Search,
-  Users,
-  Landmark,
-  ShieldCheck,
-  MapPin,
-  CalendarDays,
-  RefreshCw,
-  type LucideIcon,
-} from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, Home, Landmark, MapPin, MessageCircle, Phone, RefreshCw, Search, ShieldCheck } from 'lucide-react';
 import type { PublicProjectCard } from '@/lib/catalog-contracts';
 
-/** Homepage consumes only the public catalog contract. */
 export default function HomePage() {
   const router = useRouter();
   const { data: projects, isLoading, isError, refetch } = usePublicProjectCards();
-  const featuredProjects = useMemo(
-    () => projects?.filter((p: PublicProjectCard) => p.featured) ?? [],
-    [projects]
-  );
+  const featuredProjects = useMemo(() => projects?.filter((p: PublicProjectCard) => p.featured) ?? [], [projects]);
   const displayedProjects = featuredProjects.length > 0 ? featuredProjects : (projects ?? []);
-  const leadProject = displayedProjects[0];
-  const stats: Array<[string, string | number, LucideIcon]> = [
-    ['Projets commercialisés', isLoading ? '—' : (projects?.length ?? 0), Building2],
-    ['Appartements', isLoading ? '—' : (projects?.reduce((sum, p) => sum + p.apartmentCount, 0) ?? 0), Home],
-    ['Disponibilités', isLoading ? '—' : (projects?.reduce((sum, p) => sum + p.availableApartmentCount, 0) ?? 0), Search],
-    ['Accompagnement', 'Sur mesure', Users],
-  ];
-
-  const openWhatsApp = (message: string) => {
-    window.open(getWhatsAppUrl(message), '_blank', 'noopener,noreferrer');
-  };
+  const heroProject = displayedProjects[0];
+  const available = projects?.reduce((sum, p) => sum + p.availableApartmentCount, 0) ?? 0;
+  const apartments = projects?.reduce((sum, p) => sum + p.apartmentCount, 0) ?? 0;
+  const openWhatsApp = () => window.open(getWhatsAppUrl('Bonjour ASAS, je souhaite être accompagné dans ma recherche immobilière.'), '_blank', 'noopener,noreferrer');
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* HERO — one promise, one dominant route, immediate real-estate proof */}
-      <section className="relative overflow-hidden bg-forest text-white">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_22%,rgba(255,255,255,0.11),transparent_35%)]" />
-        <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:py-16 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-14 lg:py-20">
-          <div className="max-w-2xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur-sm">
-              <ShieldCheck className="size-3.5" aria-hidden="true" />
-              Une sélection immobilière présentée avec clarté
-            </div>
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-white/60">{ASAS.name}</p>
-            <h1 className="max-w-2xl text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-[3.8rem] lg:leading-[1.05]">
-              Trouvez le bien qui correspond réellement à votre projet.
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-white/80 sm:text-lg">
-              Explorez les programmes actuellement commercialisés par ASAS, comparez les disponibilités et les informations utiles, puis avancez avec un conseiller lorsque le bon projet se présente.
-            </p>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Button
-                size="lg"
-                className="w-full bg-white text-forest shadow-lg hover:bg-white/90 sm:w-auto"
-                onClick={() => router.goProjects()}
-              >
-                Explorer les projets
-                <ArrowRight className="ml-2 size-4" />
-              </Button>
-              <button
-                type="button"
-                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-white/20 bg-white/5 px-5 text-sm font-semibold text-white transition hover:bg-white/10 sm:w-auto"
-                onClick={() => openWhatsApp('Bonjour ASAS, je souhaite être accompagné dans ma recherche immobilière.')}
-              >
-                Parler à un conseiller
-                <MessageCircle className="size-4" />
-              </button>
-            </div>
-
-            <div className="mt-7 grid gap-2 text-sm text-white/70 sm:grid-cols-3 sm:gap-4">
-              {['Projets réels', 'Informations vérifiables', 'Accompagnement humain'].map((item) => (
-                <span key={item} className="inline-flex items-center gap-2">
-                  <Check className="size-4 shrink-0 text-white/80" aria-hidden="true" />
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {leadProject?.image?.url ? (
-            <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-white/5 shadow-2xl">
-              <div className="aspect-[4/3] overflow-hidden">
-                <img
-                  src={leadProject.image.url}
-                  alt={leadProject.image.alt || leadProject.name}
-                  className="h-full w-full object-cover"
-                  fetchPriority="high"
-                />
-              </div>
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent p-5 pt-20 sm:p-6 sm:pt-24">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/65">À découvrir</p>
-                <h2 className="mt-1 text-xl font-bold text-white sm:text-2xl">{leadProject.name}</h2>
-                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/75">
-                  <span className="inline-flex items-center gap-1.5"><MapPin className="size-3.5" aria-hidden="true" />{leadProject.district}, {leadProject.city}</span>
-                  {leadProject.deliveryYear && <span className="inline-flex items-center gap-1.5"><CalendarDays className="size-3.5" aria-hidden="true" />Livraison {leadProject.deliveryQuarter ? `Q${leadProject.deliveryQuarter} ` : ''}{leadProject.deliveryYear}</span>}
-                </div>
-                <div className="mt-3 flex items-end justify-between gap-4">
-                  <div>
-                    {leadProject.startingPrice && !leadProject.priceOnRequest ? (
-                      <p className="text-lg font-bold text-gold">À partir de {formatPrice(leadProject.startingPrice)}</p>
-                    ) : (
-                      <p className="text-sm font-semibold text-white/85">Prix sur demande</p>
-                    )}
-                    {leadProject.availableApartmentCount > 0 && (
-                      <p className="mt-0.5 text-xs text-white/60">{leadProject.availableApartmentCount} disponibilité{leadProject.availableApartmentCount > 1 ? 's' : ''}</p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md bg-white px-4 text-sm font-semibold text-charcoal transition hover:bg-white/90"
-                    onClick={() => router.goProject(leadProject.slug)}
-                  >
-                    Découvrir
-                    <ArrowRight className="size-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="hidden lg:block" aria-hidden="true" />
-          )}
+    <main className="min-h-screen bg-[#f8f7f2] text-[#17232a]">
+      <section className="relative min-h-[640px] overflow-hidden bg-[#17232a] text-white lg:min-h-[700px]">
+        <div className="absolute inset-0">
+          {heroProject?.image?.url ? <img src={heroProject.image.url} alt={heroProject.image.alt || heroProject.name} className="h-full w-full object-cover" fetchPriority="high" /> : <div className="h-full w-full bg-[#17232a]" />}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/15" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/10" />
         </div>
-      </section>
-
-      {/* PROOF — real catalogue signals, no invented social proof */}
-      <section className="border-b border-border bg-background px-4 py-7 sm:py-9" aria-label="Repères ASAS">
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-          {stats.map(([label, value, Icon]) => (
-            <div key={label} className="min-w-0 rounded-xl border border-border bg-card p-4 sm:p-5">
-              <Icon className="mb-3 size-5 text-forest" aria-hidden="true" />
-              <div className="text-xl font-bold tabular-nums text-foreground sm:text-2xl">{value}</div>
-              <div className="mt-1 text-xs leading-5 text-muted-foreground">{label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* OFFER */}
-      <section className="px-4 py-14 sm:py-18">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div className="max-w-2xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-forest">Sélection ASAS</p>
-              <h2 className="mt-2 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Commencez par les projets qui méritent votre attention.
-              </h2>
-              <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
-                Consultez les programmes actuellement commercialisés, leurs disponibilités et leurs informations essentielles. Passez ensuite à la fiche détaillée lorsque l'un d'eux correspond à votre recherche.
-              </p>
-            </div>
-            <Button variant="outline" className="w-full shrink-0 sm:w-auto" onClick={() => router.goProjects()}>
-              Voir tous les projets
-              <ArrowRight className="ml-2 size-4" />
-            </Button>
-          </div>
-
-          {isLoading ? (
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 3 }).map((_, i) => <ProjectCardSkeleton key={i} />)}
-            </div>
-          ) : isError ? (
-            <div className="rounded-2xl border border-border bg-card p-8 text-center sm:p-10" role="alert">
-              <p className="text-base font-semibold text-foreground">Les projets ne peuvent pas être chargés pour le moment.</p>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">Réessayez maintenant ou explorez la page projets directement.</p>
-              <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
-                <Button variant="outline" onClick={() => void refetch()}>
-                  <RefreshCw className="mr-2 size-4" />
-                  Réessayer
-                </Button>
-                <Button onClick={() => router.goProjects()}>
-                  Ouvrir les projets
-                  <ArrowRight className="ml-2 size-4" />
-                </Button>
-              </div>
-            </div>
-          ) : displayedProjects.length > 0 ? (
-            <>
-              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {displayedProjects.slice(0, 6).map((project) => <ProjectCard key={project.id} project={project} />)}
-              </div>
-              {displayedProjects.length > 6 && (
-                <div className="mt-8 text-center">
-                  <Button variant="outline" onClick={() => router.goProjects()}>
-                    Découvrir les autres projets
-                    <ChevronRight className="ml-1 size-4" />
-                  </Button>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="rounded-2xl border border-dashed border-border p-10 text-center text-muted-foreground">
-              Aucun projet publié pour le moment.
-            </div>
-          )}
-        </div>
-      </section>
-
-      <PremiumTrustSection />
-
-      {/* DECISION PATH — reduce cognitive load before the contact step */}
-      <section className="px-4 py-14 sm:py-18">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-forest">Une démarche simple</p>
-            <h2 className="mt-2 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
-              Avancez avec une méthode simple.
-            </h2>
-          </div>
-          <div className="grid overflow-hidden rounded-2xl border border-border bg-card md:grid-cols-3">
-            <div className="border-b border-border p-6 md:border-b-0 md:border-r sm:p-8">
-              <span className="text-sm font-semibold text-forest">01</span>
-              <h3 className="mt-3 text-xl font-bold text-foreground">Explorez</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">Trouvez les programmes qui correspondent à votre zone, votre budget et votre recherche.</p>
-            </div>
-            <div className="border-b border-border p-6 md:border-b-0 md:border-r sm:p-8">
-              <span className="text-sm font-semibold text-forest">02</span>
-              <h3 className="mt-3 text-xl font-bold text-foreground">Vérifiez</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">Consultez disponibilités, plans, surfaces, prix et caractéristiques réellement publiées.</p>
-            </div>
-            <div className="p-6 sm:p-8">
-              <span className="text-sm font-semibold text-forest">03</span>
-              <h3 className="mt-3 text-xl font-bold text-foreground">Avancez</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">Lorsque le projet vous intéresse, échangez avec un conseiller pour organiser la prochaine étape.</p>
-            </div>
+        <div className="relative mx-auto flex min-h-[640px] max-w-[1440px] flex-col justify-end px-5 pb-10 pt-28 sm:px-8 sm:pb-14 lg:min-h-[700px] lg:px-10">
+          <div className="max-w-3xl">
+            <div className="mb-5 flex flex-wrap gap-2"><span className="rounded-full border border-white/25 bg-black/20 px-3 py-1 text-[11px] font-semibold">ASAS Immobilier</span><span className="rounded-full border border-white/25 bg-black/20 px-3 py-1 text-[11px] text-white/85">Sélection immobilière</span></div>
+            <h1 className="max-w-4xl text-[45px] font-medium leading-[.96] tracking-[-.04em] sm:text-6xl lg:text-[78px]">L’immobilier de qualité, présenté avec clarté.</h1>
+            <p className="mt-6 max-w-2xl text-base leading-7 text-white/78 sm:text-lg">Découvrez les projets commercialisés par ASAS, consultez les logements réellement disponibles et avancez vers la visite lorsque le bien correspond à votre recherche.</p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row"><Button size="lg" onClick={() => router.goProjects()} className="min-h-12 bg-[#d9b16e] text-[#17232a] hover:bg-[#e4bd7c]">Explorer les projets <ArrowRight className="ml-2 size-4" /></Button><button type="button" onClick={openWhatsApp} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-white/25 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10">Parler à un conseiller <MessageCircle className="size-4" /></button></div>
+            <div className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/70">{['Projets réels', 'Informations vérifiables', 'Accompagnement humain'].map((x) => <span key={x} className="inline-flex items-center gap-2"><Check className="size-3.5 text-[#d9b16e]" />{x}</span>)}</div>
           </div>
         </div>
       </section>
 
-      {/* FINAL CONVERSION — one dominant action + low-friction alternatives */}
-      <section className="px-4 pb-16 sm:pb-20">
-        <div className="mx-auto max-w-6xl overflow-hidden rounded-2xl bg-forest text-white">
-          <div className="grid gap-8 p-7 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center lg:p-12">
-            <div className="max-w-2xl">
-              <Landmark className="mb-4 size-8 text-gold" aria-hidden="true" />
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/60">Conseil personnalisé</p>
-              <h2 className="mt-2 text-balance text-2xl font-bold tracking-tight sm:text-3xl">
-                Vous avez identifié un projet intéressant ? Passons à l'étape suivante.
-              </h2>
-              <p className="mt-3 text-base leading-7 text-white/75">
-                Indiquez simplement ce que vous recherchez. Un conseiller ASAS peut vous aider à vérifier les possibilités disponibles et à organiser la suite.
-              </p>
-            </div>
-            <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto lg:flex-col">
-              <Button
-                size="lg"
-                className="w-full bg-white text-forest hover:bg-white/90 sm:w-auto"
-                onClick={() => router.goContact()}
-              >
-                Parler à un conseiller
-                <ArrowRight className="ml-2 size-4" />
-              </Button>
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  className="border-white/25 bg-transparent text-white hover:bg-white/10"
-                  onClick={() => openWhatsApp('Bonjour ASAS, je souhaite être accompagné dans ma recherche immobilière.')}
-                >
-                  <MessageCircle className="mr-2 size-4" />
-                  WhatsApp
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-white/25 bg-transparent text-white hover:bg-white/10"
-                  onClick={() => window.location.href = `tel:${ASAS.phone}`}
-                >
-                  <Phone className="mr-2 size-4" />
-                  Appeler
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <section className="bg-white px-5 py-5 sm:px-8 lg:px-10"><div className="mx-auto grid max-w-[1440px] grid-cols-2 overflow-hidden rounded-xl border border-[#e5e1d7] sm:grid-cols-4">{[['Projets', isLoading ? '—' : projects?.length ?? 0, Landmark], ['Appartements', isLoading ? '—' : apartments, Home], ['Disponibilités', isLoading ? '—' : available, Search], ['Accompagnement', 'Sur mesure', ShieldCheck]].map(([label, value, Icon]) => <div key={String(label)} className="min-h-[108px] border-b border-[#ebe8df] px-5 py-5 sm:border-b-0 sm:border-r last:border-r-0"><Icon className="size-5 text-[#17232a]" /><p className="mt-3 text-[10px] font-semibold uppercase tracking-[.14em] text-[#85877f]">{label}</p><p className="mt-1 text-lg font-semibold text-[#17232a]">{value}</p></div>)}</div></section>
+
+      <section className="bg-white px-5 py-12 sm:px-8 sm:py-16 lg:px-10"><div className="mx-auto max-w-[1440px]"><div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[11px] font-semibold uppercase tracking-[.17em] text-[#6c806f]">Sélection ASAS</p><h2 className="mt-2 font-semibold text-3xl tracking-[-.03em] sm:text-4xl">Des projets à découvrir.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-[#777a72]">Commencez par les programmes actuellement commercialisés et ouvrez leur fiche pour vérifier les disponibilités.</p></div><Button variant="outline" onClick={() => router.goProjects()} className="min-h-11 border-[#cfc7b8] bg-white">Voir tous les projets <ArrowRight className="ml-2 size-4" /></Button></div>{isLoading ? <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{[0,1,2].map((i) => <ProjectCardSkeleton key={i} />)}</div> : isError ? <div className="rounded-xl border border-[#e5e1d7] bg-[#f8f7f2] p-8 text-center"><p className="font-semibold">Les projets ne peuvent pas être chargés pour le moment.</p><Button variant="outline" className="mt-5" onClick={() => void refetch()}><RefreshCw className="mr-2 size-4" />Réessayer</Button></div> : displayedProjects.length ? <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{displayedProjects.slice(0,6).map((project) => <ProjectCard key={project.id} project={project} />)}</div> : <div className="rounded-xl border border-dashed border-[#d9d4c9] p-10 text-center text-sm text-[#777a72]">Aucun projet publié pour le moment.</div>}</div></section>
+
+      <section className="bg-[#f8f7f2] px-5 py-12 sm:px-8 sm:py-16 lg:px-10"><div className="mx-auto grid max-w-[1440px] gap-10 lg:grid-cols-[1fr_1fr] lg:items-center"><div><p className="text-[11px] font-semibold uppercase tracking-[.17em] text-[#6c806f]">Pourquoi ASAS</p><h2 className="mt-2 max-w-xl font-semibold text-3xl tracking-[-.03em] sm:text-4xl">Moins de bruit. Plus d’informations utiles à la décision.</h2><p className="mt-5 max-w-xl text-sm leading-7 text-[#666a63] sm:text-base">Nous structurons la présentation des projets autour de ce qui permet réellement d’avancer : localisation, caractéristiques, plans, disponibilités et échange direct avec un conseiller.</p><div className="mt-8 grid gap-5 sm:grid-cols-3">{[['01','Explorez','Les projets commercialisés.'],['02','Vérifiez','Les informations du logement.'],['03','Avancez','Vers la visite et l’échange.']].map(([n,t,d]) => <div key={n} className="border-t border-[#d9d5ca] pt-4"><span className="text-xs font-semibold text-[#b9975b]">{n}</span><h3 className="mt-2 text-base font-semibold">{t}</h3><p className="mt-1 text-xs leading-5 text-[#777a72]">{d}</p></div>)}</div></div>{heroProject?.image?.url ? <div className="overflow-hidden rounded-xl"><img src={heroProject.image.url} alt={heroProject.name} className="aspect-[4/3] h-full w-full object-cover" loading="lazy" /></div> : <div className="flex aspect-[4/3] items-center justify-center rounded-xl border border-[#e5e1d7] bg-white text-sm text-[#777a72]">Visuels à venir</div>}</div></section>
+
+      <section className="bg-white px-5 py-12 sm:px-8 sm:py-16 lg:px-10"><div className="mx-auto grid max-w-[1440px] overflow-hidden rounded-2xl bg-[#17232a] text-white lg:grid-cols-[1fr_1fr]"><div className="relative min-h-[360px]">{heroProject?.image?.url && <img src={heroProject.image.url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-35" loading="lazy" />}<div className="absolute inset-0 bg-[#17232a]/65" /><div className="relative flex h-full flex-col justify-center p-7 sm:p-10"><p className="text-[11px] font-semibold uppercase tracking-[.17em] text-[#d9b16e]">Conseil immobilier</p><h2 className="mt-3 max-w-xl font-semibold text-3xl tracking-[-.03em]">Vous avez un projet immobilier ?</h2><p className="mt-4 max-w-xl text-sm leading-6 text-white/70">Parlez-nous de votre recherche. Nous vous aidons à identifier les informations utiles et la prochaine étape.</p><div className="mt-7 flex flex-col gap-3 sm:flex-row"><Button onClick={() => router.goContact()} className="min-h-11 bg-[#d9b16e] text-[#17232a] hover:bg-[#e4bd7c]">Parler à un conseiller <ArrowRight className="ml-2 size-4" /></Button><button type="button" onClick={openWhatsApp} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-white/20 px-5 text-sm font-semibold">WhatsApp <MessageCircle className="size-4" /></button></div></div></div><div className="flex flex-col justify-center bg-white p-7 text-[#17232a] sm:p-10"><p className="text-[11px] font-semibold uppercase tracking-[.17em] text-[#6c806f]">Prochaine étape</p><h3 className="mt-3 text-2xl font-semibold">Une question précise ?</h3><p className="mt-3 text-sm leading-6 text-[#777a72]">Contactez directement ASAS pour vérifier un logement, demander un plan ou organiser une visite.</p><div className="mt-6 grid gap-3"><a href={getWhatsAppUrl('Bonjour ASAS, je souhaite obtenir des informations sur vos projets immobiliers.')} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-[#d9d4c9] bg-[#f8f7f2] px-4 text-sm font-semibold">WhatsApp <MessageCircle className="size-4" /></a><a href={`tel:${ASAS.phone}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-[#d9d4c9] px-4 text-sm font-semibold">Appeler <Phone className="size-4" /></a></div></div></div></section>
     </main>
   );
 }
