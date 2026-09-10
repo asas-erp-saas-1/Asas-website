@@ -346,3 +346,8 @@ CI Run #699 for `6145948ad795976539680215868ab702fef379a9` failed at Typecheck b
 ## 2026-09-10 Typecheck root-cause checkpoint
 
 CI Run #703 exposed the exact failure: `AdminApartmentsWorkspace.tsx` passed four boolean completeness fields into `OperationalSignal[]`, which requires signal literals. Commit `bb902295c311601d9b08190f5775472dfe1eb159` maps each boolean deterministically to `complete`/`incomplete`. This is the minimal type-correct fix; no domain semantics were changed. Verification pending CI.
+
+
+## 2026-09-10 Project search synchronization hardening
+
+Commit `0dc50e8cd75481f0583111017ccec9c8306c9c07` removes per-keystroke URL synchronization from the Project workspace. Search remains local while typing, then after 300ms the normalized query is written to the canonical admin route with `replace` navigation and the debounced server query follows. This mirrors the Apartment workspace request/URL contract and avoids history/request churn. CI verification pending.
