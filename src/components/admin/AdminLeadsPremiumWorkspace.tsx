@@ -89,6 +89,7 @@ export function AdminLeadsPremiumWorkspace() {
   const [status, setStatus] = useState(() => getAdminRoute().filters.status ?? 'all');
   const [intent, setIntent] = useState(() => getAdminRoute().filters.intent ?? 'all');
   const [source, setSource] = useState(() => getAdminRoute().filters.source ?? '');
+  const [debouncedSource, setDebouncedSource] = useState(() => getAdminRoute().filters.source ?? '');
   const [page, setPage] = useState(() => getAdminRoute().page ?? 1);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -120,6 +121,7 @@ export function AdminLeadsPremiumWorkspace() {
       setStatus(next.filters.status ?? 'all');
       setIntent(next.filters.intent ?? 'all');
       setSource(next.filters.source ?? '');
+      setDebouncedSource(next.filters.source ?? '');
       setPage(next.page ?? 1);
     });
   }, []);
@@ -133,13 +135,24 @@ export function AdminLeadsPremiumWorkspace() {
       }
     }, 300);
     return () => window.clearTimeout(timer);
-  }, [search, status, intent, source]);
+  }, [search]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const normalized = source.trim();
+      setDebouncedSource(normalized);
+      if (normalized !== (getAdminRoute().filters.source ?? '')) {
+        navigateAdminRoute({ workspace: 'leads', filters: { source: normalized || undefined }, page: 1 }, 'replace');
+      }
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [source]);
 
   useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams({ page: String(page), limit: '20' });
     const query = debouncedSearch.trim();
-    const sourceQuery = source.trim();
+    const sourceQuery = debouncedSource.trim();
     if (query) params.set('search', query);
     if (status !== 'all') params.set('status', status);
     if (intent !== 'all') params.set('intent', intent);
@@ -162,7 +175,7 @@ export function AdminLeadsPremiumWorkspace() {
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [page, debouncedSearch, status, intent, source, retryKey]);
+  }, [page, debouncedSearch, status, intent, debouncedSource, retryKey]);
 
   useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
   useEffect(() => { if (page > meta.totalPages) setPage(Math.max(1, meta.totalPages)); }, [meta.totalPages, page]);
@@ -287,7 +300,7 @@ export function AdminLeadsPremiumWorkspace() {
           <label className="space-y-1.5 text-sm font-medium lg:col-span-2"><span>Recherche</span><Input value={search} onChange={(event) => { setSearch(event.target.value); resetPage(); }} placeholder="Nom, téléphone, email, projet…" aria-describedby="lead-search-help" /><span id="lead-search-help" className="text-xs font-normal text-muted-foreground">Recherche serveur après stabilisation de la saisie.</span></label>
           <label className="space-y-1.5 text-sm font-medium"><span>Statut</span><select value={status} onChange={(event) => { setStatus(event.target.value); resetPage(); syncRoute({ status: event.target.value, page: 1 }); }} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="all">Tous les statuts</option>{STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label className="space-y-1.5 text-sm font-medium"><span>Intention</span><select value={intent} onChange={(event) => { setIntent(event.target.value); resetPage(); syncRoute({ intent: event.target.value, page: 1 }); }} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="all">Toutes</option>{INTENT_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <label className="space-y-1.5 text-sm font-medium"><span>Source</span><Input value={source} onChange={(event) => { setSource(event.target.value); resetPage(); syncRoute({ source: event.target.value, page: 1 }); }} placeholder="Facebook, Google…" /></label>
+          <label className="space-y-1.5 text-sm font-medium"><span>Source</span><Input value={source} onChange={(event) => { setSource(event.target.value); resetPage(); }} placeholder="Facebook, Google…" /></label>
         </div></CardContent></Card>
 
         <div aria-live="polite" className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground"><span>{meta.total > 0 ? `${firstResult.toLocaleString('fr-FR')}–${lastResult.toLocaleString('fr-FR')} sur ${meta.total.toLocaleString('fr-FR')} lead${meta.total > 1 ? 's' : ''}` : '0 lead'}</span>{loading && <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Chargement…</span>}</div>
