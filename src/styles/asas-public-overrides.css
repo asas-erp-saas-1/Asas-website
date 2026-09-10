@@ -1,0 +1,46 @@
+.site-experience-public {
+  --background: #f8f7f2;
+  --foreground: #17232a;
+  --card: #ffffff;
+  --card-foreground: #17232a;
+  --popover: #ffffff;
+  --popover-foreground: #17232a;
+  --primary: #17232a;
+  --primary-foreground: #ffffff;
+  --secondary: #f1efe9;
+  --secondary-foreground: #17232a;
+  --muted: #f1efe9;
+  --muted-foreground: #777a72;
+  --accent: #eee4d1;
+  --accent-foreground: #17232a;
+  --border: #e5e1d7;
+  --input: #d9d7d0;
+  --ring: #b9975b;
+  --forest: #183c31;
+  --forest-light: #6c806f;
+  --forest-dark: #102d24;
+  --ivory: #f8f7f2;
+  --charcoal: #17232a;
+  --sand: #e9e4d8;
+  --gold: #b9975b;
+  color-scheme: light;
+}
+
+.site-experience-public .text-primary,
+.site-experience-public .text-foreground { color: #17232a; }
+.site-experience-public .bg-background { background-color: #f8f7f2; }
+.site-experience-public .bg-card { background-color: #fff; }
+.site-experience-public .bg-primary { background-color: #17232a; }
+.site-experience-public .text-primary-foreground { color: #fff; }
+.site-experience-public .border-border { border-color: #e5e1d7; }
+.site-experience-public .text-muted-foreground { color: #777a72; }
+
+/* Remove the old SaaS visual language from public surfaces. */
+.site-experience-public .hero-dot-grid,
+.site-experience-public .forest-glow,
+.site-experience-public .gradient-text-forest { animation: none; }
+.site-experience-public .forest-glow { box-shadow: 0 12px 34px rgba(16,24,32,.08); }
+
+@media (max-width: 760px) {
+  .site-experience-public main { padding-bottom: 0; }
+}
