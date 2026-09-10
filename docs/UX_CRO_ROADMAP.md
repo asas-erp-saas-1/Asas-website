@@ -1,10 +1,10 @@
 # ASAS UX / CRO Roadmap
 
-**Version:** 1.2
+**Version:** 1.3
 **Date:** 2026-09-10
 **Current phase:** Phase 3 — Sales Experience & Conversion System
 **Current branch:** `fix/responsive-viewport-hardening`
-**Latest implementation checkpoint:** `82345a341fc8d0f9fc8f7223b3b805f3703be5d3`
+**Latest implementation checkpoint:** `1a7fc493aaa1f29e24cd5577b9a113ff18193729`
 
 ## Execution ledger
 
@@ -46,7 +46,7 @@ Target structure:
 7. Human consultation / visit.
 8. Alternatives.
 
-Latest implementation checkpoint:
+Latest implementation checkpoints:
 
 - Shared mobile project CTA was corrected so **«Voir les disponibilités»** now targets the existing `#apartments` inventory section when that section exists, instead of promising availability and immediately opening generic contact.
 - The CTA keeps the existing contact fallback for apartment/general contexts and when project inventory is unavailable.
@@ -56,13 +56,12 @@ Latest implementation checkpoint:
 Remaining project-detail checks:
 
 - verify/remove the duplicate dead fullscreen overlay in `ProjectDetailPage.tsx` if it is still present at the current branch head
-- bring any remaining hero action below 44px to the shared minimum
 - final CTA hierarchy consolidation
 - verify sticky CTA placement against compare bar and floating contact widget
 - remove unused imports/components where confirmed by lint
 
 ### 3.5 Apartment Decision Room
-**State:** NEXT execution target.
+**State:** ACTIVE.
 
 Target structure:
 
@@ -76,6 +75,21 @@ Target structure:
 8. relevant alternatives.
 
 Hard rule: do not create fake apartment imagery. The current lean apartment card DTO intentionally contains no images; apartment detail contains real apartment images.
+
+Latest implementation checkpoint:
+
+- Shared `Gallery` now provides keyboard navigation with ArrowLeft/ArrowRight and keyboard activation with Enter/Space, while preserving touch swipe and mouse controls.
+- The first gallery image is eagerly loaded with high fetch priority; subsequent images remain lazy-loaded. This supports the visual opening of an apartment decision page without eagerly loading the whole gallery.
+- The gallery's focus treatment and accessible label now make the image surface operable by keyboard users.
+- No apartment data, API contract, pricing logic or image source was changed.
+
+Next apartment-detail checks:
+
+- audit the exact hero CTA hierarchy and mobile sticky CTA against the page-level actions
+- verify price/price-on-request and availability are visually unambiguous
+- verify real gallery/floor-plan sequencing and action labels
+- verify financial/payment information is shown only when sourced from real data
+- verify relevant alternatives remain comparison-oriented and non-manipulative
 
 ### 3.6 Shared conversion system
 **State:** NEXT after detail surfaces.
