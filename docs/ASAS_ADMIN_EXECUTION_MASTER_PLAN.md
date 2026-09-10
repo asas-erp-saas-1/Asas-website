@@ -331,3 +331,8 @@ Verification boundary: Vercel deployment status is green, but no browser-session
 ## 2026-09-10 Stage 2 domain/UI consistency checkpoint
 
 CI Run #672 for `0f0db7d1b014d3f37580aa7ded393a737c4c0210` completed successfully and Vercel status was success. Logic review then found another operational-model violation: `AdminPage` computed Apartment completeness locally from ad-hoc fields and included `published` in the percentage, while the authoritative contract requires components to consume shared deterministic readiness/completeness and publication is a separate operational state. Commit `0285f07b49e729796968c4c46ba29288b4e49a0d` strengthens shared identity completeness with Project context; commit `60221c3fd417643928761a7856cedbbafd75def8` replaces the local list score with `evaluateApartmentOperationalCompleteness()` and excludes publication from the completeness score. New checkpoint verification is pending CI.
+
+
+## 2026-09-10 Apartment workspace consistency checkpoint
+
+The shared completeness contract was already used by the API and AdminPage list, but `AdminApartmentsWorkspace` still computed a separate readiness signal set from apartment fields and publication state. Commit `a1f811cab59d9a44e1c0130066298fcff8a6bdcb` converges the workspace onto `evaluateApartmentOperationalCompleteness()`, keeping publication separate from completeness and eliminating another UI-level domain definition. Verification pending CI.
