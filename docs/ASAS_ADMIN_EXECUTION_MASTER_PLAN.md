@@ -361,3 +361,8 @@ Commit `333eab6091664ac3db24bbb16ed1cd694b54aa66` aligns Building search with th
 ## 2026-09-10 Lead search synchronization hardening
 
 Commit `4e7ebac324112b9f1a904869070fb6cdf02fa3c7` aligns Lead search with the same canonical search lifecycle used by Apartment, Project, and Building: local typing, 300ms debounce, normalized query, replace URL synchronization, and existing cancellation-backed server fetching. Search no longer mutates the URL on every keystroke. CI verification pending.
+
+
+## 2026-09-10 Lead source filter lifecycle hardening
+
+Commit `db3eec8dcb82e691d322b7269be122f3f5ceee3f` separates the free-text Lead source filter from immediate categorical filters. Source now has a debounced server/URL boundary, preventing one request per keystroke while status/intent remain immediate. Route hydration initializes both source states. CI verification pending.
