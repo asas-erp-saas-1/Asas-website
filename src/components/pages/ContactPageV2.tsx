@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { LeadForm } from '@/components/shared/LeadForm';
 import { ASAS, getPhoneUrl, getWhatsAppUrl } from '@/lib/constants';
 
+const contactWhatsAppUrl = getWhatsAppUrl('Bonjour, je souhaite échanger avec ASAS au sujet de mon projet immobilier.');
+
 export default function ContactPageV2() {
   return (
     <main className="min-h-screen bg-ivory text-charcoal">
@@ -27,7 +29,7 @@ export default function ContactPageV2() {
 
       <section className="border-b border-border bg-white">
         <div className="mx-auto grid max-w-7xl gap-px px-5 sm:px-8 md:grid-cols-3 lg:px-12">
-          <a href={getWhatsAppUrl()} target="_blank" rel="noreferrer" className="group flex items-center gap-4 py-7 md:px-7 md:first:pl-0">
+          <a href={contactWhatsAppUrl} target="_blank" rel="noreferrer" className="group flex items-center gap-4 py-7 md:px-7 md:first:pl-0">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-forest/10 text-forest"><MessageCircle className="h-5 w-5" /></span>
             <span><span className="block text-sm font-semibold">WhatsApp</span><span className="mt-1 block text-xs text-muted-foreground">Échanger directement</span></span>
             <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
@@ -63,7 +65,7 @@ export default function ContactPageV2() {
       <section className="bg-forest text-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-7 px-5 py-16 sm:px-8 md:flex-row md:items-center md:justify-between lg:px-12">
           <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Besoin d’une réponse rapide ?</p><h2 className="mt-2 text-2xl font-semibold">Échangez directement avec ASAS.</h2></div>
-          <Button asChild className="h-12 bg-gold px-6 text-charcoal hover:bg-gold/90"><a href={getWhatsAppUrl()} target="_blank" rel="noreferrer"><MessageCircle className="mr-2 h-4 w-4" /> Ouvrir WhatsApp</a></Button>
+          <Button asChild className="h-12 bg-gold px-6 text-charcoal hover:bg-gold/90"><a href={contactWhatsAppUrl} target="_blank" rel="noreferrer"><MessageCircle className="mr-2 h-4 w-4" /> Ouvrir WhatsApp</a></Button>
         </div>
       </section>
     </main>
