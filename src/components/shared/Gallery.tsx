@@ -58,6 +58,19 @@ export function Gallery({ images: rawImages, alt = 'Image' }: GalleryProps) {
     setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
   }, [images.length]);
 
+  const handleGalleryKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev + 1) % images.length);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setLightboxOpen(true);
+    }
+  }, [images.length]);
+
   if (images.length === 0) {
     return <div className="flex aspect-video items-center justify-center rounded-lg bg-muted text-sm text-muted-foreground">Aucune image disponible</div>;
   }
@@ -68,13 +81,23 @@ export function Gallery({ images: rawImages, alt = 'Image' }: GalleryProps) {
   return (
     <div className="min-w-0 space-y-3">
       <div
-        className="group relative aspect-video cursor-zoom-in overflow-hidden rounded-lg bg-muted"
+        className="group relative aspect-video cursor-zoom-in overflow-hidden rounded-lg bg-muted outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2"
         onClick={() => setLightboxOpen(true)}
+        onKeyDown={handleGalleryKeyDown}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        tabIndex={0}
+        role="button"
+        aria-label={`${alt}, image ${activeIndex + 1} sur ${images.length}. Appuyez sur Entrée pour agrandir.`}
       >
-        <img src={currentImage.url} alt={currentAlt} className="h-full w-full object-cover transition-opacity duration-300" loading="lazy" />
+        <img
+          src={currentImage.url}
+          alt={currentAlt}
+          className="h-full w-full object-cover transition-opacity duration-300"
+          loading={activeIndex === 0 ? 'eager' : 'lazy'}
+          fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
+        />
 
         {images.length > 1 && (
           <>
