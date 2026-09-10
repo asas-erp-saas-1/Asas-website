@@ -231,17 +231,14 @@ export function AdminApartmentsWorkspace() {
   function refresh() { setRefreshing(true); setRetryKey((value) => value + 1); }
 
   const operationalReadiness = useMemo(() => apartments.map((apartment) => {
+    const completeness = evaluateApartmentOperationalCompleteness(apartment as unknown as Record<string, unknown>);
     const signals: OperationalSignal[] = [
-      apartment.apartmentNumber || apartment.unitNumber ? 'complete' : 'incomplete',
-      apartment.project?.id ? 'complete' : 'incomplete',
-      apartment.building?.id ? 'complete' : 'incomplete',
-      apartment.surface > 0 && apartment.apartmentType ? 'complete' : 'incomplete',
-      apartment.priceOnRequest || apartment.price != null ? 'complete' : 'incomplete',
-      apartment.status ? 'complete' : 'incomplete',
-      apartment.heroImage ? 'complete' : 'unknown',
-      apartment.published ? 'complete' : 'unknown',
+      completeness.identity,
+      completeness.physical,
+      completeness.commercial,
+      completeness.media,
     ];
-    return { id: apartment.id, ...evaluateOperationalSignals(signals) };
+    return { id: apartment.id, ...completeness, ...evaluateOperationalSignals(signals) };
   }), [apartments]);
 
   const hasFilters = projectSlug !== 'all' || buildingId !== 'all' || status !== 'all' || type !== 'all' || search.trim() !== '';
