@@ -356,3 +356,8 @@ Commit `0dc50e8cd75481f0583111017ccec9c8306c9c07` removes per-keystroke URL sync
 ## 2026-09-10 Building search synchronization hardening
 
 Commit `333eab6091664ac3db24bbb16ed1cd694b54aa66` aligns Building search with the canonical search lifecycle: local typing, 300ms debounce, normalized query, replace URL synchronization, and existing AbortController-backed fetch cancellation. The Project and Apartment workspaces now share the same search contract. CI verification pending.
+
+
+## 2026-09-10 Lead search synchronization hardening
+
+Commit `4e7ebac324112b9f1a904869070fb6cdf02fa3c7` aligns Lead search with the same canonical search lifecycle used by Apartment, Project, and Building: local typing, 300ms debounce, normalized query, replace URL synchronization, and existing cancellation-backed server fetching. Search no longer mutates the URL on every keystroke. CI verification pending.
