@@ -4260,8 +4260,8 @@ export default function AdminPage() {
             projects={projects}
             apartments={apartments}
             onNavigate={navigateAdmin}
-            onCreateProject={() => setShowCreateProject(true)}
-            onCreateApartment={() => setShowCreateApartment(true)}
+            onCreateProject={() => navigateAdmin('projects', { subview: 'create' })}
+            onCreateApartment={() => navigateAdmin('apartments', { subview: 'create' })}
           />
         )}
         {activeTab === 'projects' && <AdminProjectsWorkspace />}
@@ -4278,35 +4278,6 @@ export default function AdminPage() {
         {activeTab === 'settings' && <SettingsTab />}
       </main>
 
-      {/* Dialogs */}
-      {editProject && (
-        <Dialog open={!!editProject} onOpenChange={() => setEditProject(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader><DialogTitle>Modifier: {editProject.name}</DialogTitle></DialogHeader>
-            <ProjectEditForm project={editProject} onClose={() => setEditProject(null)} />
-          </DialogContent>
-        </Dialog>
-      )}
-      <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Nouveau Projet</DialogTitle></DialogHeader>
-          <ProjectCreateForm onClose={() => setShowCreateProject(false)} />
-        </DialogContent>
-      </Dialog>
-      {editApartment && (
-        <Dialog open={!!editApartment} onOpenChange={() => setEditApartment(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader><DialogTitle>Modifier: {editApartment.unitNumber ?? editApartment.typeName}</DialogTitle></DialogHeader>
-            <ApartmentEditForm apartment={editApartment} onClose={() => setEditApartment(null)} />
-          </DialogContent>
-        </Dialog>
-      )}
-      <Dialog open={showCreateApartment} onOpenChange={setShowCreateApartment}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Nouvel Appartement</DialogTitle></DialogHeader>
-          <ApartmentCreateForm projects={projects} onClose={() => setShowCreateApartment(false)} />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
