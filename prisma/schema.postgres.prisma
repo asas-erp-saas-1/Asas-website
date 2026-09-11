@@ -28,7 +28,7 @@ model Project {
   latitude Float?
   longitude Float?
   projectType String? @default("RESIDENTIAL") @map("project_type")
-  status String @default("active")
+  status String @default("DRAFT")
   featured Boolean @default(false)
   startingPrice Decimal? @map("starting_price")
   deliveryDate DateTime? @map("delivery_date") @db.Date
@@ -116,7 +116,7 @@ model Apartment {
   terraceSurface Int? @map("terrace_surface")
   hasGarden Boolean @default(false) @map("has_garden")
   gardenSurface Int? @map("garden_surface")
-  status String @default("available")
+  status String @default("AVAILABLE")
   price Decimal?
   priceOnRequest Boolean? @default(false) @map("price_on_request")
   paymentPlan String? @map("payment_plan")
@@ -183,7 +183,7 @@ model ApartmentImage {
   alt String?
   altAr String? @map("alt_ar")
   caption String?
-  captionAr String? @map("caption_ar")
+  captionAr String?
   type String @default("gallery")
   order Int @default(0) @map("sort_order")
   width Int?
@@ -215,7 +215,7 @@ model ProjectAmenity {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   projectId String @map("project_id") @db.Uuid
   name String
-  nameAr String? @map("name_ar")
+  nameAr String?
   icon String?
   description String? @db.Text
   descriptionAr String? @map("description_ar") @db.Text
@@ -249,7 +249,7 @@ model Lead {
   fbclid String?
   referrer String?
   source String?
-  status String @default("new")
+  status String @default("NEW")
   assignedTo String? @map("assigned_to")
   followUpDate DateTime? @map("follow_up_date")
   createdAt DateTime @default(now()) @map("created_at")
