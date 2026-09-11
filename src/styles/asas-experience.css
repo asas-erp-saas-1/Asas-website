@@ -19,11 +19,8 @@
   font-family: var(--font-geist-sans), Arial, sans-serif;
 }
 
-.site-experience-public main {
-  background: var(--asas-ivory);
-}
+.site-experience-public main { background: var(--asas-ivory); }
 
-/* Global navigation: quiet, editorial, property-led */
 .asas-header {
   position: sticky;
   top: 0;
@@ -49,100 +46,50 @@
 .asas-logo-copy { display: flex; flex-direction: column; align-items: flex-start; line-height: 1; }
 .asas-logo-copy strong { font-family: Georgia, 'Times New Roman', serif; font-size: 22px; font-weight: 500; letter-spacing: -.02em; }
 .asas-logo-copy small { margin-top: 4px; font-size: 7px; letter-spacing: .28em; color: #8b8f91; }
-.asas-desktop-nav { display: flex; align-items: center; justify-content: center; gap: 2px; flex: 1; }
+.asas-desktop-nav { display: flex; align-items: center; justify-content: center; gap: 2px; flex: 1; min-width: 0; }
 .asas-desktop-nav button {
-  position: relative; border: 0; background: transparent; color: #4e575f; padding: 26px 12px 23px;
+  position: relative; border: 0; background: transparent; color: #4e575f; padding: 26px 10px 23px;
   font-size: 11px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: color .2s ease;
 }
 .asas-desktop-nav button::after { content: ''; position: absolute; left: 50%; bottom: 14px; width: 0; height: 1px; background: var(--asas-gold); transform: translateX(-50%); transition: width .2s ease; }
 .asas-desktop-nav button:hover, .asas-desktop-nav button.is-active { color: var(--asas-charcoal); }
 .asas-desktop-nav button:hover::after, .asas-desktop-nav button.is-active::after { width: 22px; }
-.asas-header-actions { display: flex; align-items: center; gap: 9px; }
-.asas-icon-button { position: relative; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--asas-charcoal); cursor: pointer; border-radius: 50%; transition: background .2s ease, color .2s ease; }
+.asas-header-actions { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.asas-icon-button { position: relative; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--asas-charcoal); cursor: pointer; border-radius: 50%; transition: background .2s ease, color .2s ease; }
 .asas-icon-button:hover { background: var(--asas-ivory); color: var(--asas-green); }
-.asas-favorite-button span { position: absolute; top: 1px; right: 0; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 999px; background: var(--asas-gold); color: white; font-size: 9px; line-height: 15px; }
+.asas-favorite-button span { position: absolute; top: 2px; right: 1px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 999px; background: var(--asas-gold); color: white; font-size: 9px; line-height: 15px; }
 .asas-contact-button, .asas-mobile-cta {
-  min-height: 40px; padding: 0 18px; border: 0; border-radius: 5px; background: var(--asas-charcoal); color: white;
+  min-height: 44px; padding: 0 18px; border: 0; border-radius: 5px; background: var(--asas-charcoal); color: white;
   display: inline-flex; align-items: center; justify-content: center; gap: 9px; font-size: 11px; font-weight: 600; cursor: pointer; transition: transform .2s ease, background .2s ease;
 }
 .asas-contact-button:hover, .asas-mobile-cta:hover { background: var(--asas-green); transform: translateY(-1px); }
-.asas-mobile-menu-button { display: none; width: 40px; height: 40px; border: 0; background: transparent; }
+.asas-mobile-menu-button { display: none; width: 44px; height: 44px; border: 0; background: transparent; }
 .asas-mobile-panel { display: none; }
 
-/* Common public-page rhythm */
 .site-experience-public section { border-color: var(--asas-line); }
-.site-experience-public h1, .site-experience-public h2, .site-experience-public h3 {
-  letter-spacing: -.025em;
-}
-.site-experience-public h1 {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-weight: 500;
-}
+.site-experience-public h1, .site-experience-public h2, .site-experience-public h3 { letter-spacing: -.025em; }
+.site-experience-public h1 { font-family: Georgia, 'Times New Roman', serif; font-weight: 500; }
 .site-experience-public h2, .site-experience-public h3 { font-weight: 600; }
-.site-experience-public input, .site-experience-public select, .site-experience-public textarea {
-  border-radius: var(--asas-radius);
-  border-color: #d9d7d0;
-  background: rgba(255,255,255,.86);
-}
+.site-experience-public input, .site-experience-public select, .site-experience-public textarea { border-radius: var(--asas-radius); border-color: #d9d7d0; background: rgba(255,255,255,.86); }
 .site-experience-public button { -webkit-tap-highlight-color: transparent; }
 .site-experience-public a { text-underline-offset: 3px; }
-
-/* Turn generic public cards into restrained editorial property cards */
-.site-experience-public .rounded-xl,
-.site-experience-public .rounded-2xl,
-.site-experience-public .rounded-lg {
-  border-radius: var(--asas-radius);
-}
+.site-experience-public .rounded-xl, .site-experience-public .rounded-2xl, .site-experience-public .rounded-lg { border-radius: var(--asas-radius); }
 .site-experience-public .card-glow:hover { box-shadow: 0 14px 38px rgba(16,24,32,.09); }
 .site-experience-public .shadow-lg, .site-experience-public .shadow-xl { box-shadow: 0 18px 48px rgba(16,24,32,.10); }
-
-/* Primary action language: charcoal first, gold for purchase/availability actions */
-.site-experience-public .asas-primary,
-.site-experience-public .bg-gold { background: var(--asas-gold); color: white; }
-.site-experience-public .asas-primary:hover,
-.site-experience-public .hover\:bg-gold:hover { background: #a58650; }
+.site-experience-public .asas-primary, .site-experience-public .bg-gold { background: var(--asas-gold); color: white; }
+.site-experience-public .asas-primary:hover, .site-experience-public .hover\\:bg-gold:hover { background: #a58650; }
 .site-experience-public .asas-secondary { border: 1px solid #c9c6bd; background: transparent; color: var(--asas-charcoal); }
 
-/* Project/catalog pages: same visual room as detail pages */
-.site-route-projects main > section:first-child,
-.site-route-services main > section:first-child,
-.site-route-about main > section:first-child,
-.site-route-for-developers main > section:first-child,
-.site-route-contact main > section:first-child,
-.site-route-insights main > section:first-child {
-  background: var(--asas-ivory) !important;
-  border-bottom: 0 !important;
-}
-.site-route-projects main > section:first-child h1,
-.site-route-services main > section:first-child h1,
-.site-route-about main > section:first-child h1,
-.site-route-for-developers main > section:first-child h1,
-.site-route-contact main > section:first-child h1,
-.site-route-insights main > section:first-child h1 {
-  font-size: clamp(38px, 5vw, 64px);
-}
-.site-route-projects main > section,
-.site-route-services main > section,
-.site-route-about main > section,
-.site-route-for-developers main > section,
-.site-route-contact main > section,
-.site-route-insights main > section {
-  border-bottom: 1px solid var(--asas-line);
-}
-
-/* Catalog controls */
-.site-route-projects .bg-muted\/30 { background: #f1f0eb !important; }
+.site-route-projects main > section:first-child, .site-route-services main > section:first-child, .site-route-about main > section:first-child, .site-route-for-developers main > section:first-child, .site-route-contact main > section:first-child, .site-route-insights main > section:first-child { background: var(--asas-ivory) !important; border-bottom: 0 !important; }
+.site-route-projects main > section:first-child h1, .site-route-services main > section:first-child h1, .site-route-about main > section:first-child h1, .site-route-for-developers main > section:first-child h1, .site-route-contact main > section:first-child h1, .site-route-insights main > section:first-child h1 { font-size: clamp(38px, 5vw, 64px); }
+.site-route-projects main > section, .site-route-services main > section, .site-route-about main > section, .site-route-for-developers main > section, .site-route-contact main > section, .site-route-insights main > section { border-bottom: 1px solid var(--asas-line); }
+.site-route-projects .bg-muted\\/30 { background: #f1f0eb !important; }
 .site-route-projects .border-border { border-color: var(--asas-line) !important; }
 .site-route-projects .bg-forest { background: var(--asas-charcoal) !important; }
 .site-route-projects .text-forest { color: var(--asas-green) !important; }
-
-/* Public forms: quiet luxury, not SaaS */
-.site-experience-public form input,
-.site-experience-public form textarea,
-.site-experience-public form select { min-height: 44px; }
+.site-experience-public form input, .site-experience-public form textarea, .site-experience-public form select { min-height: 44px; }
 .site-experience-public form button[type='submit'] { min-height: 46px; border-radius: 4px; }
 
-/* Footer */
 .asas-footer { background: var(--asas-charcoal); color: #fff; border-top: 1px solid rgba(185,151,91,.28); }
 .asas-footer-main { width: min(var(--asas-container), calc(100% - 48px)); margin: 0 auto; padding: 34px 0 28px; display: grid; grid-template-columns: 220px 1fr auto; align-items: center; gap: 30px; }
 .asas-footer-brand { display: inline-flex; align-items: center; gap: 10px; color: #fff; text-align: left; }
@@ -157,14 +104,11 @@
 .asas-footer-socials a:hover { color: var(--asas-gold); border-color: rgba(185,151,91,.6); }
 .asas-footer-bottom { width: min(var(--asas-container), calc(100% - 48px)); margin: 0 auto; border-top: 1px solid rgba(255,255,255,.08); padding: 16px 0 20px; display: flex; justify-content: space-between; gap: 20px; color: #7f898d; font-size: 9px; }
 .asas-footer-bottom div { display: flex; gap: 18px; }
-
-/* Keep the detail pages dominant: their own V5 styles win, while shell stays identical. */
 .site-route-project main, .site-route-apartment main { background: var(--asas-ivory); }
 
-@media (max-width: 980px) {
-  .asas-desktop-nav { gap: 0; }
-  .asas-desktop-nav button { padding-inline: 8px; font-size: 10px; }
-  .asas-header-inner { width: min(var(--asas-container), calc(100% - 32px)); }
+@media (max-width: 1080px) {
+  .asas-desktop-nav button { padding-inline: 7px; font-size: 10px; }
+  .asas-header-inner { width: min(var(--asas-container), calc(100% - 32px)); gap: 16px; }
   .asas-contact-button { padding-inline: 13px; }
 }
 
@@ -175,7 +119,7 @@
   .asas-header-actions { margin-left: auto; }
   .asas-contact-button { display: none; }
   .asas-mobile-menu-button { display: inline-flex; align-items: center; justify-content: center; color: var(--asas-charcoal); cursor: pointer; }
-  .asas-mobile-panel { position: fixed; inset: 64px 0 0; z-index: 79; display: flex; flex-direction: column; padding: 18px 20px max(24px, env(safe-area-inset-bottom)); background: rgba(248,247,242,.98); backdrop-filter: blur(16px); border-top: 1px solid var(--asas-line); }
+  .asas-mobile-panel { position: fixed; inset: 64px 0 0; z-index: 79; display: flex; flex-direction: column; padding: 18px 20px max(24px, env(safe-area-inset-bottom)); background: rgba(248,247,242,.98); backdrop-filter: blur(16px); border-top: 1px solid var(--asas-line); overflow-y: auto; overscroll-behavior: contain; }
   .asas-mobile-panel nav { display: flex; flex-direction: column; }
   .asas-mobile-panel nav button { min-height: 54px; padding: 0 2px; display: flex; align-items: center; justify-content: space-between; border: 0; border-bottom: 1px solid var(--asas-line); background: transparent; color: var(--asas-charcoal); font-family: Georgia, serif; font-size: 21px; text-align: left; cursor: pointer; }
   .asas-mobile-panel nav button.is-active { color: var(--asas-gold); }
