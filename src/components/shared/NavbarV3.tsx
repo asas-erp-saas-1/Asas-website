@@ -45,8 +45,16 @@ export function NavbarV3() {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = '';
+    };
   }, [open]);
 
   const go = (page: (typeof NAV)[number]['page']) => {
@@ -82,13 +90,13 @@ export function NavbarV3() {
               {isClient && favoritesCount > 0 && <span>{favoritesCount > 9 ? '9+' : favoritesCount}</span>}
             </button>
             <button className="asas-contact-button" onClick={() => go('contact')}>Nous contacter <ArrowRight size={14} /></button>
-            <button className="asas-mobile-menu-button" onClick={() => setOpen((v) => !v)} aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'} aria-expanded={open}>{open ? <X size={21} /> : <Menu size={21} />}</button>
+            <button className="asas-mobile-menu-button" onClick={() => setOpen((v) => !v)} aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'} aria-expanded={open} aria-controls="asas-mobile-navigation">{open ? <X size={21} /> : <Menu size={21} />}</button>
           </div>
         </div>
       </header>
 
       {open && (
-        <div className="asas-mobile-panel">
+        <div id="asas-mobile-navigation" className="asas-mobile-panel" role="dialog" aria-modal="true" aria-label="Menu principal">
           <nav aria-label="Navigation mobile">
             {NAV.map((item) => <button key={item.page} onClick={() => go(item.page)} className={router.route.page === item.page ? 'is-active' : ''}>{item.label}<ArrowRight size={15} /></button>)}
           </nav>
