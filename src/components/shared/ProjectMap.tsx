@@ -256,6 +256,18 @@ const DynamicLeafletMap = dynamic(() => Promise.resolve(LeafletMap), {
 
 // ─── Exported component ─────────────────────────────────────────
 export function ProjectMap(props: ProjectMapProps) {
+  if (props.projects.length === 0) {
+    return (
+      <div
+        className={`rounded-xl border border-[#e5e1d7] bg-white p-8 text-center text-sm text-[#777a72] ${props.className ?? ''}`}
+        role="status"
+        aria-live="polite"
+      >
+        La carte sera disponible lorsque les coordonnées des projets seront publiées.
+      </div>
+    );
+  }
+
   return <DynamicLeafletMap {...props} />;
 }
 
