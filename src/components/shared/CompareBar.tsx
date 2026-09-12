@@ -54,12 +54,12 @@ export function CompareBar() {
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-40 transition-all duration-300 ${visible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}
+      className={`fixed inset-x-0 bottom-0 md:bottom-0 z-40 transition-all duration-300 ${visible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}
       role="region"
       aria-label="Barre de comparaison"
       aria-hidden={!visible}
     >
-      <div className="bg-background border-t-2 border-forest shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)] backdrop-blur-lg pb-[env(safe-area-inset-bottom)]">
+      <div className="bg-background border-t-2 border-forest shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.15)] backdrop-blur-lg pb-[env(safe-area-inset-bottom)] md:pb-0">
         <div className="max-w-7xl mx-auto px-[max(1rem,env(safe-area-inset-left))] sm:px-6 lg:px-8 py-3">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="hidden sm:flex items-center gap-2 shrink-0">
