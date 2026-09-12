@@ -1,10 +1,10 @@
 # ASAS UX / CRO Roadmap
 
-**Version:** 1.5
-**Date:** 2026-09-10
+**Version:** 1.6
+**Date:** 2026-09-12
 **Current phase:** Phase 3 — Sales Experience & Conversion System
 **Current branch:** `fix/responsive-viewport-hardening`
-**Latest implementation checkpoint:** `f13442dee6553fbfa3fcb1096501fdbf5da0bc33`
+**Latest implementation checkpoint:** `d2bcbbc297ddea32219348130cbd5036a1f8adbb`
 
 ## Execution ledger
 
@@ -45,7 +45,7 @@ Completed areas include viewport configuration, overflow containment, mobile nav
 Completed areas include ASAS semantic colors, status/availability treatments, button hierarchy, typography hierarchy, section headings and reduction of noisy legacy SaaS treatments.
 
 ### 3.3 Discovery / catalog
-**State:** ACTIVE — page-by-page audit in progress.
+**State:** ACTIVE — final page-level audit pending.
 
 Project discovery, search, filtering, sorting, map hierarchy and project/apartment entry points have been improved without changing catalog business logic.
 
@@ -89,71 +89,62 @@ Current known technical/UX debt to verify:
 - remove unused icon imports or other lint debt discovered by verification
 
 ### 3.6 Project Sales Room
-**State:** ACTIVE.
+**State:** IMPLEMENTED — final verification pending.
 
-Target structure:
+Current implementation uses the active Project Sales Room experience with:
 
-1. Hero: project, location, positioning, real starting price/price state, real availability and delivery.
-2. Trust/facts: concise verified proof.
-3. Project visual story.
-4. Inventory decision zone.
-5. Amenities and neighbourhood context.
-6. FAQ / risk reduction.
-7. Human consultation / visit.
-8. Alternatives.
+- editorial dark hero and verified project positioning
+- real price/availability/delivery states where data exists
+- real gallery/media only
+- inventory separated by actual availability versus coming-soon state
+- contextual primary actions and human-contact alternatives
+- real amenities/map/video/developer information only when sourced
+- final lead conversion block
 
-Latest implementation checkpoints:
+Important business-logic rule: `AVAILABLE` and `COMING_SOON` are distinct states. Coming-soon inventory must not be presented as immediately visitable or currently available.
 
-- Shared mobile project CTA targets the existing `#apartments` inventory section when that section exists.
-- Project gallery already provides functional fullscreen and keyboard controls; the remaining page-level duplicate fullscreen control is still identified as cleanup debt and must be removed at page level rather than duplicated elsewhere.
-- Project page remains the next major page-level conversion refactor: hero → proof → visual story → inventory → reassurance → human action.
-- No catalog/API/database contract was changed.
+Remaining verification debt:
+
+- remove any page-level duplicate fullscreen gallery control where the gallery already exposes that control
+- verify hero → proof → visual story → inventory → reassurance → human action sequencing at all target widths
+- verify no duplicate global/page CTA creates competing primary actions
 
 ### 3.7 Apartment Decision Room
-**State:** ACTIVE.
+**State:** IMPLEMENTED — final verification pending.
 
-Target structure:
+Current implementation uses the active Apartment Decision Room experience with:
 
-1. Strong real visual opening.
-2. Exact property identity and availability.
-3. Price / price-on-request clarity.
-4. Key decision facts.
-5. Gallery and floor plan.
-6. payment/financial information where real data exists.
-7. visit/contact action.
-8. relevant alternatives.
+- editorial dark hero
+- exact property identity, status, type, surface, floor and location where available
+- explicit price or price-on-request treatment
+- real apartment imagery only; neutral fallback when no real apartment media exists
+- decision facts, gallery, floor plans and other detail sections only when sourced
+- contextual status-aware lead actions
+- relevant available-apartment alternatives
 
-Hard rule: do not create fake apartment imagery. The current lean apartment card DTO intentionally contains no images; apartment detail contains real apartment images.
+Important business-logic rule: `AVAILABLE`, `COMING_SOON` and other statuses must not share the same visit CTA. The page-level action maps the lead intent to the real status; the global mobile action therefore uses a neutral information request rather than promising a visit for every apartment.
 
-Latest implementation checkpoints:
+**Bank-credit simulation is intentionally removed from the public sales journey.** No mortgage calculator/simulator should be reintroduced unless explicitly requested as a separate product decision.
 
-- Shared apartment gallery interaction is keyboard/touch safe and prioritizes only the first real visual.
-- Floor-plan guidance describes only supported controls: wheel/buttons for zoom and drag for panning.
-- Alternative apartment section explicitly frames itself as a comparison step, using only real available apartments from the public search contract.
-- No apartment data, API contract, pricing logic or image source was changed.
+Remaining verification debt:
 
-Next apartment-detail checks:
-
-- page-level hero CTA hierarchy and mobile sticky CTA deduplication
-- visual opening must prioritize real apartment media before secondary content
-- verify price/price-on-request and availability are visually unambiguous
+- verify price/status clarity and action hierarchy at all target widths
 - verify gallery/floor-plan sequencing and action labels
 - verify financial/payment information is shown only when sourced from real data
+- verify no page-level CTA competes with the global mobile action
 
 ### 3.8 Shared conversion system
-**State:** ACTIVE.
+**State:** ACTIVE — final deduplication/verification pending.
 
-Shared mobile conversion now follows contextual hierarchy:
+Shared mobile conversion follows contextual hierarchy:
 
-- project: primary action targets availability/inventory when available
-- apartment: primary action targets the lead/visit path
+- project: primary action targets availability/inventory when the inventory section exists
+- apartment: primary action requests information rather than promising a visit regardless of status
 - general: primary action targets advisor contact
 - WhatsApp and phone remain secondary/utility actions
-- compare mode suppresses the sticky CTA where the comparison action is the active decision context
+- comparison controls remain a separate decision utility and must not be described as suppressing the sticky CTA unless that suppression is actually implemented
 - desktop floating contact action opens the actual page lead form when present rather than routing unnecessarily
 - continuous breathing animation was removed from the desktop contact FAB
-
-Final page-level deduplication remains required after Project and Apartment refactors.
 
 ### 3.9 Trust and risk reduction
 **State:** PLANNED.
@@ -189,8 +180,8 @@ A page can move to **VERIFIED** only when:
 ## Release sequence
 
 1. Complete Projects / catalog page.
-2. Complete Project Detail / Sales Room.
-3. Complete Apartment Detail / Decision Room.
+2. Complete final verification of Project Detail / Sales Room.
+3. Complete final verification of Apartment Detail / Decision Room.
 4. Complete Services, About, For Developers and Contact.
 5. Complete Campaign Landing and legal/utility consistency.
 6. Finish shared trust/risk-reduction pass.
