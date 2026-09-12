@@ -7,9 +7,10 @@ import { navigateAdminRoute, subscribeToAdminRoute, getAdminRoute } from '@/lib/
 import { evaluateProjectOperationalCompleteness, evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import AdminProjectCreateWorkspace from '@/components/admin/AdminProjectCreateWorkspace';
 import AdminProjectDetailWorkspace from '@/components/admin/AdminProjectDetailWorkspace';
 
 interface Project { id: string; slug: string; name: string; city: string; district: string; projectType: string; status: string; published: boolean; featured: boolean; startingPrice?: number; priceOnRequest: boolean; deliveryYear?: number; deliveryQuarter?: string; apartmentCount: number; buildingCount?: number; heroImage: string | null; developer?: { id: string; name: string; slug: string }; order: number; }
@@ -38,6 +39,7 @@ export function AdminProjectsWorkspace() {
   const [status, setStatus] = useState(() => getAdminRoute().filters.status ?? 'all');
   const [page, setPage] = useState(() => getAdminRoute().page ?? 1);
   const [detailId, setDetailId] = useState<string | null>(() => getAdminRoute().entity === 'project' ? getAdminRoute().entityId ?? null : null);
+  const [subview, setSubview] = useState<string | null>(() => getAdminRoute().subview ?? null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
@@ -49,11 +51,13 @@ export function AdminProjectsWorkspace() {
   useEffect(() => subscribeToAdminRoute((next) => {
     setLoading(true);
     setError(null);
-    setSearch(next.search ?? ''); setDebouncedSearch(next.search ?? ''); setStatus(next.filters.status ?? 'all'); setPage(next.page ?? 1); setDetailId(next.entity === 'project' ? next.entityId ?? null : null);
+    setSearch(next.search ?? ''); setDebouncedSearch(next.search ?? ''); setStatus(next.filters.status ?? 'all'); setPage(next.page ?? 1);
+    setDetailId(next.entity === 'project' ? next.entityId ?? null : null);
+    setSubview(next.subview ?? null);
   }), []);
 
   useEffect(() => {
-    if (detailId) return;
+    if (detailId || subview === 'create') return;
     const controller = new AbortController();
     const params = new URLSearchParams({ page: String(page), limit: '20' });
     if (debouncedSearch) params.set('search', debouncedSearch);
@@ -64,7 +68,7 @@ export function AdminProjectsWorkspace() {
       .catch((err: unknown) => { if (err instanceof DOMException && err.name === 'AbortError') return; setProjects([]); setError(err instanceof Error ? err.message : 'Impossible de charger les projets.'); })
       .finally(() => { if (!controller.signal.aborted) { setLoading(false); setRefreshing(false); } });
     return () => controller.abort();
-  }, [page, debouncedSearch, status, retryKey, detailId]);
+  }, [page, debouncedSearch, status, retryKey, detailId, subview]);
 
   const effectivePage = Math.min(page, Math.max(1, meta.totalPages));
   const operationalReadiness = projects.map((project) => { const completeness = evaluateProjectOperationalCompleteness(project); const signals: OperationalSignal[] = [completeness.identity, completeness.structure, completeness.inventory, completeness.commercial, completeness.media, completeness.publication]; return { id: project.id, ...completeness, ...evaluateOperationalSignals(signals) }; });
@@ -87,6 +91,7 @@ export function AdminProjectsWorkspace() {
   const mutationBusy = pendingAction !== null && mutationError === null && mutationSuccess === null;
   const firstResult = meta.total === 0 ? 0 : (meta.page - 1) * meta.limit + 1; const lastResult = Math.min(meta.page * meta.limit, meta.total);
   if (detailId) return <AdminProjectDetailWorkspace projectId={detailId} />;
+  if (subview === 'create') return <AdminProjectCreateWorkspace />;
 
   return (
     <section className="admin-projects-workspace w-full" aria-labelledby="projects-workspace-title">
