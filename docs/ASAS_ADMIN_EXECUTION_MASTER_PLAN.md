@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Last reviewed implementation checkpoint:** `60c5cea830308fc482d79541eafcd684ba5a1247`
+> **Last reviewed implementation checkpoint:** `229bedf43aef5ba8b285a8b34e224464b9b83850`
 > **Rule:** This file records the execution contract, prompt for each step, evidence, decisions, and blockers. It is updated as part of the engineering work so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -43,7 +43,7 @@ Only relationships/capabilities actually represented by the current application/
 
 ## STEP 2 — Project operational vertical slice
 **Goal:** make Project the parent operational context rather than an isolated CRUD editor.
-**Status:** In progress — API/data-contract convergence.
+**Status:** In progress — API/data-contract convergence and downstream Lead contract alignment.
 
 ## STEP 3 — Building operational vertical slice
 **Goal:** Building is a child operational entity with explicit Project context.
@@ -53,6 +53,7 @@ Only relationships/capabilities actually represented by the current application/
 
 ## STEP 5 — Customer / Lead vertical slice
 **Goal:** connect customer operations to real inventory without fabricating reservation state.
+**Status:** In progress — backend transition integrity and workspace contract alignment implemented; fresh CI remains required.
 
 ## STEP 6 — Reservation boundary
 **Goal:** make reservation a server-confirmed business event where supported.
@@ -171,24 +172,30 @@ Commit `6860501a58cffeffe55358656584da76567f7da1` centralized the Lead status gr
 ### 2026-09-12 — Lead status API consumes shared transition graph
 Commit `60c5cea830308fc482d79541eafcd684ba5a1247` removed the duplicate transition graph from `PATCH /api/admin/leads/[id]/status` and switched the route to the shared domain helper. Authentication, role enforcement, validation, audit logging and HTTP 409 behavior remain unchanged.
 
-### 2026-09-12 — Lead workspace contract audit correction
-Further inspection corrected one prior audit conclusion: `/api/admin/leads` uses `db.lead.findMany()` without a scalar projection, so the existing response already contains the persisted `projectId` and `apartmentId` fields. The current Lead workspace type omits these IDs; the missing capability is therefore a **UI contract/type/navigation gap**, not an API data-availability gap.
+### 2026-09-12 — Lead workspace contract correction
+Commit `229bedf43aef5ba8b285a8b34e224464b9b83850` aligned the Lead workspace with the shared lifecycle and existing relational data:
+- status selectors now derive their options from `getAllowedLeadStatusTransitions(currentStatus)`, eliminating UI actions that the server would reject;
+- the status dialog uses the same domain helper;
+- Lead type now explicitly carries persisted `projectId` and `apartmentId`;
+- Project and Apartment names become contextual navigation actions only when the corresponding persisted ID exists; no IDs/slugs are fabricated.
 
-The remaining UI gap is unchanged: the status selector still exposes all seven statuses for every Lead. It must consume `getAllowedLeadStatusTransitions(currentStatus)` and preserve the current value for unknown/legacy statuses rather than offering impossible transitions.
+This closes the confirmed Lead UI/API transition mismatch and activates the existing Lead→inventory relationship at the navigation layer.
 
 ## Current API contract conclusion
-Project, Building, Apartment and the currently supported Lead mutation surface are explicitly treated as related operational entities. The current build gate remains **not yet CI-certified after the Apartment JSON fix**, so no green claim is made. Lead domain transition semantics are now centralized and consumed by the server route. Remaining STEP 2/5 work is the Lead workspace UI/type/navigation correction, Project detail/editor mutation audit, and fresh CI evidence.
+Project, Building, Apartment and the currently supported Lead mutation surface are explicitly treated as related operational entities. The Lead transition graph is now shared by domain/API/UI, and Lead→Project/Apartment contextual navigation uses real persisted foreign keys. The current build gate remains **not yet CI-certified after the Apartment JSON fix and subsequent Lead UI changes**. No Reservation capability has been invented.
+
+Remaining STEP 2/5 work: fresh CI evidence, Project detail/editor mutation semantics, final Building/Apartment vertical-slice closure, then broader navigation/state and lifecycle work.
 
 ## Current execution state
 
 **Active wave:** STEP 2 — Project operational vertical slice / data-contract convergence
 
 **Immediate gates:**
-1. CI for latest implementation HEAD.
-2. Lead workspace transition/UI contract correction.
-3. Lead contextual inventory navigation using existing `projectId`/`apartmentId`.
-4. Project detail/editor mutation semantics.
+1. Fresh CI for the latest HEAD.
+2. Project detail/editor mutation semantics.
+3. Final Building/Apartment vertical-slice closure.
+4. Lead UI regression/contract review after shared transition centralization.
 5. Status/publication semantics audit.
-6. Contextual entity navigation certification.
+6. Navigation and URL state certification after the operational slices are stable.
 
 **Browser/runtime certification:** not verified in this execution context.
