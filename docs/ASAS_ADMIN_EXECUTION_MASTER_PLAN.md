@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Last reviewed implementation checkpoint:** `eff19fcc1e300bb466e3559c154a57fa6675928e`
+> **Last reviewed implementation checkpoint:** `025d3bab200450346866bb3f6c03367c2411ac10`
 > **Rule:** This file records the execution contract, prompt for each step, evidence, decisions, and blockers. It is updated as part of the engineering work so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -101,112 +101,65 @@ Commit `111d94f3f797e3516399a86f3fb20d782bd35ed3` added `docs/ASAS_ADMIN_DATABAS
 Verified production facts at inspection time: projects=6, buildings=3, apartments=8, leads=4, project_images=4, apartment_images=19, project_amenities=19, developers=1, audit_logs=68, media=0, videos=0. The production hierarchy and FK relationships are present.
 
 ### 2026-09-11 — Status default alignment
-Production data uses uppercase status values: Project `AVAILABLE/COMING_SOON/DRAFT`, Apartment `AVAILABLE`, Lead `NEW/VISIT`. Live PostgreSQL defaults were aligned safely:
-- `projects.status` → `DRAFT`
-- `apartments.status` → `AVAILABLE`
-- `leads.status` → `NEW`
+Production data uses uppercase status values: Project `AVAILABLE/COMING_SOON/DRAFT`, Apartment `AVAILABLE`, Lead `NEW/VISIT`. Live PostgreSQL defaults were aligned safely: `projects.status → DRAFT`, `apartments.status → AVAILABLE`, `leads.status → NEW`.
 
 Migration applied successfully: `align_admin_status_defaults`. Existing rows were not modified.
 
 Commit `072c3f79cce2b056816c4422b9c5d9aea71ab62e` aligns the PostgreSQL Prisma schema defaults with the live database defaults.
 
 ### 2026-09-12 — Publication default contract correction
-Live PostgreSQL inspection exposed a remaining contract mismatch: `projects.published` and `apartments.published` still defaulted to `true`, while Admin create behavior requires new inventory to start unpublished. Existing rows were not changed.
-
-Migration applied successfully: `align_publication_defaults`:
-- `projects.published` → `false`
-- `apartments.published` → `false`
-
-Verified immediately after migration through `information_schema.columns`; both live defaults report `false`.
-
-Commit `8fcbb089760df2bff2678111bd2187673e340d74` aligns `prisma/schema.postgres.prisma` with the live publication defaults.
+Migration `align_publication_defaults` changed live defaults for `projects.published` and `apartments.published` to `false`; existing rows were not changed. Commit `8fcbb089760df2bff2678111bd2187673e340d74` aligns the PostgreSQL Prisma schema.
 
 ### 2026-09-12 — Project mutation authorization hardening
-Commit `f1f1c102c0928dc4b69953d2181b7b977c61a4b7` adds the missing `ADMIN/EDITOR` role gate to `PUT /api/admin/projects/[slug]`. The route already used the existing audit logger; no new capability or schema was introduced.
+Commit `f1f1c102c0928dc4b69953d2181b7b977c61a4b7` adds the missing `ADMIN/EDITOR` role gate to `PUT /api/admin/projects/[slug]`.
 
 ### 2026-09-12 — Building API contract hardening
-Commit `860a1a316e3dc69cf5059dab1d37853932841a4e` hardened `/api/admin/buildings` without changing the database model:
-- Zod query validation and bounded pagination.
-- `floors` must be a positive integer; corrected the prior falsy check that rejected `0` ambiguously.
-- Creation now verifies the referenced Project exists before inserting.
-- Existing `ADMIN/EDITOR` mutation gate and audit logging retained.
-- GET remains server-authoritative with count and explicit Project relation.
+Commit `860a1a316e3dc69cf5059dab1d37853932841a4e` added Zod query validation, bounded pagination, Project existence checks on creation, positive `floors` validation, and preserved mutation authorization/audit logging.
 
 ### 2026-09-12 — Apartment API contract hardening
-Commit `7f914a99109f404758f050e6be500c2a18f1d115` hardened `/api/admin/apartments`:
-- Added Zod validation for create payloads and retained bounded query pagination.
-- Enforced referenced Project existence.
-- Enforced Building existence and, critically, `building.projectId === apartment.projectId` before creation, preventing cross-project inventory association.
-- Normalized and bounded supported status values.
-- Preserved `published=false` for new apartments unless explicitly provided.
-- Preserved the existing no-price-plus-price-on-request invariant.
-
-The existing detail PUT route already enforces `ADMIN/EDITOR`, status transition validation, numeric validation, publication preconditions and audit logging. No Reservation capability was added.
+Commit `7f914a99109f404758f050e6be500c2a18f1d115` added Zod create validation, Project/Building existence and cross-project Building checks, bounded statuses, unpublished-by-default creation, and the existing price invariant. No Reservation capability was added.
 
 ### 2026-09-12 — Lead mutation contract hardening
-Commit `e7e4aa6dae5cf3963068e4e7977d8af5951ad608` tightened `PATCH /api/admin/leads/[id]/status` at the request boundary:
-- `followUpDate` now requires a valid offset-aware ISO datetime when provided, preventing `Invalid Date` from reaching Prisma.
-- `assignedTo` now rejects blank strings while preserving explicit `null` for unassignment.
-- Existing authentication, ADMIN/EDITOR mutation gate, lead existence check, status allowlist, audit logging and server-authoritative persistence remain unchanged.
+Commit `e7e4aa6dae5cf3963068e4e7977d8af5951ad608` hardened `followUpDate` and `assignedTo` validation while retaining authentication, role gates, persistence and audit behavior.
 
 ### 2026-09-12 — Canonical Lead pipeline enforcement
-Commit `502ed38cb64a3c1216807a03ae683d47e0b88318` aligned the Lead status mutation route with the documented operational pipeline:
-`NEW → CONTACTED → QUALIFIED → VISIT → NEGOTIATION → SOLD`, with `LOST` reachable from every active stage. `SOLD` and `LOST` are terminal because the current backend has no reopen/reservation lifecycle capability. Invalid jumps now return HTTP 409 instead of silently mutating the lead to an unsupported stage.
+Commit `502ed38cb64a3c1216807a03ae683d47e0b88318` enforced `NEW → CONTACTED → QUALIFIED → VISIT → NEGOTIATION → SOLD`, with `LOST` reachable from active stages and terminal `SOLD/LOST` behavior because the current backend has no reopen/reservation lifecycle.
 
-### 2026-09-12 — CI failure RCA on current branch HEAD
-The first CI run associated with documentation HEAD `178fb376cc5a68f1519bd698a1a642d33230a80a` completed as run `#863` and failed at **Typecheck**. Prisma generation, baseline generation, baseline artifact upload and dependency installation succeeded; Lint and Build were skipped because Typecheck failed.
-
-Exact TypeScript errors were all in `src/app/api/admin/apartments/route.ts`, at lines 83–84, caused by assigning raw nullable `unknown` values to Prisma PostgreSQL JSON inputs.
-
-### 2026-09-12 — Prisma JSON null contract fix
-Commit `b96a53f71d5a42dd57b71d3c05b09385dfc80f5c` corrected the Apartment create route's PostgreSQL JSON handling without changing the schema or business semantics:
-- imported Prisma types from the generated PostgreSQL client;
-- mapped explicit JSON `null` values to `Prisma.JsonNull`;
-- typed non-null JSON payloads as `Prisma.InputJsonValue` for `rooms`, `features`, and `featuresAr`.
-
-A new CI run for this exact commit was not observable before the subsequent changes.
+### 2026-09-12 — CI failure RCA / Prisma JSON fix
+CI run `#863` failed at Typecheck in `src/app/api/admin/apartments/route.ts` because raw nullable values were assigned to Prisma PostgreSQL JSON inputs. Commit `b96a53f71d5a42dd57b71d3c05b09385dfc80f5c` corrected this using `Prisma.JsonNull` and `Prisma.InputJsonValue`.
 
 ### 2026-09-12 — Canonical Lead transition graph centralized
-Commit `6860501a58cffeffe55358656584da76567f7da1` centralized the Lead status graph inside `src/lib/admin-operational-units.ts` as `LEAD_STATUS_TRANSITIONS` plus `getAllowedLeadStatusTransitions()`. This establishes one domain-level vocabulary for the customer lifecycle instead of allowing the UI and API to maintain divergent graphs.
+Commit `6860501a58cffeffe55358656584da76567f7da1` centralized `LEAD_STATUS_TRANSITIONS` and `getAllowedLeadStatusTransitions()` in `src/lib/admin-operational-units.ts`.
 
-### 2026-09-12 — Lead status API consumes shared transition graph
-Commit `60c5cea830308fc482d79541eafcd684ba5a1247` removed the duplicate transition graph from `PATCH /api/admin/leads/[id]/status` and switched the route to the shared domain helper. Authentication, role enforcement, validation, audit logging and HTTP 409 behavior remain unchanged.
+### 2026-09-12 — Lead status API consumes shared graph
+Commit `60c5cea830308fc482d79541eafcd684ba5a1247` removed the duplicate API graph and consumed the shared helper.
 
 ### 2026-09-12 — Lead workspace contract correction
-Commit `229bedf43aef5ba8b285a8b34e224464b9b83850` aligned the Lead workspace with the shared lifecycle and existing relational data:
-- status selectors now derive their options from `getAllowedLeadStatusTransitions(currentStatus)`, eliminating UI actions that the server would reject;
-- the status dialog uses the same domain helper;
-- Lead type now explicitly carries persisted `projectId` and `apartmentId`;
-- Project and Apartment names become contextual navigation actions only when the corresponding persisted ID exists; no IDs/slugs are fabricated.
-
-This closes the confirmed Lead UI/API transition mismatch and activates the existing Lead→inventory relationship at the navigation layer.
+Commit `229bedf43aef5ba8b285a8b34e224464b9b83850` made Lead UI status selectors consume the shared transition graph and added contextual Project/Apartment navigation only when persisted IDs exist.
 
 ### 2026-09-12 — Project detail mutation contract hardening
-Commit `eff19fcc1e300bb466e3559c154a57fa6675928e` hardened `PUT /api/admin/projects/[slug]` at the server boundary:
-- added strict Zod validation for supported project fields and primitive ranges;
-- rejected unknown fields instead of silently accepting them;
-- blocked publishing an archived project;
-- enforced `minSurface <= maxSurface` when the relevant values are present;
-- preserved the existing price / price-on-request invariant when either pricing field changes;
-- differentiated audit actions for price changes and publish/unpublish transitions while preserving the existing audit payload pattern.
+Commit `eff19fcc1e300bb466e3559c154a57fa6675928e` hardened `PUT /api/admin/projects/[slug]` with strict Zod validation, unknown-field rejection, archive/publication guardrails, surface-range validation, pricing invariant enforcement, and distinct price/publish/unpublish audit actions.
 
-CI run `#885` for this exact commit is currently **queued**; no green result is claimed yet.
+CI run `#885` was created for this implementation commit and was observed `in_progress`; no green result was claimed.
+
+### 2026-09-12 — Project creation contract hardening
+Commit `025d3bab200450346866bb3f6c03367c2411ac10` hardened `POST /api/admin/projects` with a strict creation schema, slug validation, required identity/location fields, numeric/range validation, pricing invariant enforcement, safe defaults, and audit-preserving persistence. This closes the main Project create/update request-boundary gap without changing the database model.
 
 ## Current API contract conclusion
-Project, Building, Apartment and the currently supported Lead mutation surface are explicitly treated as related operational entities. The Lead transition graph is now shared by domain/API/UI, and Lead→Project/Apartment contextual navigation uses real persisted foreign keys. Project detail mutation now has a typed server contract and explicit publication/archive guardrails. No Reservation capability has been invented.
+Project, Building, Apartment and the supported Lead mutation surface are treated as related operational entities. Lead status is shared across domain/API/UI; Lead→Project/Apartment navigation uses real foreign keys; Project create/update now have typed server contracts and explicit safety guardrails. No Reservation capability has been invented.
 
-Remaining STEP 2/5 work: CI completion, Project editor mutation/UI regression review, final Building/Apartment vertical-slice closure, then broader navigation/state and lifecycle work.
+Remaining STEP 2/5 work: fresh CI evidence for the latest implementation, Project editor UI payload alignment, final Building/Apartment vertical-slice closure, Lead regression review, then broader navigation/state and lifecycle work.
 
 ## Current execution state
 
 **Active wave:** STEP 2 — Project operational vertical slice / data-contract convergence
 
 **Immediate gates:**
-1. Await and inspect CI run `#885` for exact HEAD `eff19fcc1e300bb466e3559c154a57fa6675928e`.
-2. Project detail/editor mutation semantics and UI payload alignment.
+1. Fresh CI for latest HEAD.
+2. Project editor mutation/UI payload alignment.
 3. Final Building/Apartment vertical-slice closure.
-4. Lead UI regression/contract review after shared transition centralization.
+4. Lead UI regression/contract review.
 5. Status/publication semantics audit.
-6. Navigation and URL state certification after the operational slices are stable.
+6. Navigation and URL state certification after operational slices stabilize.
 
 **Browser/runtime certification:** not verified in this execution context.
