@@ -6,7 +6,7 @@ import { usePublicProjectCards } from '@/lib/api';
 import { ASAS, formatPrice, getWhatsAppUrl } from '@/lib/constants';
 import { ProjectCard, ProjectCardSkeleton } from '@/components/shared/ProjectCard';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, CalendarDays, Check, Home, Landmark, MapPin, MessageCircle, Phone, RefreshCw, Search, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Check, Home, Landmark, MessageCircle, Phone, RefreshCw, Search, ShieldCheck } from 'lucide-react';
 import type { PublicProjectCard } from '@/lib/catalog-contracts';
 
 export default function HomePage() {
@@ -30,12 +30,11 @@ export default function HomePage() {
       <section className="relative min-h-[640px] overflow-hidden bg-[#17232a] text-white lg:min-h-[700px]">
         <div className="absolute inset-0">
           {heroProject?.image?.url ? <img src={heroProject.image.url} alt={heroProject.image.alt || heroProject.name} className="h-full w-full object-cover" fetchPriority="high" /> : <div className="h-full w-full bg-[#17232a]" />}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/15" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/10" />
+          <div className="absolute inset-0 bg-black/55" />
         </div>
         <div className="relative mx-auto flex min-h-[640px] max-w-[1440px] flex-col justify-end px-5 pb-10 pt-28 sm:px-8 sm:pb-14 lg:min-h-[700px] lg:px-10">
           <div className="max-w-3xl">
-            <div className="mb-5 flex flex-wrap gap-2"><span className="rounded-full border border-white/25 bg-black/20 px-3 py-1 text-[11px] font-semibold">ASAS Immobilier</span><span className="rounded-full border border-white/25 bg-black/20 px-3 py-1 text-[11px] text-white/85">Sélection immobilière</span></div>
+            <p className="mb-5 text-[11px] font-semibold uppercase tracking-[.18em] text-[#d9b16e]">ASAS Immobilier · Sélection immobilière</p>
             <h1 className="max-w-4xl text-[45px] font-medium leading-[.96] tracking-[-.04em] sm:text-6xl lg:text-[78px]">L’immobilier de qualité, présenté avec clarté.</h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-white/78 sm:text-lg">Découvrez les projets commercialisés par ASAS, consultez les logements réellement disponibles et avancez vers la visite lorsque le bien correspond à votre recherche.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row"><Button size="lg" onClick={() => router.goProjects()} className="min-h-12 bg-[#d9b16e] text-[#17232a] hover:bg-[#e4bd7c]">Explorer les projets <ArrowRight className="ml-2 size-4" /></Button><button type="button" onClick={openWhatsApp} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-white/25 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10">Parler à un conseiller <MessageCircle className="size-4" /></button></div>
