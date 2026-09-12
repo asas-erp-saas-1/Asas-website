@@ -37,6 +37,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const session = await verifyAdminAuth(request);
   if (!session) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  if (!sessionHasRole(session, ['ADMIN', 'EDITOR'])) {
+    return withSecurityHeaders(NextResponse.json({ error: 'Privilèges insuffisants. Réservé aux administrateurs et éditeurs.' }, { status: 403 }));
+  }
   try {
     const { slug } = await params;
     const body = await request.json();
