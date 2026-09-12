@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Last reviewed implementation checkpoint:** `229bedf43aef5ba8b285a8b34e224464b9b83850`
+> **Last reviewed implementation checkpoint:** `eff19fcc1e300bb466e3559c154a57fa6675928e`
 > **Rule:** This file records the execution contract, prompt for each step, evidence, decisions, and blockers. It is updated as part of the engineering work so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -181,18 +181,29 @@ Commit `229bedf43aef5ba8b285a8b34e224464b9b83850` aligned the Lead workspace wit
 
 This closes the confirmed Lead UI/API transition mismatch and activates the existing Lead→inventory relationship at the navigation layer.
 
-## Current API contract conclusion
-Project, Building, Apartment and the currently supported Lead mutation surface are explicitly treated as related operational entities. The Lead transition graph is now shared by domain/API/UI, and Lead→Project/Apartment contextual navigation uses real persisted foreign keys. The current build gate remains **not yet CI-certified after the Apartment JSON fix and subsequent Lead UI changes**. No Reservation capability has been invented.
+### 2026-09-12 — Project detail mutation contract hardening
+Commit `eff19fcc1e300bb466e3559c154a57fa6675928e` hardened `PUT /api/admin/projects/[slug]` at the server boundary:
+- added strict Zod validation for supported project fields and primitive ranges;
+- rejected unknown fields instead of silently accepting them;
+- blocked publishing an archived project;
+- enforced `minSurface <= maxSurface` when the relevant values are present;
+- preserved the existing price / price-on-request invariant when either pricing field changes;
+- differentiated audit actions for price changes and publish/unpublish transitions while preserving the existing audit payload pattern.
 
-Remaining STEP 2/5 work: fresh CI evidence, Project detail/editor mutation semantics, final Building/Apartment vertical-slice closure, then broader navigation/state and lifecycle work.
+CI run `#885` for this exact commit is currently **queued**; no green result is claimed yet.
+
+## Current API contract conclusion
+Project, Building, Apartment and the currently supported Lead mutation surface are explicitly treated as related operational entities. The Lead transition graph is now shared by domain/API/UI, and Lead→Project/Apartment contextual navigation uses real persisted foreign keys. Project detail mutation now has a typed server contract and explicit publication/archive guardrails. No Reservation capability has been invented.
+
+Remaining STEP 2/5 work: CI completion, Project editor mutation/UI regression review, final Building/Apartment vertical-slice closure, then broader navigation/state and lifecycle work.
 
 ## Current execution state
 
 **Active wave:** STEP 2 — Project operational vertical slice / data-contract convergence
 
 **Immediate gates:**
-1. Fresh CI for the latest HEAD.
-2. Project detail/editor mutation semantics.
+1. Await and inspect CI run `#885` for exact HEAD `eff19fcc1e300bb466e3559c154a57fa6675928e`.
+2. Project detail/editor mutation semantics and UI payload alignment.
 3. Final Building/Apartment vertical-slice closure.
 4. Lead UI regression/contract review after shared transition centralization.
 5. Status/publication semantics audit.
