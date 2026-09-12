@@ -54,7 +54,7 @@ export function CompareBar() {
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-[4.5rem] z-40 transition-all duration-300 md:bottom-0 ${visible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}
+      className={`fixed inset-x-0 bottom-0 z-40 transition-all duration-300 ${visible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}
       role="region"
       aria-label="Barre de comparaison"
       aria-hidden={!visible}
