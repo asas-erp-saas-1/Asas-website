@@ -16,10 +16,23 @@ import { z } from 'zod';
  *   - followUpDate: ISO date string or null
  */
 
-const VALID_LEAD_STATUSES = ['NEW', 'CONTACTED', 'QUALIFIED', 'VISIT', 'NEGOTIATION', 'SOLD', 'LOST'];
+const VALID_LEAD_STATUSES = ['NEW', 'CONTACTED', 'QUALIFIED', 'VISIT', 'NEGOTIATION', 'SOLD', 'LOST'] as const;
+type LeadStatus = (typeof VALID_LEAD_STATUSES)[number];
+
+// Canonical pipeline: forward progression; LOST is reachable from any active stage.
+// SOLD and LOST are terminal in the current data model; reopening is not supported.
+const LEAD_STATUS_TRANSITIONS: Record<LeadStatus, readonly LeadStatus[]> = {
+  NEW: ['NEW', 'CONTACTED', 'LOST'],
+  CONTACTED: ['CONTACTED', 'QUALIFIED', 'LOST'],
+  QUALIFIED: ['QUALIFIED', 'VISIT', 'LOST'],
+  VISIT: ['VISIT', 'NEGOTIATION', 'LOST'],
+  NEGOTIATION: ['NEGOTIATION', 'SOLD', 'LOST'],
+  SOLD: ['SOLD'],
+  LOST: ['LOST'],
+};
 
 const updateSchema = z.object({
-  status: z.enum(VALID_LEAD_STATUSES as [string, ...string[]]).optional(),
+  status: z.enum(VALID_LEAD_STATUSES).optional(),
   assignedTo: z.string().trim().min(1).nullable().optional(),
   followUpDate: z.string().datetime({ offset: true }).nullable().optional(),
 });
@@ -31,7 +44,6 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   if (!session) {
     return withSecurityHeaders(NextResponse.json({ error: 'Non autorisé' }, { status: 401 }));
   }
-  // VIEWER cannot mutate leads
   if (!sessionHasRole(session, ['ADMIN', 'EDITOR'])) {
     return withSecurityHeaders(NextResponse.json(
       { error: 'Privilèges insuffisants. Réservé aux administrateurs et éditeurs.' },
@@ -54,6 +66,17 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       return withSecurityHeaders(NextResponse.json({ error: 'Lead introuvable' }, { status: 404 }));
     }
 
+    if (parsed.data.status !== undefined) {
+      const currentStatus = existing.status as LeadStatus;
+      const allowedTargets = LEAD_STATUS_TRANSITIONS[currentStatus];
+      if (!allowedTargets || !allowedTargets.includes(parsed.data.status)) {
+        return withSecurityHeaders(NextResponse.json(
+          { error: `Transition de statut non autorisée: ${existing.status} → ${parsed.data.status}` },
+          { status: 409 }
+        ));
+      }
+    }
+
     const updateData: Record<string, unknown> = {};
     if (parsed.data.status !== undefined) updateData.status = parsed.data.status;
     if (parsed.data.assignedTo !== undefined) updateData.assignedTo = parsed.data.assignedTo || null;
@@ -63,7 +86,6 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 
     const updated = await db.lead.update({ where: { id }, data: updateData });
 
-    // Audit log
     const before: Record<string, unknown> = {};
     const after: Record<string, unknown> = {};
     if (parsed.data.status !== undefined) { before.status = existing.status; after.status = updated.status; }
