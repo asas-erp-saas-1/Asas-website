@@ -1,5 +1,10 @@
 'use client';
 
+/*
+ * The project list effect synchronizes an external request lifecycle with React state.
+ * These setters are intentionally tied to the request boundary rather than derived UI state.
+ */
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from 'react';
 import { Archive, Building2, ChevronLeft, ChevronRight, Eye, EyeOff, Filter, Loader2, RefreshCw, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
