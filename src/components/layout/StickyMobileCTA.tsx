@@ -35,7 +35,7 @@ export function StickyMobileCTA() {
       : 'Bonjour, je souhaite être accompagné(e) dans ma recherche immobilière.';
 
   const primaryLabel = context === 'apartment'
-    ? 'Demander une visite'
+    ? 'Demander des informations'
     : context === 'project'
       ? 'Voir les disponibilités'
       : 'Parler à un conseiller';
