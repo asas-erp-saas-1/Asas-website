@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Last reviewed implementation checkpoint:** `502ed38cb64a3c1216807a03ae683d47e0b88318`
+> **Last reviewed implementation checkpoint:** `b96a53f71d5a42dd57b71d3c05b09385dfc80f5c`
 > **Rule:** This file records the execution contract, prompt for each step, evidence, decisions, and blockers. It is updated as part of the engineering work so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -154,18 +154,42 @@ Commit `502ed38cb64a3c1216807a03ae683d47e0b88318` aligned the Lead status mutati
 
 This closes a real integrity gap: the route previously validated that a status was known but did not enforce the transition graph documented by the project. The implementation remains schema-free and does not fabricate reservation/conversion state.
 
+### 2026-09-12 — CI failure RCA on current branch HEAD
+The first CI run associated with documentation HEAD `178fb376cc5a68f1519bd698a1a642d33230a80a` completed as run `#863` and failed at **Typecheck**. Prisma generation, baseline generation, baseline artifact upload and dependency installation succeeded; Lint and Build were skipped because Typecheck failed.
+
+Exact TypeScript errors:
+- `src/app/api/admin/apartments/route.ts(83,50): TS2322` — `{} | null` not assignable to `NullableJsonNullValueInput | InputJsonValue | undefined`.
+- `src/app/api/admin/apartments/route.ts(84,7): TS2322` — same nullability mismatch for JSON fields.
+- `src/app/api/admin/apartments/route.ts(84,40): TS2322` — same nullability mismatch for JSON fields.
+
+### 2026-09-12 — Prisma JSON null contract fix
+Commit `b96a53f71d5a42dd57b71d3c05b09385dfc80f5c` corrected the Apartment create route's PostgreSQL JSON handling without changing the schema or business semantics:
+- Imported Prisma types from the generated PostgreSQL client.
+- Mapped explicit JSON `null` values to `Prisma.JsonNull`.
+- Typed non-null JSON payloads as `Prisma.InputJsonValue` for `rooms`, `features`, and `featuresAr`.
+
+A new CI run for this exact commit is not yet observable; therefore the fix is **not yet CI-certified**.
+
+### 2026-09-12 — Lead workspace contract audit
+The canonical `AdminLeadsPremiumWorkspace` currently reads from `/api/admin/leads` using the supported server filters (`status`, `intent`, `source`, `search`, pagination) and consumes the server pagination envelope. It also uses the existing notes GET/POST endpoints and the status PATCH endpoint.
+
+A remaining contract gap is confirmed: the Lead workspace status `<select>` currently exposes **all seven statuses for every lead**, while the server now enforces a transition graph. This means the UI can offer actions that the server correctly rejects with HTTP 409. The next Lead vertical-slice change must derive the selectable next statuses from the canonical transition graph (including preserving the current status for legacy/unknown data) rather than presenting impossible transitions.
+
+A second contextual gap remains: `/api/admin/leads` returns denormalized `projectName`/`apartmentName` fields but the current Lead workspace does not receive Project/Apartment IDs or slugs from the list response, so it cannot yet provide authoritative contextual navigation to the related inventory entities. No IDs/slugs will be invented; the API contract must be extended only from existing Prisma relations.
+
 ### Current API contract conclusion
-Project, Building, Apartment and the currently supported Lead mutation surface are now explicitly treated as related operational entities. Remaining STEP 2/5 work is to reconcile Lead workspace capabilities with these real API boundaries, audit Project detail/editor mutation semantics, and certify exact CI results before broader UX work.
+Project, Building, Apartment and the currently supported Lead mutation surface are explicitly treated as related operational entities. The current build gate is blocked by the observed Apartment JSON typing failure until the post-fix CI run completes. Remaining STEP 2/5 work is to reconcile Lead workspace actions/navigation with the real API boundaries, audit Project detail/editor mutation semantics, and certify exact CI results before broader UX work.
 
 ## Current execution state
 
 **Active wave:** STEP 2 — Project operational vertical slice / data-contract convergence
 
 **Immediate gates:**
-1. CI for the latest code/documentation HEAD.
+1. CI for `b96a53f71d5a42dd57b71d3c05b09385dfc80f5c`.
 2. Project/Building/Apartment API ↔ PostgreSQL contract audit.
-3. Lead mutation/read contract audit.
-4. Status/publication semantics audit.
-5. Contextual entity navigation.
+3. Lead workspace transition/UI contract correction.
+4. Lead contextual inventory navigation contract.
+5. Project detail/editor mutation semantics.
+6. Status/publication semantics audit.
 
 **Browser/runtime certification:** not verified in this execution context.
