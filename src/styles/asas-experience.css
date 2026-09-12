@@ -77,13 +77,13 @@
 .site-experience-public .card-glow:hover { box-shadow: 0 14px 38px rgba(16,24,32,.09); }
 .site-experience-public .shadow-lg, .site-experience-public .shadow-xl { box-shadow: 0 18px 48px rgba(16,24,32,.10); }
 .site-experience-public .asas-primary, .site-experience-public .bg-gold { background: var(--asas-gold); color: white; }
-.site-experience-public .asas-primary:hover, .site-experience-public .hover\\:bg-gold:hover { background: #a58650; }
+.site-experience-public .asas-primary:hover, .site-experience-public .hover\:bg-gold:hover { background: #a58650; }
 .site-experience-public .asas-secondary { border: 1px solid #c9c6bd; background: transparent; color: var(--asas-charcoal); }
 
 .site-route-projects main > section:first-child, .site-route-services main > section:first-child, .site-route-about main > section:first-child, .site-route-for-developers main > section:first-child, .site-route-contact main > section:first-child, .site-route-insights main > section:first-child { background: var(--asas-ivory) !important; border-bottom: 0 !important; }
 .site-route-projects main > section:first-child h1, .site-route-services main > section:first-child h1, .site-route-about main > section:first-child h1, .site-route-for-developers main > section:first-child h1, .site-route-contact main > section:first-child h1, .site-route-insights main > section:first-child h1 { font-size: clamp(38px, 5vw, 64px); }
 .site-route-projects main > section, .site-route-services main > section, .site-route-about main > section, .site-route-for-developers main > section, .site-route-contact main > section, .site-route-insights main > section { border-bottom: 1px solid var(--asas-line); }
-.site-route-projects .bg-muted\\/30 { background: #f1f0eb !important; }
+.site-route-projects .bg-muted\/30 { background: #f1f0eb !important; }
 .site-route-projects .border-border { border-color: var(--asas-line) !important; }
 .site-route-projects .bg-forest { background: var(--asas-charcoal) !important; }
 .site-route-projects .text-forest { color: var(--asas-green) !important; }
