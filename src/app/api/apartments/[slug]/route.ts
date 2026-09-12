@@ -10,7 +10,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { slug } = await params;
     if (!slug?.trim()) return NextResponse.json({ error: 'Slug invalide' }, { status: 400 });
 
-    const apartment = await getPublicApartment(slug);
+    const projectSlug = request.nextUrl.searchParams.get('project')?.trim() || undefined;
+    const apartment = await getPublicApartment(slug, projectSlug);
     if (!apartment) {
       return withPublicCache(NextResponse.json({ error: 'Apartment not found' }, { status: 404 }));
     }
