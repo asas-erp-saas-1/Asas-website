@@ -1,259 +1,49 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Building2, ChevronLeft, Home, ChevronRight, Loader2, Plus, RefreshCw, Search, X } from 'lucide-react';
+import { ArrowLeft, Building2, ChevronLeft, ChevronRight, Home, Loader2, Plus, RefreshCw, Search, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { evaluateOperationalSignals, type OperationalSignal } from '@/lib/admin-operational-units';
-import { getAdminRoute, navigateAdminRoute, subscribeToAdminRoute } from '@/lib/admin-route';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getAdminRoute, navigateAdminRoute, subscribeToAdminRoute } from '@/lib/admin-route';
 
-type Project = { id: string; slug: string; name: string };
-type Building = {
-  id: string;
-  slug: string;
-  name: string;
-  nameAr?: string | null;
-  code: string;
-  floors: number;
-  hasElevator: boolean;
-  order: number;
-  project: Project;
-  apartmentCount: number;
-};
-type Meta = { page: number; limit: number; total: number; totalPages: number };
+ type Project = { id: string; slug: string; name: string };
+ type Building = { id: string; slug: string; name: string; nameAr?: string | null; code: string; floors: number; hasElevator: boolean; order: number; project: Project; apartmentCount: number };
+ type Detail = Building & { apartments: { id: string; slug: string; apartmentNumber: string; unitNumber?: string | null; type?: string | null; status: string; published: boolean }[] };
+ type Meta = { page: number; limit: number; total: number; totalPages: number };
+ type Form = { projectId: string; name: string; nameAr: string; code: string; floors: string; hasElevator: boolean; order: string; slug: string };
+ const emptyForm: Form = { projectId: '', name: '', nameAr: '', code: '', floors: '1', hasElevator: false, order: '0', slug: '' };
 
-type FormState = {
-  projectId: string;
-  name: string;
-  nameAr: string;
-  code: string;
-  floors: string;
-  hasElevator: boolean;
-  order: string;
-};
+ async function getJson<T>(url: string, init?: RequestInit): Promise<T> { const r = await fetch(url, { ...init, cache: 'no-store' }); if (!r.ok) { let m = 'Opération impossible.'; try { const j = await r.json(); if (typeof j?.error === 'string') m = j.error; } catch {} if (r.status === 401) m = 'Session administrateur expirée.'; if (r.status === 403) m = 'Privilèges insuffisants.'; throw new Error(m); } return r.json(); }
+ function slugify(v: string) { return v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
 
-const emptyForm: FormState = { projectId: '', name: '', nameAr: '', code: '', floors: '1', hasElevator: false, order: '0' };
+ export default function AdminBuildingsWorkspace() {
+   const [route, setRoute] = useState(() => getAdminRoute());
+   useEffect(() => subscribeToAdminRoute(setRoute), []);
+   const detailId = route.entity === 'building' ? route.entityId : undefined;
+   return detailId ? <BuildingDetail id={detailId} /> : <BuildingList />;
+ }
 
-function slugify(value: string) {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
+ function BuildingList() {
+   const [buildings, setBuildings] = useState<Building[]>([]); const [projects, setProjects] = useState<Project[]>([]); const [meta, setMeta] = useState<Meta>({ page: 1, limit: 20, total: 0, totalPages: 1 });
+   const route = getAdminRoute(); const [page, setPage] = useState(route.page ?? 1); const [search, setSearch] = useState(route.search ?? ''); const [debounced, setDebounced] = useState(route.search ?? ''); const [projectId, setProjectId] = useState(route.filters.projectId ?? 'all');
+   const [loading, setLoading] = useState(true); const [error, setError] = useState<string | null>(null); const [retry, setRetry] = useState(0); const [createOpen, setCreateOpen] = useState(false); const [creating, setCreating] = useState(false); const [createError, setCreateError] = useState<string | null>(null); const [form, setForm] = useState<Form>(emptyForm);
+   useEffect(() => subscribeToAdminRoute((r) => { setPage(r.page ?? 1); setSearch(r.search ?? ''); setDebounced(r.search ?? ''); setProjectId(r.filters.projectId ?? 'all'); }), []);
+   useEffect(() => { const t = window.setTimeout(() => { const q = search.trim(); setDebounced(q); navigateAdminRoute({ workspace: 'buildings', search: q || undefined, filters: { projectId }, page: 1 }, 'replace'); }, 300); return () => window.clearTimeout(t); }, [search, projectId]);
+   useEffect(() => { const c = new AbortController(); setLoading(true); setError(null); const p = new URLSearchParams({ page: String(page), limit: '20' }); if (debounced) p.set('search', debounced); if (projectId !== 'all') p.set('projectId', projectId); getJson<{ data?: Building[]; meta?: Meta }>(`/api/admin/buildings?${p}`, { signal: c.signal }).then(j => { setBuildings(j.data ?? []); if (j.meta) setMeta(j.meta); }).catch(e => { if (!(e instanceof DOMException && e.name === 'AbortError')) { setBuildings([]); setError(e instanceof Error ? e.message : 'Impossible de charger les bâtiments.'); } }).finally(() => { if (!c.signal.aborted) setLoading(false); }); return () => c.abort(); }, [page, debounced, projectId, retry]);
+   useEffect(() => { if (meta.totalPages > 0 && page > meta.totalPages) setPage(meta.totalPages); }, [page, meta.totalPages]);
+   async function create() { const floors = Number(form.floors), order = Number(form.order); const name = form.name.trim(), code = form.code.trim(); if (!form.projectId || !name || !code || !Number.isInteger(floors) || floors < 1 || !Number.isInteger(order)) { setCreateError('Projet, nom, code, étages et ordre entier sont obligatoires.'); return; } setCreating(true); setCreateError(null); try { await getJson('/api/admin/buildings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, name, code, floors, order, nameAr: form.nameAr.trim() || null, slug: form.slug || slugify(`${projects.find(p => p.id === form.projectId)?.slug ?? 'project'}-${code}-${name}`) }) }); setCreateOpen(false); setForm(emptyForm); setPage(1); setRetry(v => v + 1); } catch (e) { setCreateError(e instanceof Error ? e.message : 'La création a échoué.'); } finally { setCreating(false); } }
+   return <section className="admin-buildings-workspace w-full"><div className="mx-auto max-w-[1500px] space-y-5"><header className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest">Catalogue</p><h1 className="text-2xl font-bold text-charcoal sm:text-3xl">Bâtiments</h1><p className="mt-1 text-sm text-muted-foreground">Structure physique du projet et lots associés.</p></div><div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => navigateAdminRoute({ workspace: 'dashboard' })}>Retour</Button><Button variant="outline" size="sm" onClick={() => setRetry(v => v + 1)} disabled={loading}><RefreshCw className="mr-2 h-4 w-4" />Actualiser</Button><Button size="sm" onClick={() => { setForm({ ...emptyForm, projectId: projectId === 'all' ? '' : projectId }); setCreateError(null); setCreateOpen(true); }}><Plus className="mr-2 h-4 w-4" />Nouveau bâtiment</Button></div></header><Card><CardHeader className="pb-3"><CardTitle className="text-base">Recherche et filtres</CardTitle></CardHeader><CardContent><div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1.5 text-sm font-medium"><span>Recherche</span><div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="pl-9" placeholder="Nom, code, slug ou projet…" /></div></label><label className="space-y-1.5 text-sm font-medium"><span>Projet</span><select value={projectId} onChange={e => { setProjectId(e.target.value); setPage(1); navigateAdminRoute({ workspace: 'buildings', filters: { projectId: e.target.value }, page: 1 }, 'replace'); }} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="all">Tous les projets</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label></div></CardContent></Card><div aria-live="polite" className="text-sm text-muted-foreground">{loading ? 'Chargement…' : `${meta.total.toLocaleString('fr-FR')} bâtiment${meta.total > 1 ? 's' : ''}`}</div>{error ? <Card role="alert"><CardContent className="flex flex-col items-center gap-3 py-12 text-center"><p className="font-semibold">Impossible de charger les bâtiments</p><p className="text-sm text-muted-foreground">{error}</p><Button onClick={() => setRetry(v => v + 1)}>Réessayer</Button></CardContent></Card> : <Card className="overflow-hidden"><div className="overflow-x-auto"><Table className="min-w-[760px]"><TableHeader><TableRow><TableHead>Bâtiment</TableHead><TableHead>Projet</TableHead><TableHead>Code</TableHead><TableHead>Étages</TableHead><TableHead>Ascenseur</TableHead><TableHead>Lots</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader><TableBody>{buildings.map(b => <TableRow key={b.id} tabIndex={0} onDoubleClick={() => navigateAdminRoute({ workspace: 'buildings', entity: 'building', entityId: b.id })} onKeyDown={e => { if (e.key === 'Enter') navigateAdminRoute({ workspace: 'buildings', entity: 'building', entityId: b.id }); }}><TableCell><div className="font-medium">{b.name}</div><div className="text-xs text-muted-foreground">{b.slug}</div></TableCell><TableCell>{b.project?.name ?? '—'}</TableCell><TableCell><Badge variant="secondary">{b.code}</Badge></TableCell><TableCell>{b.floors}</TableCell><TableCell>{b.hasElevator ? 'Oui' : 'Non'}</TableCell><TableCell>{b.apartmentCount}</TableCell><TableCell className="text-right"><Button variant="outline" size="sm" onClick={() => navigateAdminRoute({ workspace: 'buildings', entity: 'building', entityId: b.id })}>Ouvrir</Button></TableCell></TableRow>)}</TableBody></Table></div><div className="flex items-center justify-between border-t p-3"><span className="text-xs text-muted-foreground">Page {meta.page} / {meta.totalPages}</span><div className="flex gap-1"><Button variant="outline" size="sm" onClick={() => { const n = Math.max(1, page - 1); setPage(n); navigateAdminRoute({ workspace: 'buildings', page: n }, 'replace'); }} disabled={loading || page <= 1}><ChevronLeft className="h-4 w-4" /></Button><Button variant="outline" size="sm" onClick={() => { const n = Math.min(meta.totalPages, page + 1); setPage(n); navigateAdminRoute({ workspace: 'buildings', page: n }, 'replace'); }} disabled={loading || page >= meta.totalPages}><ChevronRight className="h-4 w-4" /></Button></div></div></Card>}</div><Dialog open={createOpen} onOpenChange={open => { if (!creating) setCreateOpen(open); }}><DialogContent><DialogHeader><DialogTitle>Nouveau bâtiment</DialogTitle><DialogDescription>Créez un bâtiment rattaché à un projet réel.</DialogDescription></DialogHeader><div className="grid gap-3"><label className="space-y-1.5 text-sm font-medium"><span>Projet *</span><select value={form.projectId} onChange={e => setForm(f => ({ ...f, projectId: e.target.value }))} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="">Sélectionner</option>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label><label className="space-y-1.5 text-sm font-medium"><span>Nom *</span><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></label><label className="space-y-1.5 text-sm font-medium"><span>Nom arabe</span><Input dir="rtl" value={form.nameAr} onChange={e => setForm(f => ({ ...f, nameAr: e.target.value }))} /></label><div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1.5 text-sm font-medium"><span>Code *</span><Input value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value }))} /></label><label className="space-y-1.5 text-sm font-medium"><span>Étages *</span><Input type="number" min="1" value={form.floors} onChange={e => setForm(f => ({ ...f, floors: e.target.value }))} /></label></div><div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1.5 text-sm font-medium"><span>Ordre</span><Input type="number" min="0" value={form.order} onChange={e => setForm(f => ({ ...f, order: e.target.value }))} /></label><label className="flex items-center gap-2 pt-7 text-sm font-medium"><input type="checkbox" checked={form.hasElevator} onChange={e => setForm(f => ({ ...f, hasElevator: e.target.checked }))} />Ascenseur</label></div>{createError && <p role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{createError}</p>}</div><DialogFooter><Button variant="outline" onClick={() => setCreateOpen(false)} disabled={creating}>Annuler</Button><Button onClick={create} disabled={creating}>{creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Créer</Button></DialogFooter></DialogContent></Dialog></section>;
+ }
 
-async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, { ...init, cache: 'no-store' });
-  if (!response.ok) {
-    let message = 'Opération impossible.';
-    try { const json = await response.json(); if (typeof json?.error === 'string') message = json.error; } catch { /* fallback */ }
-    if (response.status === 401) message = 'Session administrateur expirée.';
-    if (response.status === 403) message = 'Vous n’avez pas les privilèges nécessaires pour cette opération.';
-    throw new Error(message);
-  }
-  return response.json();
-}
-
-export default function AdminBuildingsWorkspace() {
-  const [buildings, setBuildings] = useState<Building[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [meta, setMeta] = useState<Meta>({ page: 1, limit: 20, total: 0, totalPages: 1 });
-  const [page, setPage] = useState(() => getAdminRoute().page ?? 1);
-  const [search, setSearch] = useState(() => getAdminRoute().search ?? '');
-  const [debouncedSearch, setDebouncedSearch] = useState(() => getAdminRoute().search ?? '');
-  const [projectId, setProjectId] = useState(() => getAdminRoute().filters.projectId ?? 'all');
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [retryKey, setRetryKey] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [form, setForm] = useState<FormState>(emptyForm);
-  const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [projectError, setProjectError] = useState<string | null>(null);
-  const [role, setRole] = useState<string | null>(null);
-  const [roleError, setRoleError] = useState<string | null>(null);
-  const [roleRetryKey, setRoleRetryKey] = useState(0);
-  const [projectRetryKey, setProjectRetryKey] = useState(0);
-
-  useEffect(() => {
-    const route = getAdminRoute();
-    setSearch(route.search ?? '');
-    setDebouncedSearch(route.search ?? '');
-    setProjectId(route.filters.projectId ?? 'all');
-    setPage(route.page ?? 1);
-    return subscribeToAdminRoute((next) => {
-      setSearch(next.search ?? '');
-      setDebouncedSearch(next.search ?? '');
-      setProjectId(next.filters.projectId ?? 'all');
-      setPage(next.page ?? 1);
-    });
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    setProjectError(null);
-
-    (async () => {
-      try {
-        const first = await getJson<{ data?: Project[] }>(
-          '/api/admin/projects?limit=100&status=all',
-          { signal: controller.signal },
-        );
-        const all = [...(first.data ?? [])];
-
-        if (!controller.signal.aborted) setProjects(all);
-      } catch (err: unknown) {
-        if (controller.signal.aborted) return;
-        setProjects([]);
-        setProjectError(err instanceof Error ? err.message : 'Impossible de charger les projets.');
-      }
-    })();
-
-    setRoleError(null);
-    getJson<{ user?: { role?: string } }>('/api/admin/me', { signal: controller.signal })
-      .then((json) => { if (!controller.signal.aborted) setRole(json.user?.role ?? null); })
-      .catch((err: unknown) => {
-        if (!controller.signal.aborted) {
-          setRole(null);
-          setRoleError(err instanceof Error ? err.message : 'Impossible de vérifier vos privilèges.');
-        }
-      });
-
-    return () => controller.abort();
-  }, [projectRetryKey, roleRetryKey]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const normalized = search.trim();
-      setDebouncedSearch(normalized);
-      if (normalized !== (getAdminRoute().search ?? '')) {
-        navigateAdminRoute({ workspace: 'buildings', search: normalized || undefined, filters: { projectId }, page: 1 }, 'replace');
-      }
-    }, 300);
-    return () => window.clearTimeout(timer);
-  }, [search, projectId]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const params = new URLSearchParams({ page: String(page), limit: '20' });
-    if (debouncedSearch) params.set('search', debouncedSearch);
-    if (projectId !== 'all') params.set('projectId', projectId);
-
-    setLoading(true);
-    setError(null);
-    getJson<{ data?: Building[]; meta?: Meta }>(`/api/admin/buildings?${params.toString()}`, { signal: controller.signal })
-      .then((json) => { setBuildings(json.data ?? []); if (json.meta) setMeta(json.meta); })
-      .catch((err: unknown) => {
-        if (err instanceof DOMException && err.name === 'AbortError') return;
-        setBuildings([]);
-        setError(err instanceof Error ? err.message : 'Impossible de charger les bâtiments.');
-      })
-      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
-    return () => controller.abort();
-  }, [page, projectId, retryKey, debouncedSearch]);
-
-  useEffect(() => { if (!loading) setRefreshing(false); }, [loading]);
-  useEffect(() => { if (meta.totalPages > 0 && page > meta.totalPages) setPage(meta.totalPages); }, [meta.totalPages, page]);
-
-  const operationalReadiness = useMemo(() => buildings.map((building) => {
-    const signals: OperationalSignal[] = [
-      building.name.trim() ? 'complete' : 'incomplete',
-      building.project?.id ? 'complete' : 'incomplete',
-      building.code.trim() ? 'complete' : 'incomplete',
-      building.floors >= 1 ? 'complete' : 'incomplete',
-      building.apartmentCount >= 0 ? 'complete' : 'unknown',
-    ];
-    return { id: building.id, ...evaluateOperationalSignals(signals) };
-  }), [buildings]);
-
-  const hasFilters = useMemo(() => Boolean(search.trim()) || projectId !== 'all', [projectId, search]);
-  const firstResult = meta.total === 0 ? 0 : (meta.page - 1) * meta.limit + 1;
-  const lastResult = Math.min(meta.page * meta.limit, meta.total);
-
-  function syncRoute(next: { search?: string; projectId?: string; page?: number }) {
-    navigateAdminRoute({
-      workspace: 'buildings',
-      search: next.search ?? search,
-      filters: { projectId: next.projectId ?? projectId },
-      page: next.page ?? page,
-    }, 'replace');
-  }
-  function clearFilters() { setSearch(''); setProjectId('all'); setPage(1); syncRoute({ search: '', projectId: 'all', page: 1 }); }
-  function refresh() { setRefreshing(true); setRetryKey((value) => value + 1); }
-
-  function openCreate() {
-    setForm({ ...emptyForm, projectId: projectId !== 'all' ? projectId : '' });
-    setCreateError(null);
-    setCreateOpen(true);
-  }
-
-  async function createBuilding() {
-    const name = form.name.trim();
-    const code = form.code.trim();
-    const floors = Number(form.floors);
-    const order = Number(form.order);
-    if (!form.projectId || !name || !code || !Number.isInteger(floors) || floors < 1 || !Number.isInteger(order)) {
-      setCreateError('Projet, nom, code, nombre d’étages valide et ordre entier sont obligatoires.');
-      return;
-    }
-
-    setCreating(true);
-    setCreateError(null);
-    try {
-      await getJson('/api/admin/buildings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: form.projectId,
-          name,
-          nameAr: form.nameAr.trim() || null,
-          code,
-          floors,
-          hasElevator: form.hasElevator,
-          order,
-          slug: slugify(`${projects.find((project) => project.id === form.projectId)?.slug ?? 'project'}-${form.code}-${name}`),
-        }),
-      });
-      setCreateOpen(false);
-      setFeedback({ type: 'success', text: `Le bâtiment « ${name} » a été créé.` });
-      setPage(1);
-      setRetryKey((value) => value + 1);
-    } catch (err) {
-      setCreateError(err instanceof Error ? err.message : 'La création a échoué.');
-    } finally { setCreating(false); }
-  }
-
-  return (
-    <section className="admin-buildings-workspace w-full" aria-labelledby="buildings-workspace-title">
-      <div className="mx-auto max-w-[1500px] space-y-5">
-        <header className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
-          <div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest">Catalogue</p><h1 id="buildings-workspace-title" className="text-2xl font-bold text-charcoal sm:text-3xl">Bâtiments</h1><p className="mt-1 text-sm text-muted-foreground">Vue opérationnelle des bâtiments, de leur projet et du nombre de lots associés.</p></div>
-          <div className="flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => navigateAdminRoute({ workspace: 'dashboard' })} className="gap-2"><X className="h-4 w-4" /> Retour</Button><Button variant="outline" size="sm" onClick={refresh} disabled={loading || refreshing} className="gap-2"><RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Actualiser</Button><Button size="sm" onClick={openCreate} disabled={role !== 'ADMIN' && role !== 'EDITOR'} title={role ? undefined : 'Vérification des privilèges…'} className="gap-2"><Plus className="h-4 w-4" /> Nouveau bâtiment</Button></div>
-        </header>
-
-        {feedback && <div role={feedback.type === 'error' ? 'alert' : 'status'} className="flex flex-col gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 sm:flex-row sm:items-center sm:justify-between"><span>{feedback.text}</span><Button variant="outline" size="sm" onClick={() => setFeedback(null)}>Fermer</Button></div>}
-
-        <Card><CardHeader className="pb-3"><div className="flex items-center justify-between gap-3"><CardTitle className="flex items-center gap-2 text-base"><Search className="h-4 w-4" /> Recherche et filtres</CardTitle>{hasFilters && <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2">Effacer</Button>}</div></CardHeader><CardContent><div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1.5 text-sm font-medium"><span>Recherche</span><Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Nom, code, slug ou projet…" /></label><label className="space-y-1.5 text-sm font-medium"><span>Projet</span>{projectError && <span role="alert" className="block text-xs font-normal text-red-700">{projectError} <button type="button" className="underline" onClick={() => setProjectRetryKey((value) => value + 1)}>Réessayer</button></span>}<select value={projectId} onChange={(event) => { setProjectId(event.target.value); setPage(1); syncRoute({ projectId: event.target.value, page: 1 }); }} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="all">Tous les projets</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label></div></CardContent></Card>
-
-        {roleError && <div role="alert" className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><span>Vérification des privilèges impossible. La création reste désactivée jusqu’à confirmation de votre rôle.</span><Button variant="outline" size="sm" onClick={() => setRoleRetryKey((value) => value + 1)}>Réessayer</Button></div>}
-
-        <div aria-live="polite" className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground"><span>{meta.total > 0 ? `${firstResult.toLocaleString('fr-FR')}–${lastResult.toLocaleString('fr-FR')} sur ${meta.total.toLocaleString('fr-FR')} bâtiment${meta.total > 1 ? 's' : ''}` : '0 bâtiment'}</span>{loading && <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Chargement…</span>}</div>
-
-        {error ? <Card role="alert"><CardContent className="flex flex-col items-center gap-3 py-12 text-center"><p className="font-semibold text-charcoal">Impossible de charger les bâtiments</p><p className="max-w-md text-sm text-muted-foreground">{error}</p><Button onClick={() => setRetryKey((value) => value + 1)} className="gap-2"><RefreshCw className="h-4 w-4" /> Réessayer</Button></CardContent></Card>
-        : loading && buildings.length === 0 ? <Card><CardContent className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /> Chargement des bâtiments…</CardContent></Card>
-        : buildings.length === 0 ? <Card><CardContent className="flex flex-col items-center gap-3 py-16 text-center"><Building2 className="h-8 w-8 text-muted-foreground" /><p className="font-semibold text-charcoal">Aucun bâtiment trouvé</p><p className="text-sm text-muted-foreground">Modifiez les critères ou effacez les filtres.</p>{hasFilters && <Button variant="outline" onClick={clearFilters}>Effacer les filtres</Button>}</CardContent></Card>
-        : <Card className="overflow-hidden"><div className="overflow-x-auto"><Table className="min-w-[760px]"><TableHeader><TableRow><TableHead>Bâtiment</TableHead><TableHead>Projet</TableHead><TableHead>Code</TableHead><TableHead>Étages</TableHead><TableHead>Ascenseur</TableHead><TableHead>Lots</TableHead><TableHead>Ordre</TableHead><TableHead>Appartements</TableHead></TableRow></TableHeader><TableBody>{buildings.map((building) => <TableRow key={building.id}><TableCell><div className="min-w-[180px]"><div className="mb-1 text-[11px] text-muted-foreground">{(() => { const readiness = operationalReadiness.find((item) => item.id === building.id); return readiness ? `${readiness.completionRatio}% renseigné` : null; })()}</div><div className="font-medium">{building.name}</div>{building.nameAr && <div dir="rtl" className="text-xs text-muted-foreground">{building.nameAr}</div>}<div className="text-xs text-muted-foreground">{building.slug}</div></div></TableCell><TableCell><div className="min-w-[150px] text-sm">{building.project?.name ?? '—'}</div></TableCell><TableCell><Badge variant="secondary">{building.code}</Badge></TableCell><TableCell className="text-sm">{building.floors}</TableCell><TableCell className="text-sm">{building.hasElevator ? 'Oui' : 'Non'}</TableCell><TableCell className="text-sm font-medium">{building.apartmentCount}</TableCell><TableCell className="text-sm">{building.order}</TableCell><TableCell><Button variant="outline" size="sm" className="h-8 gap-1 px-2" onClick={() => navigateAdminRoute({ workspace: 'apartments', filters: { buildingId: building.id, projectSlug: building.project?.slug }, page: 1 })} aria-label={`Voir les appartements de ${building.name}`}><Home className="h-4 w-4" /><span className="sr-only">Voir les appartements</span></Button></TableCell></TableRow>)}</TableBody></Table></div><div className="flex flex-col gap-3 border-t p-3 sm:flex-row sm:items-center sm:justify-between"><span className="text-xs text-muted-foreground">Page {meta.page} sur {meta.totalPages}</span><nav aria-label="Pagination des bâtiments" className="flex items-center gap-1"><Button variant="outline" size="sm" onClick={() => { const next = Math.max(1, page - 1); setPage(next); syncRoute({ page: next }); }} disabled={loading || page <= 1} aria-label="Page précédente" className="gap-1"><ChevronLeft className="h-4 w-4" /> Précédente</Button><Button variant="outline" size="sm" onClick={() => { const next = Math.min(meta.totalPages, page + 1); setPage(next); syncRoute({ page: next }); }} disabled={loading || page >= meta.totalPages} aria-label="Page suivante" className="gap-1">Suivante <ChevronRight className="h-4 w-4" /></Button></nav></div></Card>}
-      </div>
-
-      <Dialog open={createOpen} onOpenChange={(open) => { if (!creating) setCreateOpen(open); }}><DialogContent><DialogHeader><DialogTitle>Nouveau bâtiment</DialogTitle><DialogDescription>Ajoutez un bâtiment au catalogue. Le slug est généré automatiquement à partir du code et du nom.</DialogDescription></DialogHeader><div className="grid gap-3 py-2"><label className="space-y-1.5 text-sm font-medium"><span>Projet *</span><select value={form.projectId} onChange={(event) => setForm((current) => ({ ...current, projectId: event.target.value }))} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="">Sélectionner un projet</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label><label className="space-y-1.5 text-sm font-medium"><span>Nom *</span><Input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} placeholder="Bâtiment A" /></label><label className="space-y-1.5 text-sm font-medium"><span>Nom arabe</span><Input value={form.nameAr} onChange={(event) => setForm((current) => ({ ...current, nameAr: event.target.value }))} dir="rtl" /></label><div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1.5 text-sm font-medium"><span>Code *</span><Input value={form.code} onChange={(event) => setForm((current) => ({ ...current, code: event.target.value }))} placeholder="A" /></label><label className="space-y-1.5 text-sm font-medium"><span>Nombre d’étages *</span><Input type="number" min="1" step="1" value={form.floors} onChange={(event) => setForm((current) => ({ ...current, floors: event.target.value }))} /></label></div><div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1.5 text-sm font-medium"><span>Ordre</span><Input type="number" step="1" value={form.order} onChange={(event) => setForm((current) => ({ ...current, order: event.target.value }))} /></label><label className="flex items-center gap-2 pt-7 text-sm font-medium"><input type="checkbox" checked={form.hasElevator} onChange={(event) => setForm((current) => ({ ...current, hasElevator: event.target.checked }))} /> Ascenseur</label></div>{createError && <p role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{createError}</p>}</div><DialogFooter><Button variant="outline" onClick={() => setCreateOpen(false)} disabled={creating}>Annuler</Button><Button onClick={createBuilding} disabled={creating} className="gap-2">{creating && <Loader2 className="h-4 w-4 animate-spin" />} Créer le bâtiment</Button></DialogFooter></DialogContent></Dialog>
-    </section>
-  );
-}
+ function BuildingDetail({ id }: { id: string }) {
+   const [building, setBuilding] = useState<Detail | null>(null); const [projects, setProjects] = useState<Project[]>([]); const [form, setForm] = useState<Form | null>(null); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false); const [error, setError] = useState<string | null>(null); const [saveError, setSaveError] = useState<string | null>(null); const [saved, setSaved] = useState(false); const [retry, setRetry] = useState(0);
+   useEffect(() => { const c = new AbortController(); setLoading(true); setError(null); Promise.all([getJson<{ data: Detail }>(`/api/admin/buildings/${encodeURIComponent(id)}`, { signal: c.signal }), getJson<{ data?: Project[] }>('/api/admin/projects?limit=100&status=all', { signal: c.signal })]).then(([b, p]) => { setBuilding(b.data); setProjects(p.data ?? []); setForm({ projectId: b.data.project.id, name: b.data.name, nameAr: b.data.nameAr ?? '', code: b.data.code, floors: String(b.data.floors), hasElevator: b.data.hasElevator, order: String(b.data.order), slug: b.data.slug }); }).catch(e => { if (!(e instanceof DOMException && e.name === 'AbortError')) setError(e instanceof Error ? e.message : 'Impossible de charger le bâtiment.'); }).finally(() => { if (!c.signal.aborted) setLoading(false); }); return () => c.abort(); }, [id, retry]);
+   async function save() { if (!form) return; const floors = Number(form.floors), order = Number(form.order); if (!form.projectId || !form.name.trim() || !form.code.trim() || !Number.isInteger(floors) || floors < 1 || !Number.isInteger(order) || !form.slug.trim()) { setSaveError('Projet, nom, code, slug, étages et ordre entier sont obligatoires.'); return; } setSaving(true); setSaveError(null); setSaved(false); try { await getJson(`/api/admin/buildings/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: form.projectId, name: form.name.trim(), nameAr: form.nameAr.trim() || null, code: form.code.trim(), floors, hasElevator: form.hasElevator, order, slug: form.slug.trim() }) }); setSaved(true); setRetry(v => v + 1); } catch (e) { setSaveError(e instanceof Error ? e.message : 'La sauvegarde a échoué.'); } finally { setSaving(false); } }
+   if (loading) return <section className="p-6"><div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" />Chargement du bâtiment…</div></section>;
+   if (error || !building || !form) return <section className="p-6"><Card role="alert"><CardContent className="flex flex-col gap-3 py-12"><p className="font-semibold">Impossible de charger le bâtiment</p><p className="text-sm text-muted-foreground">{error ?? 'Bâtiment introuvable.'}</p><div className="flex gap-2"><Button variant="outline" onClick={() => navigateAdminRoute({ workspace: 'buildings', entity: undefined, entityId: undefined })}>Retour</Button><Button onClick={() => setRetry(v => v + 1)}>Réessayer</Button></div></CardContent></Card></section>;
+   return <section className="w-full"><div className="mx-auto max-w-[1500px] space-y-5"><header className="flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between"><div><Button variant="ghost" size="sm" onClick={() => navigateAdminRoute({ workspace: 'buildings', entity: undefined, entityId: undefined })}><ArrowLeft className="mr-2 h-4 w-4" />Bâtiments</Button><h1 className="mt-2 text-2xl font-bold text-charcoal">{building.name}</h1><p className="text-sm text-muted-foreground">{building.project.name} · {building.code} · {building.apartmentCount} lots</p></div><Button onClick={save} disabled={saving}><Save className="mr-2 h-4 w-4" />{saving ? 'Enregistrement…' : 'Enregistrer'}</Button></header>{saved && <div role="status" className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">Modifications enregistrées.</div>}{saveError && <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{saveError}</div>}<div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]"><Card><CardHeader><CardTitle>Structure du bâtiment</CardTitle></CardHeader><CardContent className="grid gap-4 sm:grid-cols-2"><label className="space-y-1.5 text-sm font-medium sm:col-span-2"><span>Projet</span><select value={form.projectId} onChange={e => setForm(f => f && ({ ...f, projectId: e.target.value }))} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label><label className="space-y-1.5 text-sm font-medium"><span>Nom</span><Input value={form.name} onChange={e => setForm(f => f && ({ ...f, name: e.target.value }))} /></label><label className="space-y-1.5 text-sm font-medium"><span>Nom arabe</span><Input dir="rtl" value={form.nameAr} onChange={e => setForm(f => f && ({ ...f, nameAr: e.target.value }))} /></label><label className="space-y-1.5 text-sm font-medium"><span>Code</span><Input value={form.code} onChange={e => setForm(f => f && ({ ...f, code: e.target.value }))} /></label><label className="space-y-1.5 text-sm font-medium"><span>Slug</span><Input value={form.slug} onChange={e => setForm(f => f && ({ ...f, slug: e.target.value }))} /></label><label className="space-y-1.5 text-sm font-medium"><span>Étages</span><Input type="number" min="1" value={form.floors} onChange={e => setForm(f => f && ({ ...f, floors: e.target.value }))} /></label><label className="space-y-1.5 text-sm font-medium"><span>Ordre</span><Input type="number" min="0" value={form.order} onChange={e => setForm(f => f && ({ ...f, order: e.target.value }))} /></label><label className="flex items-center gap-2 text-sm font-medium sm:col-span-2"><input type="checkbox" checked={form.hasElevator} onChange={e => setForm(f => f && ({ ...f, hasElevator: e.target.checked }))} />Ascenseur</label></CardContent></Card><Card><CardHeader><CardTitle>Lots associés</CardTitle></CardHeader><CardContent className="space-y-2">{building.apartments.length === 0 ? <p className="text-sm text-muted-foreground">Aucun lot associé.</p> : building.apartments.map(a => <div key={a.id} className="flex items-center justify-between gap-3 rounded-md border p-3"><div><p className="font-medium">{a.apartmentNumber}</p><p className="text-xs text-muted-foreground">{a.type ?? a.unitNumber ?? a.slug}</p></div><Button variant="outline" size="sm" onClick={() => navigateAdminRoute({ workspace: 'apartments', entity: 'apartment', entityId: a.id })}><Home className="mr-1 h-4 w-4" />Ouvrir</Button></div>)}</CardContent></Card></div></div></section>;
+ }
