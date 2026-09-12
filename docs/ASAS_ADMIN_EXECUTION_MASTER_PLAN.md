@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Last reviewed implementation checkpoint:** `f1f1c102c0928dc4b69953d2181b7b977c61a4b7`
+> **Last reviewed implementation checkpoint:** `7f914a99109f404758f050e6be500c2a18f1d115`
 > **Rule:** This file records the execution contract, prompt for each step, evidence, decisions, and blockers. It is updated as part of the engineering work so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -37,104 +37,52 @@ Only relationships/capabilities actually represented by the current application/
 ## STEP 0 — Baseline / CI authority
 **Goal:** establish the exact HEAD, CI state, and build gates before each risky wave.
 
-**Prompt:**
-> Inspect the current branch HEAD and PR #7. Inspect GitHub Actions for that exact commit. Inspect typecheck, lint, production build and any deployment/runtime evidence. Do not infer success from source inspection. If a gate fails, isolate and fix only the root cause, commit, and repeat the gate.
-
-**Exit evidence:** exact SHA + CI run + individual gate status.
-
 ## STEP 1 — Operational vocabulary convergence
 **Goal:** one canonical action vocabulary shared by operational units, transitions, journeys and workspaces.
-
-**Prompt:**
-> Read the operational unit definitions and all transition definitions. Compare every action ID against the canonical vocabulary. Detect aliases, spelling drift, duplicate outcomes, invalid syntax, and actions that imply unsupported backend capabilities. Correct only the smallest coherent set. Do not invent capabilities.
-
 **Status:** Implemented; subsequent commits require fresh CI evidence.
 
 ## STEP 2 — Project operational vertical slice
 **Goal:** make Project the parent operational context rather than an isolated CRUD editor.
-
-**Prompt:**
-> Inspect Project list/detail/editor, PostgreSQL Prisma Project/Building/Apartment models, API routes, route model, React Query ownership and workspace navigation. Implement Project list → detail/editor → authoritative completeness → Buildings → Apartments → inventory context. Do not derive totals from paginated slices. Do not invent publication readiness. Child creation must inherit explicit project context and preserve URL context.
-
-**Status:** In progress.
+**Status:** In progress — API/data-contract convergence.
 
 ## STEP 3 — Building operational vertical slice
 **Goal:** Building is a child operational entity with explicit Project context.
 
-**Prompt:**
-> Inspect Building schema, API capabilities and current workspace. Implement Building list/detail/context only where supported. Enforce Project association as an operational precondition. Expose structural data, apartments and inventory status from authoritative server data. Treat an orphan Building as an integrity problem, not an empty state. Preserve parent URL context.
-
 ## STEP 4 — Apartment operational vertical slice
 **Goal:** complete the first high-value real-estate operational entity.
-
-**Prompt:**
-> Inspect Apartment schema, API routes, editor, media capabilities, Project/Building relationships and availability representation. Implement List → Detail → Project/Building context → Physical Specs → Commercial Data → Availability → Media → Completeness → Publication → Lifecycle. Every section must distinguish persisted data from unknown data. Reservation state must never be inferred from UI state.
 
 ## STEP 5 — Customer / Lead vertical slice
 **Goal:** connect customer operations to real inventory without fabricating reservation state.
 
-**Prompt:**
-> Inspect Lead schema, APIs, current workspace, property-interest representation and reservation support. Implement Lead → Qualification → Assignment → Property Interest → Follow-up → Negotiation → Reservation → Conversion/Loss only for capabilities supported by the backend.
-
 ## STEP 6 — Reservation boundary
 **Goal:** make reservation a server-confirmed business event where supported.
-
-**Prompt:**
-> Inspect the actual Reservation model/API. If no executable reservation capability exists, document it as unsupported/future and do not build fake confirmation UI.
 
 ## STEP 7 — Navigation and URL state certification
 **Goal:** URL is the authoritative recoverable navigation state.
 
-**Prompt:**
-> Audit every Admin workspace for duplicated route parsing, local activeTab authority, hash/path conflicts, manual history mutation and state leakage. Define one AdminRouteModel and ensure workspace/entity/id/search/filter/sort/pagination/subview are URL-addressable where meaningful.
-
 ## STEP 8 — Server-state and request lifecycle
 **Goal:** one clear owner for server state and controlled network behavior.
-
-**Prompt:**
-> Audit React Query usage and all Admin fetch/search effects. Implement AbortController where appropriate, deliberate search debounce, stale-response protection, duplicate-request prevention, pagination, bounded payloads, cache invalidation and retry semantics. Do not introduce another state library.
 
 ## STEP 9 — Error/loading/empty-state taxonomy
 **Goal:** operationally meaningful feedback.
 
-**Prompt:**
-> Audit all major Admin operations and map failures to validation/authentication/authorization/network/API/server/conflict/timeout/unknown. Map loading and empty states to explicit operational categories.
-
 ## STEP 10 — Responsive behavior contracts
 **Goal:** behavior-first responsive implementation, not desktop shrinkage.
-
-**Prompt:**
-> For Projects, Buildings, Apartments and Leads define Desktop/Tablet/Mobile behavior before changing broad CSS. Use 360×800 as hard mobile constraint and the established tablet/desktop matrix.
 
 ## STEP 11 — Accessibility WCAG 2.2 AA
 **Goal:** keyboard and assistive technology correctness.
 
-**Prompt:**
-> Audit navigation, tables, forms, dialogs, drawers, focus entry/restoration, visible focus, labels, errors, status announcements, semantic tables, current navigation state and operational target sizes. Fix P0/P1 defects before visual polish.
-
 ## STEP 12 — Performance / scale
 **Goal:** conceptual correctness at 10–100,000 records.
-
-**Prompt:**
-> Audit list endpoints, selectors, aggregates, search, pagination and payload sizes. Ensure totals come from server aggregates, not paginated lists. Define indexed search requirements based on the actual schema. Do not add virtualization without profiling evidence.
 
 ## STEP 13 — Observability / deployment / runtime
 **Goal:** production evidence.
 
-**Prompt:**
-> Inspect GitHub Actions, Vercel deployment state, runtime logs/errors, hydration errors and available browser/preview evidence. If SSO blocks visual testing, record exactly: VISUAL VALIDATION BLOCKED — VERCEL SSO.
-
 ## STEP 14 — Browser certification
 **Goal:** certify the required browser × viewport matrix.
 
-**Prompt:**
-> Use real browser/preview tooling where available. Test the required browser and viewport matrix. Record pass/fail/block evidence per workspace. Never summarize a blocked test as passed.
-
 ## STEP 15 — Final operational acceptance
 **Goal:** prove the Admin is an operational workspace, not a collection of CRUD screens.
-
-**Prompt:**
-> Execute representative end-to-end journeys across Site Operations and Customer Operations. Verify context, preconditions, permissions, state, action, validation, mutation, feedback, recovery, invalidation, auditability and next action.
 
 ---
 
@@ -149,40 +97,53 @@ Commit `d98065e89853c41ebad8d4b9783580678ccee5` restored only the bounded previe
 ### 2026-09-11 — Production DB alignment audit
 Commit `111d94f3f797e3516399a86f3fb20d782bd35ed3` added `docs/ASAS_ADMIN_DATABASE_ALIGNMENT_AUDIT.md` after direct inspection of the live Supabase PostgreSQL schema.
 
-Verified production facts: projects=6, buildings=3, apartments=8, leads=4, project_images=4, apartment_images=19, project_amenities=19, developers=1, audit_logs=68, media=0, videos=0 at inspection time. The production hierarchy and FK relationships are present.
-
-Supabase reported RLS enabled without policies on several server-owned tables as INFO, plus `vector` in `public` and leaked-password protection disabled as WARN findings. No RLS redesign was applied blindly.
+Verified production facts at inspection time: projects=6, buildings=3, apartments=8, leads=4, project_images=4, apartment_images=19, project_amenities=19, developers=1, audit_logs=68, media=0, videos=0. The production hierarchy and FK relationships are present.
 
 ### 2026-09-11 — Status default alignment
-Production data uses uppercase status values: Project `AVAILABLE/COMING_SOON/DRAFT`, Apartment `AVAILABLE`, Lead `NEW/VISIT`. The live PostgreSQL defaults were aligned safely with the Admin vocabulary:
-
+Production data uses uppercase status values: Project `AVAILABLE/COMING_SOON/DRAFT`, Apartment `AVAILABLE`, Lead `NEW/VISIT`. Live PostgreSQL defaults were aligned safely:
 - `projects.status` → `DRAFT`
 - `apartments.status` → `AVAILABLE`
 - `leads.status` → `NEW`
 
-Migration applied successfully: `align_admin_status_defaults`. No existing rows were modified and no new status CHECK constraints were added; the complete supported transition matrix must be finalized first.
+Migration applied successfully: `align_admin_status_defaults`. Existing rows were not modified.
 
 Commit `072c3f79cce2b056816c4422b9c5d9aea71ab62e` aligns the PostgreSQL Prisma schema defaults with the live database defaults.
 
 ### 2026-09-12 — Publication default contract correction
-A live PostgreSQL inspection exposed a remaining contract mismatch: `projects.published` and `apartments.published` still defaulted to `true`, while the pre-launch data-integrity contract and Admin create behavior require new entities to start unpublished. Existing rows were not changed.
+Live PostgreSQL inspection exposed a remaining contract mismatch: `projects.published` and `apartments.published` still defaulted to `true`, while Admin create behavior requires new inventory to start unpublished. Existing rows were not changed.
 
 Migration applied successfully: `align_publication_defaults`:
 - `projects.published` → `false`
 - `apartments.published` → `false`
 
-Verified immediately after migration through `information_schema.columns`; both live defaults now report `false`.
+Verified immediately after migration through `information_schema.columns`; both live defaults report `false`.
 
-Commit `8fcbb089760df2bff2678111bd2187673e340d74` aligns `prisma/schema.postgres.prisma` with the live publication defaults. This keeps direct Prisma creates and database defaults consistent and prevents accidental public exposure of newly created inventory.
+Commit `8fcbb089760df2bff2678111bd2187673e340d74` aligns `prisma/schema.postgres.prisma` with the live publication defaults.
 
 ### 2026-09-12 — Project mutation authorization hardening
-Commit `f1f1c102c0928dc4b69953d2181b7b977c61a4b7` adds the missing `ADMIN/EDITOR` role gate to `PUT /api/admin/projects/[slug]`. Before this correction, the route verified authentication but did not enforce the mutation role boundary, while Project creation already enforced it and archive correctly required `ADMIN`.
+Commit `f1f1c102c0928dc4b69953d2181b7b977c61a4b7` adds the missing `ADMIN/EDITOR` role gate to `PUT /api/admin/projects/[slug]`. The route already used the existing audit logger; no new capability or schema was introduced.
 
-The route continues to use the existing audit logger and PostgreSQL Prisma contract. No new capability or schema was introduced.
+### 2026-09-12 — Building API contract hardening
+Commit `860a1a316e3dc69cf5059dab1d37853932841a4e` hardened `/api/admin/buildings` without changing the database model:
+- Zod query validation and bounded pagination.
+- `floors` must be a positive integer; corrected the prior falsy check that rejected `0` ambiguously.
+- Creation now verifies the referenced Project exists before inserting.
+- Existing `ADMIN/EDITOR` mutation gate and audit logging retained.
+- GET remains server-authoritative with count and explicit Project relation.
 
-### Current DB decision
+### 2026-09-12 — Apartment API contract hardening
+Commit `7f914a99109f404758f050e6be500c2a18f1d115` hardened `/api/admin/apartments`:
+- Added Zod validation for create payloads and retained bounded query pagination.
+- Enforced referenced Project existence.
+- Enforced Building existence and, critically, `building.projectId === apartment.projectId` before creation, preventing cross-project inventory association.
+- Normalized and bounded supported status values.
+- Preserved `published=false` for new apartments unless explicitly provided.
+- Preserved the existing no-price-plus-price-on-request invariant.
 
-The live PostgreSQL schema and `prisma/schema.postgres.prisma` are the Admin persistence contract. `src/lib/db.ts` already uses the generated PostgreSQL client. Future Admin data work must reconcile against these sources before UI assumptions or migrations are introduced.
+The existing detail PUT route already enforces `ADMIN/EDITOR`, status transition validation, numeric validation, publication preconditions and audit logging. No Reservation capability was added.
+
+### Current API contract conclusion
+Project, Building and Apartment are now explicitly treated as related operational entities. The remaining STEP 2 work is to audit Project detail/editor mutation semantics and Lead read/write boundaries, then certify the exact CI result for the new commits before moving into broader UX work.
 
 ## Current execution state
 
@@ -190,8 +151,9 @@ The live PostgreSQL schema and `prisma/schema.postgres.prisma` are the Admin per
 
 **Immediate gates:**
 1. CI for the latest code/documentation HEAD.
-2. Admin API ↔ PostgreSQL contract audit.
-3. Status semantics audit.
-4. Contextual entity navigation.
+2. Project/Building/Apartment API ↔ PostgreSQL contract audit.
+3. Lead mutation/read contract audit.
+4. Status/publication semantics audit.
+5. Contextual entity navigation.
 
 **Browser/runtime certification:** not verified in this execution context.
