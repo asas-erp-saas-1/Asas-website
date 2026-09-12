@@ -48,7 +48,7 @@ model Project {
   hasClim Boolean? @default(false) @map("has_clim")
   priceOnRequest Boolean? @default(false) @map("price_on_request")
   developerId String? @map("developer_id") @db.Uuid
-  published Boolean @default(true)
+  published Boolean @default(false)
   archived Boolean @default(false)
   seoTitle String? @map("seo_title")
   seoDescription String? @map("seo_description") @db.Text
@@ -112,9 +112,9 @@ model Apartment {
   balconySurface Int? @map("balcony_surface")
   hasParking Boolean? @default(false) @map("has_parking")
   parkingSpots Int? @map("parking_spots")
-  hasTerrace Boolean @default(false) @map("has_terrace")
+  hasTerrace Boolean? @default(false) @map("has_terrace")
   terraceSurface Int? @map("terrace_surface")
-  hasGarden Boolean @default(false) @map("has_garden")
+  hasGarden Boolean? @default(false) @map("has_garden")
   gardenSurface Int? @map("garden_surface")
   status String @default("AVAILABLE")
   price Decimal?
@@ -130,7 +130,7 @@ model Apartment {
   descriptionAr String? @map("description_ar") @db.Text
   features Json?
   featuresAr Json? @map("features_ar")
-  published Boolean @default(true)
+  published Boolean @default(false)
   archived Boolean @default(false)
   seoTitle String? @map("seo_title")
   seoDescription String? @map("seo_description") @db.Text
@@ -351,7 +351,6 @@ model LeadNote {
   createdAt DateTime @default(now()) @map("created_at")
   lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
   @@index([leadId])
-  @@index([createdAt])
   @@map("lead_notes")
 }
 
