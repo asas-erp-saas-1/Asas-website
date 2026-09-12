@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Latest execution HEAD:** `00d1a071eaf08b976c6f8fdcf55f58e4df0f46b9`
+> **Latest execution HEAD:** `7632feb97c7b8fc223b654cdad50875e765c0239`
 > **Rule:** This file records the execution contract, prompt system, evidence, decisions, and blockers so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -153,21 +153,27 @@ Prove Admin is an operational workspace, not a collection of CRUD screens.
 `4f4a41d11b6b5ebb93cd095f1004bf2059a02154` added path-specific Admin instructions.
 `00d1a071eaf08b976c6f8fdcf55f58e4df0f46b9` added the reusable `.github/prompts/asas-admin-execution.prompt.md`.
 
+### 2026-09-12 — CI failure diagnosed and repaired
+CI run `#899` on `ba23a1701c2da25df4f898cd76a7fbe075793e2b` failed at Typecheck because `AdminLeadsPremiumWorkspace.tsx` referenced an undefined `INTENT_OPTIONS` symbol. Lint and Build were therefore skipped. The failure was isolated from the workflow job log, not inferred.
+
+`7632feb97c7b8fc223b654cdad50875e765c0239` restores the missing intent-option contract from the existing canonical `LEAD_INTENT_LABELS` constants and removes the undefined symbol failure without introducing a new domain vocabulary.
+
 ## CI evidence
 
-The CI run observed for project creation commit `025d3bab...` was run `#889` but was cancelled before setup completed because the branch advanced. Therefore it is **not green evidence** for the current state. The next exact-HEAD CI result is the authoritative gate.
+- Run `#899` — HEAD `ba23a170...` — **FAILURE at Typecheck**; Prisma generation and baseline candidate generation/upload succeeded. Root cause: undefined `INTENT_OPTIONS` in `AdminLeadsPremiumWorkspace.tsx`.
+- Run `#902` — HEAD `7632feb97c7b8fc223b654cdad50875e765c0239` — **IN PROGRESS** at the time of this update. Typecheck is the current gate; no green claim is made until the run completes.
 
 ## Current execution state
 
-**Latest HEAD:** `00d1a071eaf08b976c6f8fdcf55f58e4df0f46b9`
+**Latest HEAD:** `7632feb97c7b8fc223b654cdad50875e765c0239`
 
 **Active wave:** STEP 2 — Project operational vertical slice / data-contract convergence
 
 **Immediate gates:**
-1. Fresh CI for the latest HEAD after instruction/documentation commits.
+1. Close CI run #902 on exact HEAD.
 2. Project editor UI payload alignment against the hardened API contract.
 3. Final Building/Apartment vertical-slice closure.
-4. Lead UI regression/contract review.
+4. Lead UI regression/contract review after the repaired intent contract.
 5. Status/publication semantics audit.
 6. Navigation and URL state certification after operational slices stabilize.
 
