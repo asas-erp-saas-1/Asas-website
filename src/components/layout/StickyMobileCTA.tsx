@@ -5,6 +5,7 @@ import { MessageCircle, Phone, CalendarCheck } from 'lucide-react';
 import { getPhoneUrl, getWhatsAppUrl } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { useRouter } from '@/lib/router';
+import { useComparison } from '@/lib/favorites';
 
 type PropertyContext = 'project' | 'apartment' | 'general';
 
@@ -12,6 +13,7 @@ export function StickyMobileCTA() {
   const [visible, setVisible] = useState(false);
   const [context, setContext] = useState<PropertyContext>('general');
   const { navigate } = useRouter();
+  const compareCount = useComparison(s => s.compareList.length);
 
   useEffect(() => {
     const handleScroll = () => setVisible(window.scrollY > 300);
@@ -26,7 +28,9 @@ export function StickyMobileCTA() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  if (!visible) return null;
+  // Comparison is the active decision context: keep one bottom action layer,
+  // rather than stacking two fixed bars over the same mobile viewport area.
+  if (!visible || compareCount >= 2) return null;
 
   const whatsappMessage = context === 'apartment'
     ? 'Bonjour, je souhaite des informations sur cet appartement, notamment sa disponibilité, son prix et les modalités de visite.'
