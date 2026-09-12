@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { withSecurityHeaders } from '@/lib/with-security-headers';
 import { verifyAdminAuth, sessionHasRole } from '@/lib/admin-auth';
+import { Prisma } from '@/generated/prisma-postgres';
 import { z } from 'zod';
 
 const apartmentQuerySchema = z.object({
@@ -80,8 +81,8 @@ export async function POST(request: NextRequest) {
       balconies: body.balconies ?? null, balconySurface: body.balconySurface ?? null, hasParking: body.hasParking ?? false, parkingSpots: body.parkingSpots ?? null,
       hasTerrace: body.hasTerrace ?? false, terraceSurface: body.terraceSurface ?? null, hasGarden: body.hasGarden ?? false, gardenSurface: body.gardenSurface ?? null,
       status: body.status ?? 'AVAILABLE', price: body.price ?? null, priceOnRequest: body.priceOnRequest ?? false, paymentPlan: body.paymentPlan ?? null,
-      paymentPlanAr: body.paymentPlanAr ?? null, rooms: body.rooms ?? null, description: body.description ?? null, descriptionAr: body.descriptionAr ?? null,
-      features: body.features ?? null, featuresAr: body.featuresAr ?? null, published: body.published ?? false, order: body.order ?? 0,
+      paymentPlanAr: body.paymentPlanAr ?? null, rooms: body.rooms === null ? Prisma.JsonNull : body.rooms as Prisma.InputJsonValue, description: body.description ?? null, descriptionAr: body.descriptionAr ?? null,
+      features: body.features === null ? Prisma.JsonNull : body.features as Prisma.InputJsonValue, featuresAr: body.featuresAr === null ? Prisma.JsonNull : body.featuresAr as Prisma.InputJsonValue, published: body.published ?? false, order: body.order ?? 0,
     } });
     return withSecurityHeaders(NextResponse.json({ data: apartment }, { status: 201 }));
   } catch (error) { console.error('[API /admin/apartments] POST error:', error instanceof Error ? error.message : error); return withSecurityHeaders(NextResponse.json({ error: 'Failed to create apartment' }, { status: 500 })); }
