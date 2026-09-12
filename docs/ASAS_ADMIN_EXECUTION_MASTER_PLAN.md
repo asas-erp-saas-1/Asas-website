@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Last reviewed implementation checkpoint:** `f15b4252199a0d377afa8f0a6051df665a5ed70c`
+> **Last reviewed implementation checkpoint:** `f1f1c102c0928dc4b69953d2181b7b977c61a4b7`
 > **Rule:** This file records the execution contract, prompt for each step, evidence, decisions, and blockers. It is updated as part of the engineering work so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -163,6 +163,22 @@ Production data uses uppercase status values: Project `AVAILABLE/COMING_SOON/DRA
 Migration applied successfully: `align_admin_status_defaults`. No existing rows were modified and no new status CHECK constraints were added; the complete supported transition matrix must be finalized first.
 
 Commit `072c3f79cce2b056816c4422b9c5d9aea71ab62e` aligns the PostgreSQL Prisma schema defaults with the live database defaults.
+
+### 2026-09-12 — Publication default contract correction
+A live PostgreSQL inspection exposed a remaining contract mismatch: `projects.published` and `apartments.published` still defaulted to `true`, while the pre-launch data-integrity contract and Admin create behavior require new entities to start unpublished. Existing rows were not changed.
+
+Migration applied successfully: `align_publication_defaults`:
+- `projects.published` → `false`
+- `apartments.published` → `false`
+
+Verified immediately after migration through `information_schema.columns`; both live defaults now report `false`.
+
+Commit `8fcbb089760df2bff2678111bd2187673e340d74` aligns `prisma/schema.postgres.prisma` with the live publication defaults. This keeps direct Prisma creates and database defaults consistent and prevents accidental public exposure of newly created inventory.
+
+### 2026-09-12 — Project mutation authorization hardening
+Commit `f1f1c102c0928dc4b69953d2181b7b977c61a4b7` adds the missing `ADMIN/EDITOR` role gate to `PUT /api/admin/projects/[slug]`. Before this correction, the route verified authentication but did not enforce the mutation role boundary, while Project creation already enforced it and archive correctly required `ADMIN`.
+
+The route continues to use the existing audit logger and PostgreSQL Prisma contract. No new capability or schema was introduced.
 
 ### Current DB decision
 
