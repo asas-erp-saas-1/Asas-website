@@ -129,7 +129,6 @@ export function adminRouteHref(workspaceOrPatch: AdminWorkspaceId | AdminRoutePa
   return query ? base + '?' + query : base;
 }
 
-
 export type AdminNavigationMode = 'push' | 'replace';
 
 export function navigateAdminRoute(
@@ -140,10 +139,6 @@ export function navigateAdminRoute(
   const current = getAdminRoute();
   const workspace = patch.workspace ?? current.workspace;
   const workspaceChanged = workspace !== current.workspace;
-
-  // Workspace boundaries are context boundaries. Do not leak a Projects
-  // search/filter/entity context into Leads, Buildings, etc. Within the same
-  // workspace, preserve context unless the caller explicitly changes it.
   const mergedFilters = workspaceChanged
     ? { ...(patch.filters ?? {}) }
     : { ...current.filters, ...(patch.filters ?? {}) };
@@ -159,8 +154,8 @@ export function navigateAdminRoute(
     page: workspaceChanged ? patch.page : patch.page ?? current.page,
     cursor: workspaceChanged ? patch.cursor : patch.cursor ?? current.cursor,
     subview: workspaceChanged ? patch.subview : patch.subview ?? current.subview,
-    entity: workspaceChanged ? patch.entity : patch.entity ?? current.entity,
-    entityId: workspaceChanged ? patch.entityId : patch.entityId ?? current.entityId,
+    entity: workspaceChanged ? patch.entity : ('entity' in patch ? patch.entity : current.entity),
+    entityId: workspaceChanged ? patch.entityId : ('entityId' in patch ? patch.entityId : current.entityId),
   });
   const currentHref = window.location.hash || window.location.pathname + window.location.search;
   if (currentHref === href) return;
