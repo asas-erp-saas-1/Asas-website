@@ -3,6 +3,7 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, FileText, Loader2, Mail, Phone, RefreshCw, Search, UserRound, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { LEAD_INTENT_LABELS } from '@/lib/constants';
 import { evaluateOperationalSignals, getAllowedLeadStatusTransitions, type OperationalSignal } from '@/lib/admin-operational-units';
 import { getAdminRoute, navigateAdminRoute, subscribeToAdminRoute } from '@/lib/admin-route';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,8 @@ const STATUS_OPTIONS = [
   ['NEW', 'Nouveau'], ['CONTACTED', 'Contacté'], ['QUALIFIED', 'Qualifié'], ['VISIT', 'Visite prévue'],
   ['NEGOTIATION', 'Négociation'], ['SOLD', 'Vendu'], ['LOST', 'Perdu'],
 ] as const;
+
+const INTENT_OPTIONS = Object.entries(LEAD_INTENT_LABELS) as [string, string][];
 
 const CUSTOMER_OPERATIONS = {
   lifecycle: ['NEW', 'CONTACTED', 'QUALIFIED', 'VISIT', 'NEGOTIATION', 'SOLD', 'LOST'] as const,
