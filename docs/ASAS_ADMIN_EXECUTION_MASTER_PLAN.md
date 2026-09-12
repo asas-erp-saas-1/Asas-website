@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Last reviewed implementation checkpoint:** `7f914a99109f404758f050e6be500c2a18f1d115`
+> **Last reviewed implementation checkpoint:** `e7e4aa6dae5cf3963068e4e7977d8af5951ad608`
 > **Rule:** This file records the execution contract, prompt for each step, evidence, decisions, and blockers. It is updated as part of the engineering work so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -142,8 +142,16 @@ Commit `7f914a99109f404758f050e6be500c2a18f1d115` hardened `/api/admin/apartment
 
 The existing detail PUT route already enforces `ADMIN/EDITOR`, status transition validation, numeric validation, publication preconditions and audit logging. No Reservation capability was added.
 
+### 2026-09-12 — Lead mutation contract hardening
+Commit `e7e4aa6dae5cf3963068e4e7977d8af5951ad608` tightened `PATCH /api/admin/leads/[id]/status` at the request boundary:
+- `followUpDate` now requires a valid offset-aware ISO datetime when provided, preventing `Invalid Date` from reaching Prisma.
+- `assignedTo` now rejects blank strings while preserving explicit `null` for unassignment.
+- Existing authentication, ADMIN/EDITOR mutation gate, lead existence check, status allowlist, audit logging and server-authoritative persistence remain unchanged.
+
+The Lead PostgreSQL model confirms the current supported customer data surface is `projectId`, `apartmentId`, `assignedTo`, `followUpDate`, `status` and `LeadNote`; there is no Reservation model in the inspected production Prisma schema. Therefore reservation/contract/payment execution remains deliberately unsupported rather than fabricated.
+
 ### Current API contract conclusion
-Project, Building and Apartment are now explicitly treated as related operational entities. The remaining STEP 2 work is to audit Project detail/editor mutation semantics and Lead read/write boundaries, then certify the exact CI result for the new commits before moving into broader UX work.
+Project, Building, Apartment and the currently supported Lead mutation surface are now explicitly treated as related operational entities. Remaining STEP 2/5 work is to reconcile Lead workspace capabilities with these real API boundaries, audit Project detail/editor mutation semantics, and certify exact CI results before broader UX work.
 
 ## Current execution state
 
