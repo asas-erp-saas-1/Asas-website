@@ -52,13 +52,13 @@ const projectUpdateSchema = z.object({
   robotsIndex: z.boolean().optional(),
 }).strict();
 
-/** GET /api/admin/projects/[slug] */
+/** GET /api/admin/projects/[slug] — accepts the canonical project slug or entity UUID. */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   if (!(await verifyAdminAuth(request))) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   try {
     const { slug } = await params;
-    const project = await db.project.findUnique({
-      where: { slug },
+    const project = await db.project.findFirst({
+      where: { OR: [{ slug }, { id: slug }] },
       include: {
         buildings: { orderBy: { order: 'asc' }, include: { _count: { select: { apartments: true } } } },
         apartments: {
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-/** PUT /api/admin/projects/[slug] */
+/** PUT /api/admin/projects/[slug] — accepts the canonical project slug or entity UUID. */
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const session = await verifyAdminAuth(request);
   if (!session) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
@@ -97,7 +97,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return withSecurityHeaders(NextResponse.json({ error: 'Données de projet invalides', details: parsed.error.flatten() }, { status: 400 }));
     }
 
-    const existing = await db.project.findUnique({ where: { slug } });
+    const existing = await db.project.findFirst({ where: { OR: [{ slug }, { id: slug }] } });
     if (!existing) return withSecurityHeaders(NextResponse.json({ error: 'Project not found' }, { status: 404 }));
 
     const updateData = parsed.data;
@@ -148,14 +148,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-/** DELETE /api/admin/projects/[slug] — archive, never hard-delete */
+/** DELETE /api/admin/projects/[slug] — archive, never hard-delete; accepts slug or entity UUID. */
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const session = await verifyAdminAuth(request);
   if (!session) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   if (!sessionHasRole(session, ['ADMIN'])) return withSecurityHeaders(NextResponse.json({ error: 'Privilèges insuffisants. Réservé aux administrateurs.' }, { status: 403 }));
   try {
     const { slug } = await params;
-    const existing = await db.project.findUnique({ where: { slug } });
+    const existing = await db.project.findFirst({ where: { OR: [{ slug }, { id: slug }] } });
     if (!existing) return withSecurityHeaders(NextResponse.json({ error: 'Project not found' }, { status: 404 }));
     const project = await db.project.update({ where: { id: existing.id }, data: { archived: true, published: false } });
     await logAudit({ request, session, action: 'ARCHIVE_PROJECT', entityType: 'Project', entityId: project.id, entitySlug: project.slug, before: { name: existing.name, slug: existing.slug, published: existing.published, archived: existing.archived }, after: { name: project.name, slug: project.slug, published: project.published, archived: project.archived } });
