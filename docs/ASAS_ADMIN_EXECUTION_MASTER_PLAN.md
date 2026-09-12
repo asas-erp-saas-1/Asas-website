@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Latest execution HEAD:** `7632feb97c7b8fc223b654cdad50875e765c0239`
+> **Latest execution HEAD:** `58559326f18c38c62dfbeee9dcfed29e67451d84`
 > **Rule:** This file records the execution contract, prompt system, evidence, decisions, and blockers so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -20,30 +20,20 @@
 
 ## Professional AI-engineering workflow adopted
 
-External engineering research confirms that high-quality coding-agent workflows improve when prompts contain: a clear task, relevant repository/file context, explicit acceptance criteria, a stopping condition, and iterative validation. GitHub specifically recommends repository-wide instructions, path-specific instructions, and `AGENTS.md`/agent instructions so agents receive durable architecture and workflow context. It also recommends breaking complex work into smaller verifiable tasks and validating agent output rather than trusting generation blindly.
-
-Sources reviewed:
-- GitHub Docs — Prompt engineering for GitHub Copilot: specificity, relevant code context, decomposition, iteration and good coding practices.
-- GitHub Docs — Optimize AI usage: clear task definition, relevant context, explicit stopping conditions, lean context and grounded repository instructions.
-- GitHub Docs — Copilot code review/custom instructions: `.github/copilot-instructions.md`, path-specific instructions and `AGENTS.md` as complementary instruction layers.
-- GitHub Docs — Cloud agent best practices: clear task, acceptance criteria, relevant files, build/test/validation instructions and repository context.
-
-ASAS now applies this as a permanent operating system rather than relying on chat history alone.
+External engineering research confirms that high-quality coding-agent workflows improve when prompts contain a clear task, relevant repository/file context, explicit acceptance criteria, a stopping condition, and iterative validation. ASAS applies durable repository instructions plus scoped Admin instructions and a reusable execution prompt rather than relying on chat history alone.
 
 ### Repository instruction layers
 - `AGENTS.md` — broad ASAS Admin engineering standard and operational architecture.
 - `.github/copilot-instructions.md` — repository-wide AI engineering rules.
-- `.github/instructions/admin.instructions.md` — path-specific Admin rules for APIs, Admin workspaces, Admin domain helpers and execution docs.
+- `.github/instructions/admin.instructions.md` — path-specific Admin rules for APIs, workspaces, domain helpers and execution docs.
 - `.github/prompts/asas-admin-execution.prompt.md` — reusable principal-engineering execution prompt with reconnaissance, contract audit, implementation, verification and documentation gates.
-
-These files are intentionally concise and evidence-grounded. They are not a generic mega-prompt; they encode ASAS-specific architecture, known failure modes, verification discipline and definition of done.
 
 ## Canonical ASAS execution prompt
 
 For every future material Admin task, use this sequence:
 
 ### 1. Reconnaissance
-Read repository/agent instructions and the authoritative execution plan. Inspect exact HEAD, relevant changed files, domain helpers, API routes, Prisma PostgreSQL schema, route model, workspace components and tests. Search before creating abstractions.
+Read repository/agent instructions and the authoritative execution plan. Inspect exact HEAD, CI state, relevant files, domain helpers, API routes, PostgreSQL Prisma schema, route model, workspaces and tests. Search before creating abstractions.
 
 ### 2. Contract audit
 Trace **UI → URL/state → API → auth → validation → domain transition → relational integrity → persistence → audit → cache/invalidation → feedback/recovery**. Identify root cause, unsupported assumptions, lifecycle mismatch, permission gap, race condition and data-contract gap.
@@ -84,10 +74,10 @@ One canonical action vocabulary shared by operational units, transitions, journe
 Project as parent operational context rather than isolated CRUD. **In progress.**
 
 ### STEP 3 — Building operational vertical slice
-Building as child operational entity with explicit Project context.
+Building as child operational entity with explicit Project context. **Implemented as first coherent slice; final regression remains.**
 
 ### STEP 4 — Apartment operational vertical slice
-Complete the first high-value real-estate operational entity.
+Complete the first high-value real-estate operational entity. **In progress.**
 
 ### STEP 5 — Customer / Lead vertical slice
 Connect customer operations to real inventory without fabricating reservation state. **In progress.**
@@ -154,27 +144,39 @@ Prove Admin is an operational workspace, not a collection of CRUD screens.
 `00d1a071eaf08b976c6f8fdcf55f58e4df0f46b9` added the reusable `.github/prompts/asas-admin-execution.prompt.md`.
 
 ### 2026-09-12 — CI failure diagnosed and repaired
-CI run `#899` on `ba23a1701c2da25df4f898cd76a7fbe075793e2b` failed at Typecheck because `AdminLeadsPremiumWorkspace.tsx` referenced an undefined `INTENT_OPTIONS` symbol. Lint and Build were therefore skipped. The failure was isolated from the workflow job log, not inferred.
+CI run `#899` on `ba23a1701c2da25df4f898cd76a7fbe075793e2b` failed at Typecheck because `AdminLeadsPremiumWorkspace.tsx` referenced an undefined `INTENT_OPTIONS` symbol. The failure was isolated from the workflow job log.
 
-`7632feb97c7b8fc223b654cdad50875e765c0239` restores the missing intent-option contract from the existing canonical `LEAD_INTENT_LABELS` constants and removes the undefined symbol failure without introducing a new domain vocabulary.
+`7632feb97c7b8fc223b654cdad50875e765c0239` restored the missing intent-option contract from the existing canonical `LEAD_INTENT_LABELS` constants.
+
+### 2026-09-12 — Building operational vertical slice
+`58559326f18c38c62dfbeee9dcfed29e67451d84` promoted Buildings from list-only management to a route-addressable operational slice with:
+- Building detail retrieval and edit contract at `/api/admin/buildings/[id]`.
+- Authenticated ADMIN/EDITOR PATCH authorization, strict Zod validation, project existence validation, slug conflict protection and audit logging.
+- URL deep-link state via `entity=building&entityId=...`.
+- Building detail context showing real project and apartment relationships.
+- Building → Apartments navigation using the persisted building ID.
+- Create and edit flows preserving the Project → Building → Apartment relationship.
+
+The implementation deliberately does not invent Reservation, Contract or Payment behavior.
 
 ## CI evidence
 
-- Run `#899` — HEAD `ba23a170...` — **FAILURE at Typecheck**; Prisma generation and baseline candidate generation/upload succeeded. Root cause: undefined `INTENT_OPTIONS` in `AdminLeadsPremiumWorkspace.tsx`.
-- Run `#902` — HEAD `7632feb97c7b8fc223b654cdad50875e765c0239` — **IN PROGRESS** at the time of this update. Typecheck is the current gate; no green claim is made until the run completes.
+- Run `#899` — HEAD `ba23a170...` — **FAILURE at Typecheck**; root cause: undefined `INTENT_OPTIONS` in `AdminLeadsPremiumWorkspace.tsx`.
+- Run `#902` — HEAD `7632feb...` — previously tracked after repair.
+- Run `#948` — HEAD `58559326f18c38c62dfbeee9dcfed29e67451d84` — **SUCCESS**. All steps completed successfully: dependency installation, Prisma client generation, baseline generation/verification/upload, Typecheck, Lint and Build.
 
 ## Current execution state
 
-**Latest HEAD:** `7632feb97c7b8fc223b654cdad50875e765c0239`
+**Latest HEAD:** `58559326f18c38c62dfbeee9dcfed29e67451d84`
 
-**Active wave:** STEP 2 — Project operational vertical slice / data-contract convergence
+**Active wave:** STEP 4 — Apartment operational vertical slice, with Project/Building regression closure.
 
 **Immediate gates:**
-1. Close CI run #902 on exact HEAD.
-2. Project editor UI payload alignment against the hardened API contract.
-3. Final Building/Apartment vertical-slice closure.
-4. Lead UI regression/contract review after the repaired intent contract.
-5. Status/publication semantics audit.
-6. Navigation and URL state certification after operational slices stabilize.
+1. Reconcile the Apartment detail mutation response with its richer detail state so a successful mutation cannot discard nested project/building/media context.
+2. Audit Apartment create/detail/status/publication/media contract end-to-end against the real API.
+3. Regression-check Building → Apartment and Lead → Project/Apartment navigation.
+4. Audit status/publication semantics and unsupported Reservation boundary.
+5. Run exact-HEAD CI after the next coherent implementation slice.
+6. Perform browser/runtime certification only when browser automation is actually available.
 
 **Browser/runtime certification:** `VISUAL VALIDATION BLOCKED — browser automation is not available in this execution context.`
