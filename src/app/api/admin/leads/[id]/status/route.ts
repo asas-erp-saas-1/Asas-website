@@ -20,8 +20,8 @@ const VALID_LEAD_STATUSES = ['NEW', 'CONTACTED', 'QUALIFIED', 'VISIT', 'NEGOTIAT
 
 const updateSchema = z.object({
   status: z.enum(VALID_LEAD_STATUSES as [string, ...string[]]).optional(),
-  assignedTo: z.string().nullable().optional(),
-  followUpDate: z.string().nullable().optional(),
+  assignedTo: z.string().trim().min(1).nullable().optional(),
+  followUpDate: z.string().datetime({ offset: true }).nullable().optional(),
 });
 
 interface RouteContext { params: Promise<{ id: string }> }
