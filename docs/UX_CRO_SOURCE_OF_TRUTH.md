@@ -1,9 +1,9 @@
 # ASAS UX / CRO Source of Truth
 
 **Status:** ACTIVE
-**Last updated:** 2026-09-10
+**Last updated:** 2026-09-12
 **Branch:** `fix/responsive-viewport-hardening`
-**Latest implementation checkpoint:** `100eb1c96bb695ba2c5982f7b1e6ed27546ed0c9`
+**Latest implementation checkpoint:** `e10a2c3088337f2ab4e79bb7b9322ca838f5df5d`
 **Scope:** Public real-estate website and sales journey only.
 
 ## 1. Purpose
