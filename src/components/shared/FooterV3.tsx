@@ -1,8 +1,7 @@
 'use client';
 
-import { ArrowRight, Facebook, Instagram, Linkedin } from 'lucide-react';
+import { Facebook, Instagram, Linkedin } from 'lucide-react';
 import { useRouter } from '@/lib/router';
-import { ASAS, getPhoneUrl, getWhatsAppUrl } from '@/lib/constants';
 
 export function FooterV3() {
   const router = useRouter();
@@ -39,7 +38,7 @@ export function FooterV3() {
       </div>
       <div className="asas-footer-bottom">
         <span>© {year} ASAS Immobilier. Tous droits réservés.</span>
-        <div><button onClick={() => router.goPrivacy()}>Politique de confidentialité</button><button onClick={() => router.goTerms()}>Mentions légales</button></div>
+        <div><button onClick={() => router.goPrivacy()}>Politique de confidentialité</button><button onClick={() => router.goTerms()}>Conditions d’utilisation</button></div>
       </div>
     </footer>
   );
