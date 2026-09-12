@@ -54,66 +54,16 @@ export interface AdminOperationalContext {
   nextActions: readonly string[];
 }
 
-/**
- * Operational relationships are intentionally explicit. They are the
- * backbone for contextual navigation and prevent the Admin from becoming a
- * collection of disconnected CRUD surfaces.
- */
 export const SITE_OPERATIONAL_UNITS = {
-  project: [
-    'create',
-    'complete-information',
-    'add-buildings',
-    'add-apartments',
-    'manage-inventory',
-    'manage-pricing',
-    'manage-media',
-    'manage-publication',
-    'monitor-completeness',
-  ],
-  building: [
-    'create',
-    'associate-project',
-    'define-structure',
-    'manage-apartments',
-    'monitor-inventory',
-  ],
-  apartment: [
-    'create',
-    'assign-project',
-    'assign-building',
-    'define-physical-specs',
-    'define-commercial-data',
-    'define-availability',
-    'upload-plans-media',
-    'publish',
-    'track-lifecycle',
-  ],
+  project: ['create', 'complete-information', 'add-buildings', 'add-apartments', 'manage-inventory', 'manage-pricing', 'manage-media', 'manage-publication', 'monitor-completeness'],
+  building: ['create', 'associate-project', 'define-structure', 'manage-apartments', 'monitor-inventory'],
+  apartment: ['create', 'assign-project', 'assign-building', 'define-physical-specs', 'define-commercial-data', 'define-availability', 'upload-plans-media', 'publish', 'track-lifecycle'],
 } as const;
 
-/** Canonical commercial journey: inventory context becomes customer context. */
-export const ADMIN_OPERATIONAL_FLOW = [
-  'project',
-  'building',
-  'apartment',
-  'availability',
-  'lead-interest',
-  'follow-up',
-  'reservation',
-] as const;
+export const ADMIN_OPERATIONAL_FLOW = ['project', 'building', 'apartment', 'availability', 'lead-interest', 'follow-up', 'reservation'] as const;
 
 export const CUSTOMER_OPERATIONAL_UNITS = {
-  lead: [
-    'intake',
-    'qualification',
-    'assignment',
-    'follow-up',
-    'activity-notes',
-    'property-interest',
-    'negotiation',
-    'reservation',
-    'conversion-loss',
-  ],
+  lead: ['intake', 'qualification', 'assignment', 'follow-up', 'activity-notes', 'property-interest', 'negotiation', 'reservation', 'conversion-loss'],
 } as const;
 
 export const ADMIN_OPERATIONAL_RELATIONSHIPS = {
@@ -126,7 +76,6 @@ export const ADMIN_OPERATIONAL_RELATIONSHIPS = {
     lead: ['project', 'building', 'apartment', 'property-interest', 'follow-up', 'reservation', 'conversion-loss'],
   },
 } as const;
-
 
 export type AdminOperationalAction = {
   id: string;
@@ -148,11 +97,8 @@ export type AdminOperationalUnitDefinition = {
 
 export const ADMIN_OPERATIONAL_UNIT_DEFINITIONS: readonly AdminOperationalUnitDefinition[] = [
   {
-    id: 'project-management',
-    area: 'site-operations',
-    entity: 'project',
-    purpose: 'Create and maintain a commercially publishable real-estate project and its inventory context.',
-    prerequisites: [],
+    id: 'project-management', area: 'site-operations', entity: 'project',
+    purpose: 'Create and maintain a commercially publishable real-estate project and its inventory context.', prerequisites: [],
     actions: [
       { id: 'create', label: 'Create project', risk: 'low', reversible: true },
       { id: 'complete-information', label: 'Complete project information', risk: 'low', reversible: true },
@@ -163,30 +109,22 @@ export const ADMIN_OPERATIONAL_UNIT_DEFINITIONS: readonly AdminOperationalUnitDe
       { id: 'manage-media', label: 'Manage media', requires: ['project exists'], risk: 'medium', reversible: true },
       { id: 'manage-publication', label: 'Manage publication', requires: ['minimum publishable completeness'], risk: 'high', reversible: true },
       { id: 'monitor-completeness', label: 'Monitor completeness', requires: ['project exists'], risk: 'low', reversible: true },
-    ],
-    completionSignals: ['identity complete', 'structure linked', 'inventory coherent', 'commercial data valid', 'media ready', 'publication state explicit'],
+    ], completionSignals: ['identity complete', 'structure linked', 'inventory coherent', 'commercial data valid', 'media ready', 'publication state explicit'],
   },
   {
-    id: 'building-management',
-    area: 'site-operations',
-    entity: 'building',
-    purpose: 'Maintain a building as structural inventory belonging to a project.',
-    prerequisites: ['project exists'],
+    id: 'building-management', area: 'site-operations', entity: 'building',
+    purpose: 'Maintain a building as structural inventory belonging to a project.', prerequisites: ['project exists'],
     actions: [
       { id: 'create', label: 'Create building', requires: ['project selected'], risk: 'low', reversible: true },
       { id: 'associate-project', label: 'Associate project', requires: ['project selected'], risk: 'medium', reversible: true },
       { id: 'define-structure', label: 'Define structure', risk: 'medium', reversible: true },
       { id: 'manage-apartments', label: 'Manage apartments', requires: ['building exists'], risk: 'medium', reversible: true },
       { id: 'monitor-inventory', label: 'Monitor inventory', requires: ['building exists'], risk: 'low', reversible: true },
-    ],
-    completionSignals: ['project linked', 'structure valid', 'inventory relationship coherent'],
+    ], completionSignals: ['project linked', 'structure valid', 'inventory relationship coherent'],
   },
   {
-    id: 'apartment-inventory',
-    area: 'site-operations',
-    entity: 'apartment',
-    purpose: 'Maintain a unit from physical definition through commercial availability and publication.',
-    prerequisites: ['project exists', 'building exists'],
+    id: 'apartment-inventory', area: 'site-operations', entity: 'apartment',
+    purpose: 'Maintain a unit from physical definition through commercial availability and publication.', prerequisites: ['project exists', 'building exists'],
     actions: [
       { id: 'create', label: 'Create apartment', requires: ['project selected', 'building selected'], risk: 'low', reversible: true },
       { id: 'assign-project', label: 'Assign project', requires: ['project exists'], risk: 'medium', reversible: true },
@@ -197,15 +135,11 @@ export const ADMIN_OPERATIONAL_UNIT_DEFINITIONS: readonly AdminOperationalUnitDe
       { id: 'upload-plans-media', label: 'Upload plans/media', requires: ['apartment exists'], risk: 'medium', reversible: true },
       { id: 'publish', label: 'Publish', requires: ['publishable completeness'], risk: 'high', reversible: true },
       { id: 'track-lifecycle', label: 'Track lifecycle', requires: ['apartment exists'], risk: 'low', reversible: true },
-    ],
-    completionSignals: ['identity valid', 'project/building linked', 'physical specs valid', 'commercial data valid', 'availability explicit', 'media validated', 'lifecycle state explicit'],
+    ], completionSignals: ['identity valid', 'project/building linked', 'physical specs valid', 'commercial data valid', 'availability explicit', 'media validated', 'lifecycle state explicit'],
   },
   {
-    id: 'lead-management',
-    area: 'customer-operations',
-    entity: 'lead',
-    purpose: 'Convert an inbound lead into a qualified, followed-up and traceable property opportunity.',
-    prerequisites: [],
+    id: 'lead-management', area: 'customer-operations', entity: 'lead',
+    purpose: 'Convert an inbound lead into a qualified, followed-up and traceable property opportunity.', prerequisites: [],
     actions: [
       { id: 'intake', label: 'Intake', risk: 'low', reversible: true },
       { id: 'qualification', label: 'Qualification', requires: ['lead exists'], risk: 'medium', reversible: true },
@@ -216,39 +150,15 @@ export const ADMIN_OPERATIONAL_UNIT_DEFINITIONS: readonly AdminOperationalUnitDe
       { id: 'negotiation', label: 'Negotiation', requires: ['property interest exists'], risk: 'high', reversible: true },
       { id: 'reservation', label: 'Reservation', requires: ['qualified interest', 'availability confirmed'], risk: 'high', reversible: true },
       { id: 'conversion-loss', label: 'Conversion / loss', requires: ['lead exists'], risk: 'high', reversible: true },
-    ],
-    completionSignals: ['owner explicit', 'qualification explicit', 'interest explicit', 'next follow-up explicit', 'commercial outcome explicit'],
+    ], completionSignals: ['owner explicit', 'qualification explicit', 'interest explicit', 'next follow-up explicit', 'commercial outcome explicit'],
   },
 ] as const;
 
-
 export type AdminOperationalDomainId = 'site-operations' | 'customer-operations' | 'system-operations';
-
 export type OperationalSectionState = 'complete' | 'incomplete' | 'unknown';
 
-export interface ProjectOperationalCompletenessInput {
-  name?: string | null;
-  slug?: string | null;
-  city?: string | null;
-  district?: string | null;
-  startingPrice?: number | null;
-  priceOnRequest?: boolean | null;
-  apartmentCount?: number | null;
-  buildingCount?: number | null;
-  heroImage?: string | null;
-}
-
-export interface ProjectOperationalCompleteness {
-  identity: OperationalSectionState;
-  structure: OperationalSectionState;
-  inventory: OperationalSectionState;
-  commercial: OperationalSectionState;
-  media: OperationalSectionState;
-  publication: OperationalSectionState;
-  overall: OperationalSectionState;
-}
-
-/** Completeness is evidence-based. Missing evidence is unknown, never false. */
+export interface ProjectOperationalCompletenessInput { name?: string | null; slug?: string | null; city?: string | null; district?: string | null; startingPrice?: number | null; priceOnRequest?: boolean | null; apartmentCount?: number | null; buildingCount?: number | null; heroImage?: string | null; }
+export interface ProjectOperationalCompleteness { identity: OperationalSectionState; structure: OperationalSectionState; inventory: OperationalSectionState; commercial: OperationalSectionState; media: OperationalSectionState; publication: OperationalSectionState; overall: OperationalSectionState; }
 export function evaluateProjectOperationalCompleteness(input: ProjectOperationalCompletenessInput): ProjectOperationalCompleteness {
   const identity: OperationalSectionState = input.name?.trim() && input.slug?.trim() && input.city?.trim() && input.district?.trim() ? 'complete' : 'incomplete';
   const structure: OperationalSectionState = typeof input.buildingCount === 'number' ? (input.buildingCount > 0 ? 'complete' : 'incomplete') : 'unknown';
@@ -261,25 +171,8 @@ export function evaluateProjectOperationalCompleteness(input: ProjectOperational
   return { identity, structure, inventory, commercial, media, publication, overall };
 }
 
-export interface OperationalTransition {
-  from: AdminOperationalState;
-  to: AdminOperationalState;
-  actionId: string;
-  requires: readonly string[];
-  risk: 'low' | 'medium' | 'high';
-  reversible: boolean;
-}
+export interface OperationalTransition { from: AdminOperationalState; to: AdminOperationalState; actionId: string; requires: readonly string[]; risk: 'low' | 'medium' | 'high'; reversible: boolean; }
 
-/**
- * State transition catalogs for the currently supported Admin API surface.
- *
- * State-preserving transitions (from === to) represent valid operational
- * mutations that do not change the coarse lifecycle state. This avoids
- * inventing lifecycle states that the persisted model does not expose.
- *
- * Unsupported ERP capabilities (reservations/contracts/payments) are not
- * represented as executable transitions.
- */
 export function evaluateApartmentPublicationReadiness(apartment: Record<string, unknown>) {
   const completeness = evaluateApartmentOperationalCompleteness(apartment);
   const blockers: string[] = [];
@@ -287,12 +180,7 @@ export function evaluateApartmentPublicationReadiness(apartment: Record<string, 
   if (!completeness.physical) blockers.push('physical');
   if (!completeness.commercial) blockers.push('commercial');
   if (!completeness.media) blockers.push('media');
-  return {
-    ready: blockers.length === 0,
-    blockers,
-    published: apartment.published === true,
-    reason: blockers.length === 0 ? null : 'Apartment is not operationally publishable from currently available evidence.',
-  };
+  return { ready: blockers.length === 0, blockers, published: apartment.published === true, reason: blockers.length === 0 ? null : 'Apartment is not operationally publishable from currently available evidence.' };
 }
 
 export const APARTMENT_STATUS_TRANSITIONS: Readonly<Record<string, readonly string[]>> = {
@@ -303,26 +191,27 @@ export const APARTMENT_STATUS_TRANSITIONS: Readonly<Record<string, readonly stri
   SOLD: ['OFF_MARKET'],
   OFF_MARKET: ['AVAILABLE', 'COMING_SOON', 'DRAFT'],
 };
-
-export function canTransitionApartmentStatus(from: string, to: string) {
-  const current = String(from).toUpperCase();
-  const next = String(to).toUpperCase();
-  return current === next || (APARTMENT_STATUS_TRANSITIONS[current] ?? []).includes(next);
+export function canTransitionApartmentStatus(from: string, to: string) { const current = String(from).toUpperCase(); const next = String(to).toUpperCase(); return current === next || (APARTMENT_STATUS_TRANSITIONS[current] ?? []).includes(next); }
+export function evaluateApartmentOperationalCompleteness(apartment: Record<string, unknown>) {
+  const has = (key: string) => { const value = apartment[key]; return value !== null && value !== undefined && value !== ''; };
+  const hasProjectContext = has('projectId') || has('project');
+  return { identity: (has('id') || has('slug')) && has('apartmentType') && has('typeName') && hasProjectContext, physical: has('surface') && has('floor') && has('bedrooms') && has('bathrooms'), commercial: has('status') && (Boolean(apartment.priceOnRequest) || has('price')), media: Boolean(apartment.heroImage) || (Array.isArray(apartment.imagesRelation) && apartment.imagesRelation.length > 0), publication: apartment.published === true };
 }
 
-export function evaluateApartmentOperationalCompleteness(apartment: Record<string, unknown>) {
-  const has = (key: string) => {
-    const value = apartment[key];
-    return value !== null && value !== undefined && value !== '';
-  };
-  const hasProjectContext = has('projectId') || has('project');
-  return {
-    identity: (has('id') || has('slug')) && has('apartmentType') && has('typeName') && hasProjectContext,
-    physical: has('surface') && has('floor') && has('bedrooms') && has('bathrooms'),
-    commercial: has('status') && (Boolean(apartment.priceOnRequest) || has('price')),
-    media: Boolean(apartment.heroImage) || (Array.isArray(apartment.imagesRelation) && apartment.imagesRelation.length > 0),
-    publication: apartment.published === true,
-  };
+/** Canonical Lead status graph shared by operational UI and API-adjacent logic. */
+export const LEAD_STATUS_TRANSITIONS: Readonly<Record<string, readonly string[]>> = {
+  NEW: ['NEW', 'CONTACTED', 'LOST'],
+  CONTACTED: ['CONTACTED', 'QUALIFIED', 'LOST'],
+  QUALIFIED: ['QUALIFIED', 'VISIT', 'LOST'],
+  VISIT: ['VISIT', 'NEGOTIATION', 'LOST'],
+  NEGOTIATION: ['NEGOTIATION', 'SOLD', 'LOST'],
+  SOLD: ['SOLD'],
+  LOST: ['LOST'],
+};
+
+export function getAllowedLeadStatusTransitions(current: string): readonly string[] {
+  const normalized = String(current).toUpperCase();
+  return LEAD_STATUS_TRANSITIONS[normalized] ?? [normalized];
 }
 
 export const PROJECT_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[] = [
@@ -375,82 +264,12 @@ export const LEAD_OPERATIONAL_TRANSITIONS: readonly OperationalTransition[] = [
   { from: 'ready', to: 'completed', actionId: 'conversion-loss', requires: ['SOLD or LOST status', 'server confirmation'], risk: 'high', reversible: true },
 ];
 
-export type AdminOperationalState =
-  | 'not-started'
-  | 'incomplete'
-  | 'ready'
-  | 'in-progress'
-  | 'blocked'
-  | 'completed'
-  | 'failed';
-
-export type AdminOperationalNextAction = {
-  actionId: string;
-  reason: string;
-  blocked?: boolean;
-};
-
-export interface AdminOperationalStateSnapshot {
-  unitId: string;
-  state: AdminOperationalState;
-  completionRatio: number;
-  nextActions: readonly AdminOperationalNextAction[];
-  blockers: readonly string[];
-}
-
-/**
- * These are intentionally deterministic, pure rules. UI components can consume
- * them without owning business logic or duplicating readiness calculations.
- */
-export function getOperationalState(
-  completionSignals: readonly boolean[],
-  inProgress = false,
-  failed = false,
-): AdminOperationalState {
-  if (failed) return 'failed';
-  if (inProgress) return 'in-progress';
-  if (completionSignals.length === 0) return 'not-started';
-  const complete = completionSignals.every(Boolean);
-  if (complete) return 'completed';
-  if (completionSignals.some(Boolean)) return 'incomplete';
-  return 'not-started';
-}
-
-export function getCompletionRatio(signals: readonly boolean[]): number {
-  if (signals.length === 0) return 0;
-  return Math.round((signals.filter(Boolean).length / signals.length) * 100);
-}
-
-
+export type AdminOperationalState = 'not-started' | 'incomplete' | 'ready' | 'in-progress' | 'blocked' | 'completed' | 'failed';
+export type AdminOperationalNextAction = { actionId: string; reason: string; blocked?: boolean; };
+export interface AdminOperationalStateSnapshot { unitId: string; state: AdminOperationalState; completionRatio: number; nextActions: readonly AdminOperationalNextAction[]; blockers: readonly string[]; }
+export function getOperationalState(completionSignals: readonly boolean[], inProgress = false, failed = false): AdminOperationalState { if (failed) return 'failed'; if (inProgress) return 'in-progress'; if (completionSignals.length === 0) return 'not-started'; const complete = completionSignals.every(Boolean); if (complete) return 'completed'; if (completionSignals.some(Boolean)) return 'incomplete'; return 'not-started'; }
+export function getCompletionRatio(signals: readonly boolean[]): number { if (signals.length === 0) return 0; return Math.round((signals.filter(Boolean).length / signals.length) * 100); }
 export type OperationalSignal = 'complete' | 'incomplete' | 'unknown';
-
-export interface NamedOperationalSignal {
-  key: string;
-  value: OperationalSignal;
-}
-
-export function evaluateNamedOperationalSignals(
-  signals: readonly NamedOperationalSignal[],
-): { state: AdminOperationalState; completionRatio: number; blockers: string[] } {
-  const known = signals.filter((signal) => signal.value !== 'unknown');
-  const complete = known.filter((signal) => signal.value === 'complete').length;
-  const blockers = signals.filter((signal) => signal.value === 'incomplete').map((signal) => signal.key);
-  if (signals.length === 0 || known.length === 0) return { state: 'not-started', completionRatio: 0, blockers };
-  if (blockers.length > 0) return { state: complete > 0 ? 'incomplete' : 'not-started', completionRatio: Math.round((complete / signals.length) * 100), blockers };
-  if (known.length < signals.length) return { state: 'ready', completionRatio: Math.round((complete / signals.length) * 100), blockers: ['some-readiness-signals-unavailable'] };
-  return { state: 'completed', completionRatio: 100, blockers: [] };
-}
-
-export function evaluateOperationalSignals(
-  signals: readonly OperationalSignal[],
-): { state: AdminOperationalState; completionRatio: number; blockers: string[] } {
-  const known = signals.filter((signal) => signal !== 'unknown');
-  const complete = known.filter((signal) => signal === 'complete').length;
-  const blockers = signals
-    .map((signal, index) => signal === 'incomplete' ? `required-signal-${index + 1}` : null)
-    .filter((value): value is string => value !== null);
-  if (signals.length === 0 || known.length === 0) return { state: 'not-started', completionRatio: 0, blockers };
-  if (blockers.length > 0) return { state: complete > 0 ? 'incomplete' : 'not-started', completionRatio: Math.round((complete / signals.length) * 100), blockers };
-  if (known.length < signals.length) return { state: 'ready', completionRatio: Math.round((complete / signals.length) * 100), blockers: ['some-readiness-signals-unavailable'] };
-  return { state: 'completed', completionRatio: 100, blockers: [] };
-}
+export interface NamedOperationalSignal { key: string; value: OperationalSignal; }
+export function evaluateNamedOperationalSignals(signals: readonly NamedOperationalSignal[]): { state: AdminOperationalState; completionRatio: number; blockers: string[] } { const known = signals.filter((signal) => signal.value !== 'unknown'); const complete = known.filter((signal) => signal.value === 'complete').length; const blockers = signals.filter((signal) => signal.value === 'incomplete').map((signal) => signal.key); if (signals.length === 0 || known.length === 0) return { state: 'not-started', completionRatio: 0, blockers }; if (blockers.length > 0) return { state: complete > 0 ? 'incomplete' : 'not-started', completionRatio: Math.round((complete / signals.length) * 100), blockers }; if (known.length < signals.length) return { state: 'ready', completionRatio: Math.round((complete / signals.length) * 100), blockers: ['some-readiness-signals-unavailable'] }; return { state: 'completed', completionRatio: 100, blockers: [] }; }
+export function evaluateOperationalSignals(signals: readonly OperationalSignal[]): { state: AdminOperationalState; completionRatio: number; blockers: string[] } { const known = signals.filter((signal) => signal !== 'unknown'); const complete = known.filter((signal) => signal === 'complete').length; const blockers = signals.map((signal, index) => signal === 'incomplete' ? `required-signal-${index + 1}` : null).filter((value): value is string => value !== null); if (signals.length === 0 || known.length === 0) return { state: 'not-started', completionRatio: 0, blockers }; if (blockers.length > 0) return { state: complete > 0 ? 'incomplete' : 'not-started', completionRatio: Math.round((complete / signals.length) * 100), blockers }; if (known.length < signals.length) return { state: 'ready', completionRatio: Math.round((complete / signals.length) * 100), blockers: ['some-readiness-signals-unavailable'] }; return { state: 'completed', completionRatio: 100, blockers: [] }; }
