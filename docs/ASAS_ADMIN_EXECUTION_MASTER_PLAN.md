@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Last reviewed implementation checkpoint:** `e7e4aa6dae5cf3963068e4e7977d8af5951ad608`
+> **Last reviewed implementation checkpoint:** `502ed38cb64a3c1216807a03ae683d47e0b88318`
 > **Rule:** This file records the execution contract, prompt for each step, evidence, decisions, and blockers. It is updated as part of the engineering work so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -148,7 +148,11 @@ Commit `e7e4aa6dae5cf3963068e4e7977d8af5951ad608` tightened `PATCH /api/admin/le
 - `assignedTo` now rejects blank strings while preserving explicit `null` for unassignment.
 - Existing authentication, ADMIN/EDITOR mutation gate, lead existence check, status allowlist, audit logging and server-authoritative persistence remain unchanged.
 
-The Lead PostgreSQL model confirms the current supported customer data surface is `projectId`, `apartmentId`, `assignedTo`, `followUpDate`, `status` and `LeadNote`; there is no Reservation model in the inspected production Prisma schema. Therefore reservation/contract/payment execution remains deliberately unsupported rather than fabricated.
+### 2026-09-12 — Canonical Lead pipeline enforcement
+Commit `502ed38cb64a3c1216807a03ae683d47e0b88318` aligned the Lead status mutation route with the documented operational pipeline:
+`NEW → CONTACTED → QUALIFIED → VISIT → NEGOTIATION → SOLD`, with `LOST` reachable from every active stage. `SOLD` and `LOST` are terminal because the current backend has no reopen/reservation lifecycle capability. Invalid jumps now return HTTP 409 instead of silently mutating the lead to an unsupported stage.
+
+This closes a real integrity gap: the route previously validated that a status was known but did not enforce the transition graph documented by the project. The implementation remains schema-free and does not fabricate reservation/conversion state.
 
 ### Current API contract conclusion
 Project, Building, Apartment and the currently supported Lead mutation surface are now explicitly treated as related operational entities. Remaining STEP 2/5 work is to reconcile Lead workspace capabilities with these real API boundaries, audit Project detail/editor mutation semantics, and certify exact CI results before broader UX work.
