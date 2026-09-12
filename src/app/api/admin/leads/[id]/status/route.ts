@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { verifyAdminAuth, sessionHasRole } from '@/lib/admin-auth';
 import { withSecurityHeaders } from '@/lib/with-security-headers';
 import { logAudit } from '@/lib/audit';
+import { getAllowedLeadStatusTransitions } from '@/lib/admin-operational-units';
 import { z } from 'zod';
 
 /**
@@ -17,19 +18,6 @@ import { z } from 'zod';
  */
 
 const VALID_LEAD_STATUSES = ['NEW', 'CONTACTED', 'QUALIFIED', 'VISIT', 'NEGOTIATION', 'SOLD', 'LOST'] as const;
-type LeadStatus = (typeof VALID_LEAD_STATUSES)[number];
-
-// Canonical pipeline: forward progression; LOST is reachable from any active stage.
-// SOLD and LOST are terminal in the current data model; reopening is not supported.
-const LEAD_STATUS_TRANSITIONS: Record<LeadStatus, readonly LeadStatus[]> = {
-  NEW: ['NEW', 'CONTACTED', 'LOST'],
-  CONTACTED: ['CONTACTED', 'QUALIFIED', 'LOST'],
-  QUALIFIED: ['QUALIFIED', 'VISIT', 'LOST'],
-  VISIT: ['VISIT', 'NEGOTIATION', 'LOST'],
-  NEGOTIATION: ['NEGOTIATION', 'SOLD', 'LOST'],
-  SOLD: ['SOLD'],
-  LOST: ['LOST'],
-};
 
 const updateSchema = z.object({
   status: z.enum(VALID_LEAD_STATUSES).optional(),
@@ -67,9 +55,8 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     }
 
     if (parsed.data.status !== undefined) {
-      const currentStatus = existing.status as LeadStatus;
-      const allowedTargets = LEAD_STATUS_TRANSITIONS[currentStatus];
-      if (!allowedTargets || !allowedTargets.includes(parsed.data.status)) {
+      const allowedTargets = getAllowedLeadStatusTransitions(existing.status);
+      if (!allowedTargets.includes(parsed.data.status)) {
         return withSecurityHeaders(NextResponse.json(
           { error: `Transition de statut non autorisée: ${existing.status} → ${parsed.data.status}` },
           { status: 409 }
