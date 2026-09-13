@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
-export type AdminRole = 'ADMIN' | 'EDITOR' | 'STAFF' | string;
+export type AdminRole = 'ADMIN' | 'EDITOR' | 'VIEWER';
 
 interface AdminRoleContextValue {
   role: AdminRole | null;
@@ -30,7 +30,10 @@ export function AdminRoleProvider({ children }: { children: ReactNode }) {
         if (!response.ok) throw new Error('Impossible de récupérer le rôle administrateur.');
         return response.json() as Promise<{ user?: { role?: string | null } }>;
       })
-      .then((json) => setRole(json.user?.role ?? null))
+      .then((json) => {
+        const nextRole = json.user?.role;
+        setRole(nextRole === 'ADMIN' || nextRole === 'EDITOR' || nextRole === 'VIEWER' ? nextRole : null);
+      })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === 'AbortError') return;
         setRole(null);
@@ -57,7 +60,7 @@ export function AdminRoleProvider({ children }: { children: ReactNode }) {
         data-admin-role-loading={loading ? 'true' : 'false'}
         className="admin-role-scope"
       >
-        {role === 'STAFF' && (
+        {role === 'VIEWER' && (
           <div className="admin-readonly-notice" role="status" aria-live="polite">
             Mode lecture seule — votre rôle ne permet pas de modifier les données.
           </div>
