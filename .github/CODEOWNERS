@@ -1,0 +1,6 @@
+# ASAS repository ownership
+* @asas-erp-saas-1
+
+# CI, security and governance
+.github/ @asas-erp-saas-1
+AGENTS.md @asas-erp-saas-1

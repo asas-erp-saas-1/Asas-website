@@ -3,169 +3,137 @@ import { db } from '@/lib/db';
 import { withSecurityHeaders } from '@/lib/with-security-headers';
 import { verifyAdminAuth, sessionHasRole } from '@/lib/admin-auth';
 import { logAudit } from '@/lib/audit';
+import { APARTMENT_STATUS_TRANSITIONS, evaluateApartmentOperationalCompleteness } from '@/lib/admin-operational-units';
 
-// Admin API routes are runtime-only. Never execute database reads during
-// `next build`; DATABASE_URL is a runtime secret configured in Vercel.
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-/**
- * GET /api/admin/apartments/[slug]
- * Get single apartment with images and building.
- *
- * `slug` is not globally unique in the database; apartment identity is
- * `(project_id, slug)`. This legacy admin route does not receive projectId,
- * so it intentionally uses findFirst rather than pretending slug is unique.
- */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const VALID_APARTMENT_STATUSES = ['AVAILABLE', 'RESERVED', 'SOLD', 'COMING_SOON', 'OFF_MARKET', 'DRAFT'] as const;
+const VALID_STATUS_TRANSITIONS = APARTMENT_STATUS_TRANSITIONS;
+
+async function getHydratedApartment(id: string) {
+  return db.apartment.findUnique({
+    where: { id },
+    include: {
+      building: true,
+      project: { select: { id: true, slug: true, name: true, city: true, district: true } },
+      imagesRelation: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] },
+    },
+  });
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
-  if (!(await verifyAdminAuth(request))) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  }
+  if (!(await verifyAdminAuth(request))) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   try {
     const { slug } = await params;
-    const apartment = await db.apartment.findFirst({
+    const id = request.nextUrl.searchParams.get('id')?.trim();
+    if (id && !UUID_RE.test(id)) return withSecurityHeaders(NextResponse.json({ error: 'Identifiant d’appartement invalide' }, { status: 400 }));
+    const apartment = id ? await getHydratedApartment(id) : await db.apartment.findFirst({
       where: { slug },
       include: {
         building: true,
-        project: {
-          select: {
-            id: true,
-            slug: true,
-            name: true,
-            city: true,
-            district: true,
-          },
-        },
-        imagesRelation: { orderBy: { order: 'asc' } },
+        project: { select: { id: true, slug: true, name: true, city: true, district: true } },
+        imagesRelation: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] },
       },
     });
-
-    if (!apartment) {
-      return withSecurityHeaders(NextResponse.json(
-        { error: 'Apartment not found' },
-        { status: 404 }
-      ));
-    }
-
+    if (!apartment) return withSecurityHeaders(NextResponse.json({ error: 'Apartment not found' }, { status: 404 }));
     return withSecurityHeaders(NextResponse.json({ data: apartment }));
   } catch (error) {
     console.error('[API /admin/apartments/[slug]] GET error:', error instanceof Error ? error.message : error);
-    return withSecurityHeaders(NextResponse.json(
-      { error: 'Failed to fetch apartment' },
-      { status: 500 }
-    ));
+    return withSecurityHeaders(NextResponse.json({ error: 'Failed to fetch apartment' }, { status: 500 }));
   }
 }
 
-/**
- * PUT /api/admin/apartments/[slug]
- * Update apartment (status, price, description, features, published, etc.)
- */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const session = await verifyAdminAuth(request);
-  if (!session) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  }
+  if (!session) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  if (!sessionHasRole(session, ['ADMIN', 'EDITOR'])) return withSecurityHeaders(NextResponse.json({ error: 'Privilèges insuffisants' }, { status: 403 }));
   try {
     const { slug } = await params;
     const body = await request.json();
+    const id = request.nextUrl.searchParams.get('id')?.trim();
+    if (id && !UUID_RE.test(id)) return withSecurityHeaders(NextResponse.json({ error: 'Identifiant d’appartement invalide' }, { status: 400 }));
+    const existing = id ? await db.apartment.findUnique({ where: { id }, include: { imagesRelation: { select: { id: true }, take: 1 } } }) : await db.apartment.findFirst({ where: { slug }, include: { imagesRelation: { select: { id: true }, take: 1 } } });
+    if (!existing) return withSecurityHeaders(NextResponse.json({ error: 'Apartment not found' }, { status: 404 }));
 
-    const existing = await db.apartment.findFirst({ where: { slug } });
-    if (!existing) {
-      return withSecurityHeaders(NextResponse.json(
-        { error: 'Apartment not found' },
-        { status: 404 }
-      ));
+    if (body.status !== undefined) {
+      const requestedStatus = String(body.status).toUpperCase();
+      if (!VALID_APARTMENT_STATUSES.includes(requestedStatus as typeof VALID_APARTMENT_STATUSES[number])) return withSecurityHeaders(NextResponse.json({ error: 'Statut appartement invalide', validStatuses: VALID_APARTMENT_STATUSES }, { status: 400 }));
+      const currentStatus = String(existing.status).toUpperCase();
+      if (requestedStatus !== currentStatus && !(VALID_STATUS_TRANSITIONS[currentStatus] ?? []).includes(requestedStatus)) return withSecurityHeaders(NextResponse.json({ error: `Transition de statut invalide: ${currentStatus} → ${requestedStatus}`, currentStatus, allowedTransitions: VALID_STATUS_TRANSITIONS[currentStatus] ?? [] }, { status: 409 }));
+      body.status = requestedStatus;
     }
+    for (const field of ['price', 'surface', 'balconySurface', 'terraceSurface', 'gardenSurface'] as const) {
+      if (body[field] !== undefined && body[field] !== null && (!Number.isFinite(Number(body[field])) || Number(body[field]) < 0)) return withSecurityHeaders(NextResponse.json({ error: `Valeur numérique invalide: ${field}` }, { status: 400 }));
+    }
+    if (body.published === true && existing.published !== true) {
+      const completeness = evaluateApartmentOperationalCompleteness(existing as unknown as Record<string, unknown>);
+      const blockers = [
+        !completeness.identity ? 'identity' : null,
+        !completeness.physical ? 'physical' : null,
+        !completeness.commercial ? 'commercial' : null,
+        !completeness.media ? 'media' : null,
+        !existing.projectId ? 'project' : null,
+      ].filter((value): value is string => Boolean(value));
+      if (blockers.length > 0) return withSecurityHeaders(NextResponse.json({ error: 'Appartement non publiable : des prérequis opérationnels sont manquants.', blockers }, { status: 409 }));
+    }
+    if (body.priceOnRequest === true && body.price !== undefined && body.price !== null) return withSecurityHeaders(NextResponse.json({ error: 'Un appartement ne peut pas avoir simultanément un prix et « prix sur demande ».' }, { status: 400 }));
 
     const updateData: Record<string, unknown> = {};
     const allowedFields = [
-      'unitNumber', 'apartmentType', 'typeName', 'typeNameAr',
-      'surface', 'floor', 'totalFloors', 'orientation',
-      'bedrooms', 'bathrooms', 'balconies', 'balconySurface',
-      'hasParking', 'parkingSpots', 'hasTerrace', 'terraceSurface',
-      'hasGarden', 'gardenSurface',
-      'status', 'price', 'priceOnRequest', 'paymentPlan', 'paymentPlanAr',
-      'rooms', 'description', 'descriptionAr', 'features', 'featuresAr',
-      'published', 'buildingId', 'order',
-      'seoTitle', 'seoDescription', 'seoKeywords', 'canonicalUrl', 'ogImage', 'robotsIndex',
+      'unitNumber', 'apartmentType', 'typeName', 'typeNameAr', 'surface', 'floor', 'totalFloors', 'orientation',
+      'bedrooms', 'bathrooms', 'balconies', 'balconySurface', 'hasParking', 'parkingSpots', 'hasTerrace', 'terraceSurface',
+      'hasGarden', 'gardenSurface', 'status', 'price', 'priceOnRequest', 'paymentPlan', 'paymentPlanAr', 'rooms', 'description',
+      'descriptionAr', 'features', 'featuresAr', 'published', 'buildingId', 'order', 'seoTitle', 'seoDescription',
+      'seoKeywords', 'canonicalUrl', 'ogImage', 'robotsIndex',
     ];
-
-    for (const field of allowedFields) {
-      if (body[field] !== undefined) updateData[field] = body[field];
-    }
+    for (const field of allowedFields) if (body[field] !== undefined) updateData[field] = body[field];
 
     const apartment = await db.apartment.update({ where: { id: existing.id }, data: updateData });
-
     const keyFields = ['price', 'status', 'published', 'surface'];
     const before: Record<string, unknown> = {};
     const after: Record<string, unknown> = {};
-    for (const f of keyFields) {
-      if (body[f] !== undefined) {
-        before[f] = (existing as Record<string, unknown>)[f];
-        after[f] = (apartment as Record<string, unknown>)[f];
-      }
-    }
+    for (const f of keyFields) if (body[f] !== undefined) { before[f] = (existing as Record<string, unknown>)[f]; after[f] = (apartment as Record<string, unknown>)[f]; }
     const priceChanged = body.price !== undefined && body.price !== existing.price;
     const statusChanged = body.status !== undefined && body.status !== existing.status;
+    const publicationChanged = body.published !== undefined && body.published !== existing.published;
     let action = 'UPDATE_APARTMENT';
-    if (priceChanged) action = 'PRICE_CHANGE';
+    if (publicationChanged) action = body.published === true ? 'PUBLISH_APARTMENT' : 'UNPUBLISH_APARTMENT';
+    else if (priceChanged) action = 'PRICE_CHANGE';
     else if (statusChanged) action = 'UPDATE_APARTMENT_STATUS';
-    await logAudit({
-      request, session,
-      action,
-      entityType: 'Apartment',
-      entityId: apartment.id,
-      entitySlug: apartment.slug,
-      before: Object.keys(before).length ? before : undefined,
-      after: Object.keys(after).length ? after : undefined,
-    });
+    await logAudit({ request, session, action, entityType: 'Apartment', entityId: apartment.id, entitySlug: apartment.slug, before: Object.keys(before).length ? before : undefined, after: Object.keys(after).length ? after : undefined });
 
-    return withSecurityHeaders(NextResponse.json({ data: apartment }));
+    // The detail workspace is hydrated (project/building/images). Return the same
+    // canonical shape after mutation so a successful write cannot downgrade UI state.
+    const hydrated = await getHydratedApartment(apartment.id);
+    return withSecurityHeaders(NextResponse.json({ data: hydrated ?? apartment }));
   } catch (error) {
     console.error('[API /admin/apartments/[slug]] PUT error:', error instanceof Error ? error.message : error);
-    return withSecurityHeaders(NextResponse.json(
-      { error: 'Failed to update apartment' },
-      { status: 500 }
-    ));
+    return withSecurityHeaders(NextResponse.json({ error: 'Failed to update apartment' }, { status: 500 }));
   }
 }
 
-/** DELETE /api/admin/apartments/[slug] */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const session = await verifyAdminAuth(request);
   if (!session) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  if (!sessionHasRole(session, ['ADMIN'])) {
-    return withSecurityHeaders(NextResponse.json(
-      { error: 'Privilèges insuffisants. Réservé aux administrateurs.' }, { status: 403 }
-    ));
-  }
+  if (!sessionHasRole(session, ['ADMIN'])) return withSecurityHeaders(NextResponse.json({ error: 'Privilèges insuffisants. Réservé aux administrateurs.' }, { status: 403 }));
   try {
     const { slug } = await params;
-    const existing = await db.apartment.findFirst({ where: { slug } });
+    const id = request.nextUrl.searchParams.get('id')?.trim();
+    const existing = id ? await db.apartment.findUnique({ where: { id } }) : await db.apartment.findFirst({ where: { slug } });
     if (!existing) return withSecurityHeaders(NextResponse.json({ error: 'Apartment not found' }, { status: 404 }));
-    const apartment = await db.apartment.update({
-      where: { id: existing.id },
-      data: { archived: true, published: false },
-    });
-    await logAudit({
-      request, session,
-      action: 'ARCHIVE_APARTMENT',
-      entityType: 'Apartment',
-      entityId: apartment.id,
-      entitySlug: apartment.slug,
-      before: { typeName: existing.typeName, slug: existing.slug, published: existing.published, archived: existing.archived },
-      after: { typeName: apartment.typeName, slug: apartment.slug, published: apartment.published, archived: apartment.archived },
-    });
+    const apartment = await db.apartment.update({ where: { id: existing.id }, data: { archived: true, published: false } });
+    await logAudit({ request, session, action: 'ARCHIVE_APARTMENT', entityType: 'Apartment', entityId: apartment.id, entitySlug: apartment.slug, before: { typeName: existing.typeName, slug: existing.slug, published: existing.published, archived: existing.archived }, after: { typeName: apartment.typeName, slug: apartment.slug, published: apartment.published, archived: apartment.archived } });
     return withSecurityHeaders(NextResponse.json({ data: apartment }));
   } catch (error) {
     console.error('[API /admin/apartments/[slug]] DELETE error:', error instanceof Error ? error.message : error);

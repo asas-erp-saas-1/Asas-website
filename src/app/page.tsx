@@ -4,6 +4,7 @@ import { useEffect, lazy, Suspense } from 'react';
 import { useRouter } from '@/lib/router';
 import { SiteShell } from '@/components/layout/SiteShell';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
+import { AdminExperience } from '@/components/admin/AdminExperience';
 
 const HomePage = lazy(() => import('@/components/pages/HomePage'));
 const ProjectsPage = lazy(() => import('@/components/pages/ProjectsPage'));
@@ -49,7 +50,11 @@ function LegacyRouter() {
       {route.page === 'campaign' && route.campaignSlug && <CampaignLandingPage campaignSlug={route.campaignSlug} />}
       {route.page === 'privacy' && <PrivacyPage />}
       {route.page === 'terms' && <TermsPage />}
-      {route.page === 'admin' && <AdminPage />}
+      {route.page === 'admin' && (
+        <AdminExperience>
+          <AdminPage />
+        </AdminExperience>
+      )}
       {route.page === 'not-found' && <NotFoundPage />}
     </Suspense>
   );

@@ -1,0 +1,279 @@
+/* ASAS Admin — operational UX reference layer
+ * Loaded after admin-ux.css. Scoped to admin-mode so public surfaces are untouched.
+ * Visual intent: executive-grade operational console; calm surfaces, dense evidence,
+ * strong hierarchy, fast scanning, and predictable action affordances.
+ */
+
+body.admin-mode {
+  --admin-ink: #151917;
+  --admin-muted: #646963;
+  --admin-forest: #0d4733;
+  --admin-forest-soft: color-mix(in oklab, #0d4733 7%, white);
+  --admin-gold: #a47a32;
+  --admin-warm: #f6f2e9;
+  --admin-panel: #fffdf8;
+  --admin-line: #d9d5cb;
+}
+
+body.admin-mode .admin-page-shell > main {
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in oklab, var(--admin-forest) 4%, transparent), transparent 32rem),
+    var(--admin-warm);
+}
+
+body.admin-mode .admin-workspace {
+  color: var(--admin-ink);
+}
+
+body.admin-mode .admin-workspace > section,
+body.admin-mode .admin-projects-workspace,
+body.admin-mode .admin-buildings-workspace,
+body.admin-mode .admin-apartments-workspace,
+body.admin-mode .admin-leads-workspace {
+  animation: asas-admin-enter 180ms ease-out both;
+}
+
+@keyframes asas-admin-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+body.admin-mode [data-slot='card'] {
+  background: var(--admin-panel);
+  border-radius: 0.85rem;
+}
+
+body.admin-mode [data-slot='card'] > [data-slot='card-header'] {
+  padding-bottom: 0.75rem;
+}
+
+body.admin-mode [data-slot='card-title'] {
+  color: var(--admin-ink);
+  letter-spacing: -0.01em;
+}
+
+body.admin-mode h1 {
+  letter-spacing: -0.025em;
+}
+
+body.admin-mode h2,
+body.admin-mode h3 {
+  letter-spacing: -0.015em;
+}
+
+body.admin-mode table tbody tr {
+  border-bottom: 1px solid color-mix(in oklab, var(--admin-line) 72%, transparent);
+}
+
+body.admin-mode table tbody tr:last-child {
+  border-bottom: 0;
+}
+
+body.admin-mode table tbody td:first-child {
+  font-weight: 600;
+}
+
+body.admin-mode table button {
+  white-space: nowrap;
+}
+
+body.admin-mode [data-admin-status='ready'],
+body.admin-mode [data-admin-state='ready'] {
+  border-color: color-mix(in oklab, var(--admin-forest) 22%, var(--admin-line));
+  background: var(--admin-forest-soft);
+  color: var(--admin-forest);
+}
+
+body.admin-mode [data-admin-status='blocked'],
+body.admin-mode [data-admin-state='blocked'] {
+  border-color: color-mix(in oklab, #a33 24%, var(--admin-line));
+}
+
+body.admin-mode [aria-labelledby$='-detail-title'] > div > header,
+body.admin-mode [aria-labelledby='apartment-detail-title'] > div > header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in oklab, var(--admin-warm) 94%, transparent);
+  backdrop-filter: blur(10px);
+  padding-top: 0.75rem;
+}
+
+body.admin-mode [aria-labelledby$='-detail-title'] [role='status'],
+body.admin-mode [aria-labelledby='apartment-detail-title'] [role='status'] {
+  min-height: 2.5rem;
+}
+
+body.admin-mode label > span:first-child {
+  color: var(--admin-ink);
+}
+
+body.admin-mode input::placeholder,
+body.admin-mode textarea::placeholder {
+  color: var(--admin-muted);
+  opacity: 0.72;
+}
+
+body.admin-mode [role='alert'] {
+  box-shadow: 0 1px 2px rgb(21 25 23 / 4%);
+}
+
+/* Dense data surfaces: preserve horizontal integrity instead of collapsing columns. */
+body.admin-mode .admin-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+body.admin-mode .admin-table-scroll table {
+  min-width: 760px;
+}
+
+body.admin-mode .admin-table-scroll [data-sticky-column='true'] {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 2;
+  background: var(--admin-panel);
+  box-shadow: 8px 0 14px -14px rgb(21 25 23 / 35%);
+}
+
+/* Workspace toolbars remain available while scanning long operational lists. */
+body.admin-mode .admin-sticky-toolbar {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 15;
+  background: color-mix(in oklab, var(--admin-panel) 94%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--admin-line);
+  box-shadow: 0 8px 24px rgb(21 25 23 / 5%);
+}
+
+/* Consistent action hierarchy: primary > secondary > quiet. */
+body.admin-mode .admin-primary-action {
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--admin-forest) 18%, transparent);
+}
+
+body.admin-mode .admin-quiet-action {
+  color: var(--admin-muted);
+}
+
+body.admin-mode .admin-quiet-action:hover {
+  color: var(--admin-forest);
+  background: var(--admin-forest-soft);
+}
+
+/* Async states should reserve layout space and never cause action rows to jump. */
+body.admin-mode .admin-operation-feedback {
+  min-height: 2.5rem;
+}
+
+body.admin-mode .admin-skeleton {
+  border-radius: 0.5rem;
+  background: linear-gradient(90deg, var(--admin-line), color-mix(in oklab, var(--admin-line) 45%, white), var(--admin-line));
+  background-size: 200% 100%;
+  animation: asas-admin-skeleton 1.25s ease-in-out infinite;
+}
+
+@keyframes asas-admin-skeleton {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* Make disabled actions communicate state rather than looking broken. */
+body.admin-mode button:disabled,
+body.admin-mode [aria-disabled='true'] {
+  opacity: 0.58;
+}
+
+/* Operational controls need touch-safe hit areas without forcing large desktop controls. */
+body.admin-mode button,
+body.admin-mode select,
+body.admin-mode input[type='checkbox'],
+body.admin-mode input[type='radio'] {
+  min-height: 44px;
+}
+
+body.admin-mode input[type='checkbox'],
+body.admin-mode input[type='radio'] {
+  min-width: 44px;
+}
+
+/* Keep Arabic and other RTL values legible without changing the surrounding document direction. */
+body.admin-mode [dir='rtl'] {
+  text-align: right;
+  unicode-bidi: plaintext;
+}
+
+body.admin-mode [dir='rtl'] input,
+body.admin-mode [dir='rtl'] textarea,
+body.admin-mode [dir='rtl'] select {
+  text-align: right;
+}
+
+/* Do not let long localized labels or identifiers break the operational grid. */
+body.admin-mode td,
+body.admin-mode th,
+body.admin-mode label,
+body.admin-mode [role='status'],
+body.admin-mode [role='alert'] {
+  overflow-wrap: anywhere;
+}
+
+body.admin-mode :focus-visible {
+  outline: 2px solid var(--admin-gold);
+  outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+  body.admin-mode .admin-page-shell > main {
+    padding: 0.75rem;
+  }
+
+  body.admin-mode .admin-workspace > section,
+  body.admin-mode .admin-projects-workspace,
+  body.admin-mode .admin-buildings-workspace,
+  body.admin-mode .admin-apartments-workspace,
+  body.admin-mode .admin-leads-workspace {
+    width: 100%;
+  }
+
+  body.admin-mode [aria-labelledby$='-detail-title'] > div > header,
+  body.admin-mode [aria-labelledby='apartment-detail-title'] > div > header {
+    position: static;
+    padding-top: 0;
+  }
+
+  body.admin-mode table {
+    font-size: 0.8125rem;
+  }
+
+  body.admin-mode [data-slot='card'] {
+    border-radius: 0.75rem;
+  }
+
+  body.admin-mode .admin-sticky-toolbar {
+    top: 0.25rem;
+  }
+
+  body.admin-mode .admin-table-scroll table {
+    min-width: 700px;
+  }
+
+  body.admin-mode .admin-table-scroll {
+    margin-inline: -0.25rem;
+    width: calc(100% + 0.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.admin-mode .admin-workspace > section,
+  body.admin-mode .admin-projects-workspace,
+  body.admin-mode .admin-buildings-workspace,
+  body.admin-mode .admin-apartments-workspace,
+  body.admin-mode .admin-leads-workspace,
+  body.admin-mode .admin-skeleton {
+    animation: none;
+  }
+}

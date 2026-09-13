@@ -1,0 +1,302 @@
+/* ASAS Admin UX/UI Foundation
+ * Scope: only active while body.admin-mode is present.
+ * Goal: operational clarity, predictable interaction, responsive density,
+ * accessible focus states, and reduced-motion support without changing
+ * public-site styling.
+ */
+
+html.admin-mode {
+  background: var(--ivory, #f7f4ec);
+}
+
+body.admin-mode {
+  --admin-surface: oklch(1 0 0);
+  --admin-surface-muted: oklch(0.975 0.006 80);
+  --admin-border: oklch(0.89 0.008 80);
+  --admin-text-muted: oklch(0.48 0.015 60);
+  --admin-shadow: 0 1px 2px oklch(0.17 0.01 60 / 5%), 0 8px 24px oklch(0.17 0.01 60 / 4%);
+  min-height: 100dvh;
+  background: var(--ivory, #f7f4ec);
+  color: var(--foreground);
+  text-rendering: optimizeLegibility;
+}
+
+html.dark body.admin-mode {
+  --admin-surface: oklch(0.985 0.004 80);
+  --admin-surface-muted: oklch(0.95 0.006 80);
+  --admin-border: oklch(0.82 0.012 80);
+  --admin-text-muted: oklch(0.42 0.015 60);
+  --foreground: oklch(0.17 0.01 60);
+  color-scheme: light;
+}
+
+body.admin-mode .admin-workspace {
+  min-height: 100dvh;
+}
+
+body.admin-mode .admin-page-shell > main {
+  min-width: 0;
+}
+
+body.admin-mode [data-admin-operation-status='true'] {
+  border-color: var(--admin-border);
+  background: color-mix(in oklab, var(--admin-surface) 96%, transparent);
+  color: var(--foreground);
+}
+
+@media (min-width: 768px) {
+  body.admin-mode .admin-page-shell > aside {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  body.admin-mode .admin-page-shell > aside nav {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(1 0 0 / 18%) transparent;
+  }
+}
+
+body.admin-mode :is(h1, h2, h3, h4, h5, h6) {
+  text-wrap: balance;
+}
+
+body.admin-mode img {
+  max-width: 100%;
+}
+
+body.admin-mode .admin-skip-link {
+  position: fixed;
+  z-index: 9999;
+  top: 0.75rem;
+  left: 0.75rem;
+  transform: translateY(-180%);
+  border: 1px solid var(--forest);
+  border-radius: 0.625rem;
+  background: var(--admin-surface);
+  color: var(--forest);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+  box-shadow: var(--admin-shadow);
+  transition: transform 140ms ease;
+}
+
+body.admin-mode .admin-skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+body.admin-mode #admin-workspace-content:focus {
+  outline: none;
+}
+
+body.admin-mode button,
+body.admin-mode a,
+body.admin-mode [role='button'],
+body.admin-mode [role='tab'],
+body.admin-mode [role='menuitem'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.admin-mode button,
+body.admin-mode [role='button'] {
+  transition: transform 140ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+body.admin-mode button:active,
+body.admin-mode [role='button']:active {
+  transform: translateY(1px);
+}
+
+body.admin-mode input,
+body.admin-mode textarea,
+body.admin-mode select {
+  min-height: 40px;
+  border-color: var(--admin-border);
+  background: var(--admin-surface);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+body.admin-mode input:hover,
+body.admin-mode textarea:hover,
+body.admin-mode select:hover {
+  border-color: oklch(0.78 0.015 155);
+}
+
+body.admin-mode input:focus,
+body.admin-mode textarea:focus,
+body.admin-mode select:focus {
+  border-color: var(--forest);
+  box-shadow: 0 0 0 3px oklch(0.37 0.09 155 / 12%);
+  outline: none;
+}
+
+body.admin-mode table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+body.admin-mode thead th {
+  background: var(--admin-surface-muted);
+  color: var(--admin-text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body.admin-mode tbody tr {
+  transition: background-color 120ms ease;
+}
+
+body.admin-mode tbody tr:hover {
+  background: oklch(0.37 0.09 155 / 3.5%);
+}
+
+body.admin-mode tbody td {
+  vertical-align: middle;
+}
+
+body.admin-mode [data-slot='card'] {
+  border-color: var(--admin-border);
+  box-shadow: var(--admin-shadow);
+}
+
+body.admin-mode [role='dialog'] {
+  border-color: var(--admin-border);
+  box-shadow: 0 24px 80px oklch(0.17 0.01 60 / 18%);
+}
+
+body.admin-mode [role='tablist'] {
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+body.admin-mode [role='tablist']::-webkit-scrollbar {
+  display: none;
+}
+
+body.admin-mode [role='tab'] {
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+body.admin-mode [data-state='active'] {
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+body.admin-mode [aria-invalid='true'] {
+  border-color: oklch(0.58 0.19 25);
+  box-shadow: 0 0 0 3px oklch(0.58 0.19 25 / 9%);
+}
+
+body.admin-mode [role='alert'] {
+  border-radius: 0.65rem;
+}
+
+body.admin-mode button[disabled],
+body.admin-mode [aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+body.admin-mode :focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+}
+
+body.admin-mode :focus:not(:focus-visible) {
+  outline: none;
+}
+
+@media (min-width: 1024px) {
+  body.admin-mode main {
+    scroll-margin-top: 1rem;
+  }
+}
+
+@media (max-width: 767px) {
+  body.admin-mode {
+    overflow-x: hidden;
+  }
+
+  body.admin-mode .admin-page-shell > aside {
+    transform: translateX(-100%);
+    width: 18rem !important;
+    min-width: 18rem !important;
+    position: fixed;
+    top: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  body.admin-mode .admin-page-shell > aside[data-mobile-open='true'] {
+    transform: translateX(0);
+  }
+
+  body.admin-mode .admin-page-shell > aside > div:first-child {
+    justify-content: flex-start;
+    padding-inline: 1rem;
+  }
+
+  body.admin-mode .admin-page-shell > aside nav button {
+    justify-content: flex-start;
+  }
+
+  body.admin-mode .admin-page-shell > aside nav button span,
+  body.admin-mode .admin-page-shell > aside nav p {
+    display: inline;
+  }
+
+  body.admin-mode .admin-page-shell > aside nav {
+    padding-inline: 0.45rem;
+  }
+
+  body.admin-mode .admin-page-shell > aside nav button {
+    justify-content: flex-start;
+    padding-inline: 0.75rem;
+  }
+
+  body.admin-mode .admin-page-shell > aside > button {
+    padding-inline: 0.75rem;
+  }
+
+  body.admin-mode .admin-page-shell > main {
+    min-width: 0;
+    width: 100%;
+    padding: 1rem;
+  }
+
+  body.admin-mode button,
+  body.admin-mode a[role='button'],
+  body.admin-mode [role='button'] {
+    min-height: 44px;
+  }
+
+  body.admin-mode [role='tablist'] {
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  body.admin-mode table {
+    min-width: 0;
+  }
+
+  body.admin-mode [role='dialog'] {
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.admin-mode *,
+  body.admin-mode *::before,
+  body.admin-mode *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
