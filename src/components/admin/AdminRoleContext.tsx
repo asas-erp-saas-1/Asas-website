@@ -49,7 +49,23 @@ export function AdminRoleProvider({ children }: { children: ReactNode }) {
     canAdminister: role === 'ADMIN',
   }), [loading, role]);
 
-  return <AdminRoleContext.Provider value={value}>{children}</AdminRoleContext.Provider>;
+  return (
+    <AdminRoleContext.Provider value={value}>
+      <div
+        data-admin-role={role ?? undefined}
+        data-admin-can-mutate={value.canMutate ? 'true' : 'false'}
+        data-admin-role-loading={loading ? 'true' : 'false'}
+        className="admin-role-scope"
+      >
+        {role === 'STAFF' && (
+          <div className="admin-readonly-notice" role="status" aria-live="polite">
+            Mode lecture seule — votre rôle ne permet pas de modifier les données.
+          </div>
+        )}
+        {children}
+      </div>
+    </AdminRoleContext.Provider>
+  );
 }
 
 export function useAdminRole() {
