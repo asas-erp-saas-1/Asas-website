@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Latest execution HEAD:** `b66f7ab537aaa76022b03e02991adcee1720d40c`
+> **Latest execution HEAD:** `f65d0522dcf6042eef10f0a3c0255e05e60a1279`
 > **Rule:** This file records the execution contract, prompt system, evidence, decisions, and blockers so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -173,22 +173,31 @@ PR #7 head `f93df5263ea0d2f093c307cecd7129f7dbf8858a` completed CI run `#993` su
 
 No database, API, authentication or authorization behavior was changed.
 
+### 2026-09-13 — Shared Admin role/capability context
+`ea9c6f149c1fe57cfc4bd6f700e1c91e0e6944a8` introduced `AdminRoleProvider` at the stable Admin shell. It resolves the authenticated role from `/api/admin/me` and exposes `role`, `canMutate` and `canAdminister`. STAFF receives an explicit read-only notice while server-side mutation authorization remains authoritative.
+
+`6e74a57c4bfe453a79943bc220a692c62755c599` refined the scoped UX layer for this capability state, including a role-resolution-safe read-only notice and action-marker styling contract for future mutation controls.
+
+### 2026-09-13 — Execution documentation synchronization
+`f65d0522dcf6042eef10f0a3c0255e05e60a1279` synchronized the current UX/UI execution state and this master plan with the exact branch HEAD.
+
 ## CI evidence
 
 - Run `#899` — HEAD `ba23a170...` — **FAILURE at Typecheck**; root cause: undefined `INTENT_OPTIONS` in `AdminLeadsPremiumWorkspace.tsx`.
 - Run `#902` — HEAD `7632feb...` — previously tracked after repair.
 - Run `#948` — HEAD `58559326f18c38c62dfbeee9dcfed29e67451d84` — **SUCCESS**. All steps completed successfully: dependency installation, Prisma client generation, baseline generation/verification/upload, Typecheck, Lint and Build.
 - Run `#993` — HEAD `f93df5263ea0d2f093c307cecd7129f7dbf8858a` — **SUCCESS**. All CI gates completed successfully.
+- A new exact-head CI run is required for the role-aware implementation and documentation commits at `f65d0522...`.
 
 ## Current execution state
 
-**Latest HEAD:** `b66f7ab537aaa76022b03e02991adcee1720d40c`
+**Latest HEAD:** `f65d0522dcf6042eef10f0a3c0255e05e60a1279`
 
-**Active wave:** STEP 4 — Apartment operational vertical slice, with Project/Building regression closure and UX behavior hardening.
+**Active wave:** STEP 4 — Apartment operational vertical slice, with Project/Building regression closure and permission-aware UX hardening.
 
 **Immediate gates:**
-1. Obtain exact-HEAD CI evidence for `b66f7ab...`.
-2. Complete permission-aware action presentation, especially Building create/edit controls, using the existing `/api/admin/me` role contract where appropriate.
+1. Obtain exact-HEAD CI evidence for `f65d0522...`.
+2. Apply explicit action capability markers to the highest-value Project, Building, Apartment and Lead mutation controls so STAFF sees a consistent read-only surface rather than relying on button text or DOM position.
 3. Finish responsive/RTL review across Project, Building, Apartment and Lead surfaces, including mobile action hierarchy and dense tables.
 4. Regression-check Building → Apartment and Lead → Project/Apartment navigation and explicit entity-context clearing.
 5. Audit status/publication semantics and unsupported Reservation boundary end-to-end.
