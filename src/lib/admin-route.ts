@@ -49,10 +49,12 @@ export function parseAdminRoute(input: {
   const hash = input.hash ?? '';
 
   const hashValue = hash.replace(/^#\/?/, '');
-  const hashMatch = hashValue.match(/^admin(?:\/([^/]+))?/i);
+  const hashQueryIndex = hashValue.indexOf('?');
+  const hashPath = hashQueryIndex >= 0 ? hashValue.slice(0, hashQueryIndex) : hashValue;
+  const hashMatch = hashPath.match(/^admin(?:\/([^/]+))?/i);
   const hashWorkspace = normalizeCandidate(hashMatch?.[1]);
-  if (hashMatch && /^admin(?:\/|$)/i.test(hashValue)) {
-    const query = hashValue.includes('?') ? hashValue.slice(hashValue.indexOf('?') + 1) : '';
+  if (hashMatch && /^admin(?:\/|$)/i.test(hashPath)) {
+    const query = hashQueryIndex >= 0 ? hashValue.slice(hashQueryIndex + 1) : '';
     const params = new URLSearchParams(query);
     const filters: Record<string, string> = {};
     params.forEach((value, key) => { if (!['search', 'sort', 'page', 'subview', 'entity', 'entityId', 'cursor'].includes(key)) filters[key] = value; });
