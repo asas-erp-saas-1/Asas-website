@@ -2,7 +2,7 @@
 
 **Branch:** `feat/admin-ux-ui-foundation`
 
-**Current HEAD at this documentation update:** `6e74a57c4bfe453a79943bc220a692c62755c599`
+**Current HEAD at this documentation update:** `805fe88f581b963980bb5cb126f5b0d1491b9f31`
 
 ## Completed in this UX/UI wave
 
@@ -13,10 +13,16 @@
 - Operational visual language now covers hierarchy, table scanning, detail context, sticky toolbars, responsive data surfaces, focus behavior, async feedback space, skeleton treatment and reduced-motion behavior.
 - Apartment mutation hydration issue repaired so successful detail mutations do not collapse the entity context into a reduced response.
 - A shared `AdminRoleProvider` is mounted at the stable Admin shell and derives `role`, `canMutate` and `canAdminister` from `/api/admin/me`.
-- Role-aware UX presentation is explicit: STAFF users receive a read-only notice while server-side authorization remains the security boundary.
+- Role-aware UX presentation is explicit for the canonical role model: `ADMIN`, `EDITOR`, `VIEWER`. VIEWER receives a read-only notice while server-side authorization remains the security boundary.
+- Unknown role values are treated as non-mutating and are not silently mapped to a fabricated role.
 - Admin role/capability state is exposed on the workspace DOM (`data-admin-role`, `data-admin-can-mutate`, `data-admin-role-loading`) for future action-level presentation without coupling business authorization to CSS.
-- Read-only notice styling is now part of the scoped Admin UX reference layer, with loading suppression to avoid a false permission state during role resolution.
 - UX/UI execution method documented in `docs/ASAS_ADMIN_UX_UI_EXECUTION_METHOD.md`.
+
+## Important role-model correction
+
+The PostgreSQL Prisma contract and `src/lib/admin-auth.ts` define the supported Admin roles as `ADMIN`, `EDITOR`, and `VIEWER`. The initial UX provider used an unsupported `STAFF` role label. That mismatch was corrected before further permission-aware UI work.
+
+The client role layer remains advisory. It does not replace server-side authorization and it must not invent additional roles.
 
 ## Engineering constraints
 
@@ -30,16 +36,14 @@
 
 ## Verification
 
-- Previous implementation HEAD `610333269c4e7ddf31e2678c97fbdf6b29259d3a`: CI `#975` passed Prisma generation, baseline generation/verification/upload, Typecheck, Lint and Build.
-- HEAD `a251f0a287a82551ad17fe6d31fc07e797256065`: CI `#1001` completed successfully.
-- The latest role-aware implementation and UX CSS commits require exact-HEAD CI evidence after this documentation update.
-
-Browser certification remains blocked until browser automation is available. No visual runtime verification is claimed without it.
+- CI run `#1013` on the prior exact implementation/documentation head completed successfully: Prisma generation, baseline generation/verification/upload, Typecheck, Lint and Build.
+- The role-model correction after that CI run is now at a new HEAD and requires exact-head CI before being treated as certified.
+- Browser certification remains blocked until browser automation is available. No visual runtime verification is claimed without it.
 
 ## Next coherent UX gate
 
-1. Run exact-HEAD CI for `6e74a57c4bfe453a79943bc220a692c62755c599`.
-2. Apply explicit action capability markers to the highest-value Project, Building, Apartment and Lead mutation controls so STAFF sees a consistent read-only surface rather than relying on button text or DOM position.
+1. Obtain exact-head CI evidence for the role-model correction.
+2. Apply explicit action capability markers to the highest-value Project, Building, Apartment and Lead mutation controls so VIEWER sees a consistent read-only surface rather than relying on button text or DOM position.
 3. Finish responsive/RTL review across Project, Building, Apartment and Lead surfaces.
 4. Regression-check Project → Building → Apartment and Lead → Project/Apartment entity navigation and context isolation.
 5. Audit lifecycle/publication semantics and unsupported Reservation boundary.
