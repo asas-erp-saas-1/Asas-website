@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { MapPin, Zap, Eye, Users, Sparkles, ShieldCheck } from 'lucide-react';
+import { FileSearch, Eye, Users, Building2, MessageSquare, ShieldCheck } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 interface FeatureItem {
@@ -12,34 +12,34 @@ interface FeatureItem {
 
 const features: FeatureItem[] = [
   {
-    icon: MapPin,
-    title: 'Expertise Locale',
-    description: 'Connaissance approfondie du marché algérois et de ses dynamiques.',
+    icon: Building2,
+    title: 'Projets immobiliers',
+    description: 'Explorez les programmes actuellement publiés par ASAS et consultez leurs informations disponibles.',
   },
   {
-    icon: Zap,
-    title: 'Vente Accélérée',
-    description: 'Nos projets se vendent 2x plus vite grâce à notre stratégie digitale.',
+    icon: FileSearch,
+    title: 'Informations utiles',
+    description: 'Comparez les caractéristiques, surfaces, disponibilités et autres données publiées pour chaque bien.',
   },
   {
     icon: Eye,
-    title: 'Transparence Totale',
-    description: 'Prix clairs, plans détaillés, suivi en temps réel de votre dossier.',
+    title: 'Une information lisible',
+    description: 'Retrouvez les éléments disponibles sur le projet avant de prendre contact avec notre équipe.',
   },
   {
     icon: Users,
-    title: 'Accompagnement Dédié',
-    description: 'Un interlocuteur unique de la première visite à la signature.',
+    title: 'Un échange direct',
+    description: 'Lorsque vous souhaitez aller plus loin, notre équipe peut répondre à vos questions et préciser les prochaines étapes.',
   },
   {
-    icon: Sparkles,
-    title: 'Marketing Premium',
-    description: 'Visuels 3D, vidéos, campagnes ciblées pour chaque projet.',
+    icon: MessageSquare,
+    title: 'Un parcours simple',
+    description: 'Passez de la découverte d’un projet à une demande d’information sans multiplier les étapes inutiles.',
   },
   {
     icon: ShieldCheck,
-    title: 'Garantie Constructeur',
-    description: 'Tous nos projets sont livrés par des promoteurs certifiés.',
+    title: 'Des données vérifiables',
+    description: 'Les informations affichées sur les biens publiés sont issues des données disponibles dans le catalogue public.',
   },
 ];
 
@@ -53,65 +53,49 @@ const staggerContainer = {
   visible: { transition: { staggerChildren: 0.1 } },
 };
 
-function FeatureCard({ feature, index }: { feature: FeatureItem; index: number }) {
+function FeatureCard({ feature }: { feature: FeatureItem; index: number }) {
   const Icon = feature.icon;
 
   return (
     <motion.div
       variants={fadeUp}
-      className="group relative rounded-xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-l-4 hover:border-l-forest"
+      className="group relative border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
     >
-      {/* Icon container */}
-      <div className="mb-4 inline-flex items-center justify-center rounded-lg bg-forest/10 p-3 transition-all duration-300 group-hover:bg-forest">
+      <div className="mb-4 inline-flex items-center justify-center bg-forest/10 p-3 transition-all duration-300 group-hover:bg-forest">
         <Icon className="h-6 w-6 text-forest transition-colors duration-300 group-hover:text-white" />
       </div>
-
-      {/* Title */}
-      <h3 className="mb-2 text-lg font-bold text-foreground">
-        {feature.title}
-      </h3>
-
-      {/* Description */}
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        {feature.description}
-      </p>
+      <h3 className="mb-2 text-lg font-bold text-foreground">{feature.title}</h3>
+      <p className="text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
     </motion.div>
   );
 }
 
 export function PremiumTrustSection() {
   return (
-    <section className="py-20 px-4 bg-ivory">
-      <div className="max-w-6xl mx-auto">
-        {/* Section heading */}
+    <section className="bg-ivory px-4 py-20">
+      <div className="mx-auto max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-14"
+          className="mb-14 max-w-2xl"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Pourquoi choisir ASAS ?
-          </h2>
-          {/* Decorative line */}
-          <div className="h-0.5 w-16 rounded-full bg-forest mx-auto mb-4" />
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Une approche unique de la commercialisation immobilière en Algérie.
+          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-forest">Votre parcours</p>
+          <h2 className="text-3xl font-bold text-foreground md:text-4xl">Découvrir, comprendre, échanger.</h2>
+          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+            Une présentation claire des projets publiés, puis un échange avec ASAS lorsque vous souhaitez avancer.
           </p>
         </motion.div>
 
-        {/* Feature cards grid */}
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
           variants={staggerContainer}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 gap-px border border-border bg-border sm:grid-cols-2 lg:grid-cols-3"
         >
-          {features.map((feature, index) => (
-            <FeatureCard key={feature.title} feature={feature} index={index} />
-          ))}
+          {features.map((feature) => <FeatureCard key={feature.title} feature={feature} index={0} />)}
         </motion.div>
       </div>
     </section>
