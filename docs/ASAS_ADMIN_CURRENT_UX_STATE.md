@@ -2,7 +2,7 @@
 
 **Branch:** `feat/admin-ux-ui-foundation`
 **PR:** #7
-**Current implementation HEAD:** `1e833a68bccf7155ff106615ae152d103c6ee79c`
+**Current implementation HEAD:** `fced3b9f981f988548ed9527e2765e6aebf955bf`
 
 ## Completed in this UX/UI wave
 
@@ -30,7 +30,7 @@
 - Detail mode explains the read-only restriction without removing context.
 
 ### Apartment
-- Apartment now consumes the shared `AdminRoleProvider` rather than maintaining a duplicate client role fetch.
+- Apartment consumes the shared `AdminRoleProvider` rather than maintaining a duplicate client role fetch.
 - List publication control is enabled only for `ADMIN`/`EDITOR`.
 - List archive control is enabled only for `ADMIN`.
 - Detail price editing, status selection/application and publication are disabled for `VIEWER`.
@@ -39,7 +39,7 @@
 - Read-only users retain apartment identity, project/building context, navigation and operational information.
 
 ### Lead
-- Lead now consumes the shared role context.
+- Lead consumes the shared role context.
 - Lead status changes and internal-note creation are treated as mutations and are disabled for `VIEWER`.
 - Lead mutation handlers re-check the shared capability before requests.
 - Project/apartment navigation, contact links, filtering and operational context remain available read-only.
@@ -50,6 +50,8 @@
 - Admin workspace, filters, pagination and entity context are URL-derived and recoverable.
 - A defect was identified in hash-route parsing: a query string on `#/admin/<workspace>?…` was previously included in the workspace capture, causing valid filtered workspace URLs to fall back to `dashboard`.
 - Commit `1e833a68bccf7155ff106615ae152d103c6ee79c` separates the hash path from its query before workspace normalization, preserving the existing URL contract while making filtered/deep-linked hash routes parse correctly.
+- `navigateAdminRoute` intentionally clears prior workspace filters, pagination, cursor, subview and entity context when changing workspaces; same-workspace navigation preserves route state unless the caller explicitly replaces it.
+- Cross-entity navigation remains capability-preserving: Project → Building and Project/Building → Apartment use URL filters/context rather than inventing new server state; Lead → Project/Apartment remains read-only navigation context.
 
 ## Role model
 
@@ -66,14 +68,15 @@ The supported Admin roles are `ADMIN`, `EDITOR`, `VIEWER`. Do not introduce `STA
 
 ## Verification
 
-- Vercel status for previous exact HEAD `27d28b73bda1a8680605bf288ff5901cac0def00`: **success**.
-- New route-parser commit `1e833a68bccf7155ff106615ae152d103c6ee79c` currently has no reported GitHub status/workflow run; no CI pass is claimed yet.
+- Current PR HEAD `fced3b9f981f988548ed9527e2765e6aebf955bf` is **mergeable** and remains open/unmerged.
+- Vercel status for the current exact HEAD is **success**.
+- No GitHub Actions CI pass is claimed because no Actions status is reported for the current exact HEAD in the available commit status result.
 - Browser certification remains blocked: `VISUAL VALIDATION BLOCKED — browser automation is not available in this execution context.`
 
 ## Next coherent UX gate
 
-1. Verify exact-head CI/Vercel for `1e833a68bccf7155ff106615ae152d103c6ee79c`.
-2. Audit cross-entity deep-link behavior and context isolation across Project → Building → Apartment → Lead.
-3. Audit mutation/error/loading lifecycle consistency across the four operational workspaces.
-4. Continue responsive/RTL/accessibility review and preserve evidence-backed lifecycle semantics.
+1. Inspect the four operational workspaces for cross-entity route-state synchronization and stale local state on URL changes.
+2. Audit mutation/error/loading lifecycle consistency across Project, Building, Apartment and Lead, including retry and abort behavior.
+3. Continue responsive/RTL/accessibility review without changing supported lifecycle semantics.
+4. Verify exact-head CI/deployment status again after the next implementation commit.
 5. Browser certification when browser automation is available.
