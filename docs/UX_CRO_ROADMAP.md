@@ -4,7 +4,7 @@
 **Date:** 2026-09-13
 **Current phase:** Phase 3 — Sales Experience & Conversion System
 **Current branch:** `fix/responsive-viewport-hardening`
-**Latest implementation checkpoint:** `73eb574703348882e063375fa83cd1063426faa1`
+**Latest implementation checkpoint:** `69ef7947ede3b44ada5499e3147fe4ba02ca0cea`
 
 ## Execution ledger
 
@@ -19,7 +19,7 @@
 
 Public sales UX is implemented across Home, Projects/Catalogue, Project Detail, Apartment Detail, Services, About, Developers, Contact, Insights, Campaign Landing and legal/utility routes. Shared conversion infrastructure includes `SiteShell`, `NavbarV3`, `FooterV3`, `StickyMobileCTA`, `CompareBar`, `LeadForm`, `SearchCommandPalette` and property recommendation/comparison flows.
 
-Remaining work is verification/evidence gathering, not speculative redesign.
+The remaining work is verification and evidence gathering, not speculative redesign.
 
 ## Completed implementation
 
