@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1200" viewBox="0 0 1800 1200">
+  <defs>
+    <style>
+      .bg{fill:#f8f7f2}.ink{fill:#17232a}.forest{fill:#183c31}.gold{fill:#b9975b}.white{fill:#fff}.muted{fill:#777a72}.line{stroke:#e5e1d7;stroke-width:2}.darkline{stroke:#314048;stroke-width:2}.serif{font-family:Georgia,'Times New Roman',serif}.sans{font-family:Arial,Helvetica,sans-serif}.small{font-size:12px}.body{font-size:15px}.h2{font-size:28px}.h1{font-size:42px;font-weight:500}.label{font-size:11px;font-weight:700;letter-spacing:2px}
+    </style>
+  </defs>
+  <rect width="1800" height="1200" class="bg"/>
+  <text x="70" y="65" class="ink serif" font-size="32">ASAS Immobilier — UI / UX Master Reference 2026</text>
+  <text x="70" y="92" class="muted sans small">Source-of-truth visual board · editorial real-estate sales experience · desktop + mobile principles</text>
+
+  <!-- 01 Home -->
+  <g transform="translate(60,125)"><rect width="520" height="360" rx="8" class="white line"/><rect width="520" height="145" rx="8" class="ink"/>
+    <text x="18" y="27" class="gold sans label">01 · ACCUEIL</text><text x="18" y="65" class="white serif h1">Trouver le bon bien.</text><text x="18" y="96" class="white serif h1">Décider avec confiance.</text>
+    <rect x="18" y="111" width="215" height="25" rx="3" fill="#b9975b"/><text x="30" y="128" class="ink sans small">Explorer les projets →</text>
+    <text x="18" y="174" class="ink serif h2">Projets sélectionnés</text><rect x="18" y="190" width="150" height="90" rx="5" fill="#d9d5c8"/><rect x="177" y="190" width="150" height="90" rx="5" fill="#c8c5b8"/><rect x="336" y="190" width="166" height="90" rx="5" fill="#ddd9cc"/>
+    <text x="18" y="307" class="ink sans body">Preuve · disponibilité · accompagnement humain</text><line x1="18" y1="325" x2="502" y2="325" class="line"/><text x="18" y="347" class="forest sans small">Parler à un conseiller</text>
+  </g>
+
+  <!-- 02 Catalog -->
+  <g transform="translate(640,125)"><rect width="520" height="360" rx="8" class="white line"/><rect width="520" height="100" class="ink"/><text x="18" y="27" class="gold sans label">02 · CATALOGUE</text><text x="18" y="62" class="white serif h2">Des projets pour décider.</text><rect x="18" y="72" width="290" height="17" rx="3" fill="#34434a"/><rect x="316" y="72" width="75" height="17" rx="3" class="gold"/><text x="18" y="122" class="muted sans small">Recherche · filtres · tri · carte</text>
+    <rect x="18" y="140" width="130" height="190" rx="5" class="bg line"/><text x="30" y="163" class="ink sans small">Filtres</text><line x1="30" y1="175" x2="135" y2="175" class="line"/><text x="30" y="197" class="muted sans small">Type</text><text x="30" y="222" class="muted sans small">Budget</text><text x="30" y="247" class="muted sans small">Surface</text><text x="30" y="272" class="muted sans small">Statut</text>
+    <rect x="162" y="140" width="340" height="85" rx="5" fill="#e8e5dc"/><circle cx="205" cy="178" r="6" class="forest"/><circle cx="290" cy="195" r="6" class="forest"/><circle cx="390" cy="168" r="6" class="forest"/><text x="175" y="242" class="muted sans small">Carte uniquement si coordonnées réelles</text>
+    <rect x="162" y="240" width="105" height="90" rx="5" class="white line"/><rect x="279" y="240" width="105" height="90" rx="5" class="white line"/><rect x="396" y="240" width="106" height="90" rx="5" class="white line"/><text x="18" y="348" class="forest sans small">CTA dominant: Voir les projets / Demander des informations</text>
+  </g>
+
+  <!-- 03 Project -->
+  <g transform="translate(1220,125)"><rect width="520" height="360" rx="8" class="white line"/><rect width="520" height="105" class="ink"/><text x="18" y="26" class="gold sans label">03 · PROJECT DETAIL</text><text x="18" y="62" class="white serif h2">Projet immobilier</text><text x="18" y="84" class="white sans small">Localisation · livraison · statut</text><rect x="18" y="120" width="320" height="110" rx="5" fill="#d4d0c2"/><rect x="350" y="120" width="152" height="110" rx="5" class="bg line"/><text x="363" y="143" class="ink sans small">Prix / disponibilité</text><rect x="363" y="175" width="126" height="27" rx="3" class="forest"/><text x="375" y="193" class="white sans small">Voir logements</text><text x="18" y="257" class="ink serif h2">Cadre de vie & preuves</text><text x="18" y="284" class="muted sans small">Galerie réelle · équipements · plan · carte réelle</text><line x1="18" y1="301" x2="502" y2="301" class="line"/><text x="18" y="325" class="forest sans small">Assistance humaine</text><text x="18" y="345" class="muted sans small">CTA secondaire: WhatsApp / téléphone</text>
+  </g>
+
+  <!-- 04 Apartment -->
+  <g transform="translate(60,525)"><rect width="520" height="360" rx="8" class="white line"/><rect width="520" height="108" class="ink"/><text x="18" y="27" class="gold sans label">04 · APARTMENT DETAIL</text><text x="18" y="63" class="white serif h2">F3 · 120 m²</text><text x="18" y="86" class="white sans small">Projet · étage · statut · localisation</text><rect x="18" y="123" width="320" height="95" rx="5" fill="#d7d2c5"/><rect x="350" y="123" width="152" height="95" rx="5" class="bg line"/><text x="363" y="147" class="forest sans small">Prix publié / sur demande</text><rect x="363" y="175" width="126" height="27" rx="3" class="gold"/><text x="374" y="193" class="ink sans small">Demander une visite</text><text x="18" y="250" class="ink serif h2">Décider avec les bons faits</text><text x="18" y="278" class="muted sans small">Surface · chambres · étage · orientation · parking · statut</text><rect x="18" y="298" width="235" height="45" rx="4" class="bg line"/><text x="30" y="326" class="forest sans small">Plans / images uniquement si réels</text><rect x="266" y="298" width="236" height="45" rx="4" class="bg line"/><text x="278" y="326" class="forest sans small">Formulaire de contact court</text>
+  </g>
+
+  <!-- 05 Services -->
+  <g transform="translate(640,525)"><rect width="520" height="360" rx="8" class="white line"/><rect width="520" height="95" class="forest"/><text x="18" y="27" class="gold sans label">05 · SERVICES</text><text x="18" y="63" class="white serif h2">Une commercialisation pensée</text><text x="18" y="84" class="white serif h2">comme un parcours.</text><text x="18" y="124" class="ink serif h2">Pour chaque besoin, une prochaine étape.</text>
+    <rect x="18" y="145" width="151" height="70" class="bg line"/><rect x="184" y="145" width="151" height="70" class="bg line"/><rect x="350" y="145" width="152" height="70" class="bg line"/><text x="30" y="173" class="forest sans small">Conseil</text><text x="196" y="173" class="forest sans small">Commercialisation</text><text x="362" y="173" class="forest sans small">Suivi</text><text x="18" y="248" class="muted sans body">Preuve de méthode · pas de promesses invérifiables.</text><rect x="18" y="290" width="205" height="34" rx="3" class="forest"/><text x="31" y="312" class="white sans small">Parler à un conseiller →</text>
+  </g>
+
+  <!-- 06 About -->
+  <g transform="translate(1220,525)"><rect width="520" height="360" rx="8" class="white line"/><rect width="520" height="100" class="bg"/><rect x="18" y="18" width="180" height="64" fill="#d1cdbf"/><text x="218" y="34" class="forest sans label">06 · À PROPOS</text><text x="218" y="64" class="ink serif h2">Une vision claire.</text><text x="18" y="130" class="ink serif h2">L’immobilier, plus lisible.</text><text x="18" y="160" class="muted sans body">Mission · transparence · proximité · excellence</text><line x1="18" y1="184" x2="502" y2="184" class="line"/><text x="18" y="215" class="forest sans small">Notre manière de travailler</text><text x="18" y="246" class="muted sans small">1. Comprendre · 2. Présenter · 3. Qualifier · 4. Accompagner</text><rect x="18" y="286" width="205" height="34" rx="3" class="gold"/><text x="31" y="308" class="ink sans small">Découvrir notre approche →</text>
+  </g>
+
+  <!-- Bottom system strip -->
+  <g transform="translate(60,925)"><rect width="1680" height="205" rx="10" class="ink"/><text x="25" y="35" class="gold sans label">SYSTEME COMMUN</text><text x="25" y="70" class="white serif h2">Editorial · architecture · confiance · conversion</text>
+    <rect x="25" y="95" width="270" height="70" rx="5" fill="#23343b"/><text x="40" y="120" class="white sans small">Palette</text><text x="40" y="145" class="white sans small">Ivory · Charcoal · Forest · Gold</text>
+    <rect x="315" y="95" width="270" height="70" rx="5" fill="#23343b"/><text x="330" y="120" class="white sans small">Typography</text><text x="330" y="145" class="white sans small">Serif headlines · sans UI</text>
+    <rect x="605" y="95" width="270" height="70" rx="5" fill="#23343b"/><text x="620" y="120" class="white sans small">CTA hierarchy</text><text x="620" y="145" class="white sans small">1 action · 1 assistance · utilities</text>
+    <rect x="895" y="95" width="270" height="70" rx="5" fill="#23343b"/><text x="910" y="120" class="white sans small">Truthfulness</text><text x="910" y="145" class="white sans small">No fake stats · urgency · media</text>
+    <rect x="1185" y="95" width="220" height="70" rx="5" fill="#23343b"/><text x="1200" y="120" class="white sans small">Mobile</text><text x="1200" y="145" class="white sans small">44px targets · no overflow</text>
+    <rect x="1425" y="95" width="220" height="70" rx="5" fill="#23343b"/><text x="1440" y="120" class="white sans small">Finance</text><text x="1440" y="145" class="white sans small">No bank-credit simulator</text>
+  </g>
+</svg>
