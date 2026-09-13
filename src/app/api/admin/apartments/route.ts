@@ -27,7 +27,13 @@ export async function GET(request: NextRequest) {
         include: {
           building: { select: { id: true, name: true, code: true } },
           project: { select: { id: true, slug: true, name: true, district: true, city: true } },
-          imagesRelation: { where: { type: 'hero' }, take: 1 },
+          // Keep this relation projection explicit: production may not contain
+          // optional image columns that exist in the Prisma model.
+          imagesRelation: {
+            where: { type: 'hero' },
+            take: 1,
+            select: { id: true, url: true, type: true, order: true },
+          },
         },
       }),
       db.apartment.count({ where }),
