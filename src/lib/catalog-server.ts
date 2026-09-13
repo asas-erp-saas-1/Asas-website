@@ -14,7 +14,7 @@ export async function getPublicProjectCards(): Promise<PublicProjectCard[]> {
       startingPrice: true, priceOnRequest: true, minSurface: true, maxSurface: true,
       deliveryYear: true, deliveryQuarter: true, apartmentTypes: true,
       hasParking: true, hasElevator: true, hasGarden: true, hasPool: true, featured: true,
-      imagesRelation: { orderBy: { order: 'asc' }, take: 1, select: { id: true, url: true, alt: true, type: true } },
+      imagesRelation: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }], take: 1, select: { id: true, url: true, alt: true, type: true } },
       _count: { select: { apartments: { where: { published: true, archived: false } } } },
     },
   });
@@ -40,13 +40,13 @@ export async function getPublicProject(slug: string): Promise<PublicProjectDetai
   const project = await db.project.findUnique({
     where: { slug },
     include: {
-      buildings: { orderBy: { order: 'asc' } },
+      buildings: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] },
       apartments: {
         where: { published: true, archived: false },
-        orderBy: { order: 'asc' },
-        include: { imagesRelation: { orderBy: { order: 'asc' } }, building: true },
+        orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+        include: { imagesRelation: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] }, building: true },
       },
-      imagesRelation: { orderBy: { order: 'asc' } },
+      imagesRelation: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] },
       amenities: { orderBy: { name: 'asc' } },
       developer: true,
     },
@@ -72,7 +72,7 @@ export async function getPublicApartment(apartmentSlug: string, projectSlug?: st
         include: {
           project: { select: { id: true, slug: true, name: true, city: true, district: true, hasElevator: true, hasSecurity: true, published: true, archived: true } },
           building: true,
-          imagesRelation: { orderBy: { order: 'asc' } },
+          imagesRelation: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] },
         },
       })
     : await db.apartment.findFirst({
@@ -80,7 +80,7 @@ export async function getPublicApartment(apartmentSlug: string, projectSlug?: st
         include: {
           project: { select: { id: true, slug: true, name: true, city: true, district: true, hasElevator: true, hasSecurity: true, published: true, archived: true } },
           building: true,
-          imagesRelation: { orderBy: { order: 'asc' } },
+          imagesRelation: { orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }] },
         },
       });
 

@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { verifyAdminAuth, sessionHasRole } from '@/lib/admin-auth';
 import { withSecurityHeaders } from '@/lib/with-security-headers';
 import { logAudit } from '@/lib/audit';
+import { getAllowedLeadStatusTransitions } from '@/lib/admin-operational-units';
 import { z } from 'zod';
 
 /**
@@ -16,12 +17,12 @@ import { z } from 'zod';
  *   - followUpDate: ISO date string or null
  */
 
-const VALID_LEAD_STATUSES = ['NEW', 'CONTACTED', 'QUALIFIED', 'VISIT', 'NEGOTIATION', 'SOLD', 'LOST'];
+const VALID_LEAD_STATUSES = ['NEW', 'CONTACTED', 'QUALIFIED', 'VISIT', 'NEGOTIATION', 'SOLD', 'LOST'] as const;
 
 const updateSchema = z.object({
-  status: z.enum(VALID_LEAD_STATUSES as [string, ...string[]]).optional(),
-  assignedTo: z.string().nullable().optional(),
-  followUpDate: z.string().nullable().optional(),
+  status: z.enum(VALID_LEAD_STATUSES).optional(),
+  assignedTo: z.string().trim().min(1).nullable().optional(),
+  followUpDate: z.string().datetime({ offset: true }).nullable().optional(),
 });
 
 interface RouteContext { params: Promise<{ id: string }> }
@@ -31,7 +32,6 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   if (!session) {
     return withSecurityHeaders(NextResponse.json({ error: 'Non autorisé' }, { status: 401 }));
   }
-  // VIEWER cannot mutate leads
   if (!sessionHasRole(session, ['ADMIN', 'EDITOR'])) {
     return withSecurityHeaders(NextResponse.json(
       { error: 'Privilèges insuffisants. Réservé aux administrateurs et éditeurs.' },
@@ -54,6 +54,16 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       return withSecurityHeaders(NextResponse.json({ error: 'Lead introuvable' }, { status: 404 }));
     }
 
+    if (parsed.data.status !== undefined) {
+      const allowedTargets = getAllowedLeadStatusTransitions(existing.status);
+      if (!allowedTargets.includes(parsed.data.status)) {
+        return withSecurityHeaders(NextResponse.json(
+          { error: `Transition de statut non autorisée: ${existing.status} → ${parsed.data.status}` },
+          { status: 409 }
+        ));
+      }
+    }
+
     const updateData: Record<string, unknown> = {};
     if (parsed.data.status !== undefined) updateData.status = parsed.data.status;
     if (parsed.data.assignedTo !== undefined) updateData.assignedTo = parsed.data.assignedTo || null;
@@ -63,7 +73,6 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 
     const updated = await db.lead.update({ where: { id }, data: updateData });
 
-    // Audit log
     const before: Record<string, unknown> = {};
     const after: Record<string, unknown> = {};
     if (parsed.data.status !== undefined) { before.status = existing.status; after.status = updated.status; }

@@ -1,5 +1,9 @@
 'use client';
 
+import { AdminApartmentsWorkspace } from '@/components/admin/AdminApartmentsWorkspace';
+import { AdminProjectsWorkspace } from '@/components/admin/AdminProjectsWorkspace';
+import AdminBuildingsWorkspace from '@/components/admin/AdminBuildingsWorkspace';
+import { AdminLeadsPremiumWorkspace } from '@/components/admin/AdminLeadsPremiumWorkspace';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -25,6 +29,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/constants';
+import { getAdminRoute, subscribeToAdminRoute, navigateAdminRoute, type AdminWorkspaceId } from '@/lib/admin-route';
+import { canStartMutation, createMutationRequestId, mutationAfterFailure, mutationSuccess as mutationSucceeded, type AdminMutationSnapshot } from '@/lib/admin-mutation';
+import { evaluateApartmentOperationalCompleteness } from '@/lib/admin-operational-units';
 
 /* ─── Types ─── */
 
@@ -114,8 +121,26 @@ function formatDate(dateStr: string): string {
 
 /* ─── API Fetch Helpers ─── */
 
+interface AdminDashboardStats {
+  totalProjects: number;
+  totalApartments: number;
+  availableCount: number;
+  reservedCount: number;
+  soldCount: number;
+  totalLeads: number;
+  newLeadsCount: number;
+  intentBreakdown?: Record<string, number>;
+}
+
+async function fetchAdminDashboardStats(): Promise<AdminDashboardStats> {
+  const res = await fetch('/api/admin/stats', { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to fetch dashboard statistics');
+  const json = await res.json();
+  return json.data;
+}
+
 async function fetchAdminProjects(): Promise<AdminProject[]> {
-  const res = await fetch('/api/admin/projects');
+  const res = await fetch('/api/admin/projects?limit=50', { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch projects');
   const json = await res.json();
   return json.data ?? [];
@@ -127,14 +152,14 @@ async function fetchAdminApartments(filters: { projectSlug?: string; status?: st
   if (filters.status) params.set('status', filters.status);
   if (filters.type) params.set('type', filters.type);
   params.set('limit', '50');
-  const res = await fetch(`/api/admin/apartments?${params.toString()}`);
+  const res = await fetch(`/api/admin/apartments?${params.toString()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch apartments');
   const json = await res.json();
   return json.data ?? [];
 }
 
 async function fetchAdminBuildings(): Promise<AdminBuilding[]> {
-  const res = await fetch('/api/admin/buildings');
+  const res = await fetch('/api/admin/buildings?limit=50', { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch buildings');
   const json = await res.json();
   return json.data ?? [];
@@ -144,13 +169,14 @@ async function fetchAdminLeads(statusFilter?: string): Promise<AdminLead[]> {
   const params = new URLSearchParams();
   if (statusFilter) params.set('status', statusFilter);
   params.set('limit', '50');
-  const res = await fetch(`/api/admin/leads?${params.toString()}`);
+  const res = await fetch(`/api/admin/leads?${params.toString()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch leads');
   const json = await res.json();
   return json.data ?? [];
 }
 
 /* ─── Status Badge ─── */
+
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; className: string }> = {
@@ -964,9 +990,12 @@ function ApartmentsTab({
                     </TableCell>
                     <TableCell className="text-center">
                       {(() => {
+                        const completeness = evaluateApartmentOperationalCompleteness(apt as unknown as Record<string, unknown>);
                         const checks = [
-                          !!apt.typeName, apt.surface > 0, apt.floor !== undefined && apt.floor !== null,
-                          apt.bedrooms > 0, !!apt.price || apt.priceOnRequest, !!apt.orientation, !!apt.heroImage, apt.published,
+                          completeness.identity,
+                          completeness.physical,
+                          completeness.commercial,
+                          completeness.media,
                         ];
                         const score = Math.round((checks.filter(Boolean).length / checks.length) * 100);
                         return (
@@ -1351,7 +1380,10 @@ function MediaUploadCard({ projects, apartments, onUploaded }: {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [mutationSnapshot, setMutationSnapshot] = useState<AdminMutationSnapshot>({ state: 'idle' });
+  const [dirty, setDirty] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [xhrRef] = useState<{ current: XMLHttpRequest | null }>({ current: null });
   const qc = useQueryClient();
 
   const entityOptions = entityType === 'project'
@@ -1362,6 +1394,7 @@ function MediaUploadCard({ projects, apartments, onUploaded }: {
     if (!file) { setError('Aucun fichier sélectionné'); return; }
     if (!entityId) { setError('Veuillez sélectionner une cible (projet ou appartement)'); return; }
     setError(null);
+    setMutationSnapshot({ state: 'validating' });
     setUploading(true);
     setProgress(0);
     try {
@@ -1374,19 +1407,23 @@ function MediaUploadCard({ projects, apartments, onUploaded }: {
       formData.append('caption', caption);
       const res = await new Promise<Response>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
+        xhrRef.current = xhr;
         xhr.open('POST', '/api/admin/media/upload');
         xhr.withCredentials = true;
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
         };
         xhr.onload = () => {
+          xhrRef.current = null;
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve(new Response(xhr.responseText, { status: xhr.status }));
           } else {
             reject(new Error(`Upload failed (${xhr.status})`));
           }
         };
-        xhr.onerror = () => reject(new Error('Network error during upload'));
+        xhr.onerror = () => { xhrRef.current = null; reject(new Error('Network error during upload')); };
+        xhr.onabort = () => { xhrRef.current = null; reject(new Error('Téléversement annulé.')); };
+        setMutationSnapshot({ state: 'submitting' });
         xhr.send(formData);
       });
       const json = await res.json();
@@ -1397,9 +1434,12 @@ function MediaUploadCard({ projects, apartments, onUploaded }: {
       setProgress(0);
       qc.invalidateQueries({ queryKey: ['admin', 'media'] });
       onUploaded();
+      setMutationSnapshot({ state: 'success' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Échec de l\'upload');
+      setMutationSnapshot({ state: 'recoverable-error', error: err instanceof Error ? err.message : 'Échec de l\'upload' });
     } finally {
+      xhrRef.current = null;
       setUploading(false);
     }
   }
@@ -1511,6 +1551,8 @@ function MediaUploadCard({ projects, apartments, onUploaded }: {
           </div>
         )}
 
+        {uploading && <Button type="button" variant="outline" onClick={() => xhrRef.current?.abort()} className="w-full">Annuler le téléversement</Button>}
+        {mutationSnapshot.state === 'recoverable-error' && !uploading && <Button type="button" variant="outline" onClick={doUpload} disabled={!file || !entityId} className="w-full">Réessayer</Button>}
         <Button
           onClick={doUpload}
           disabled={uploading || !file || !entityId}
@@ -1853,7 +1895,8 @@ function VideoManager({ projects, apartments }: { projects: AdminProject[]; apar
       setUrl(''); setTitle(''); setDescription(''); setThumbnailUrl('');
       qc.invalidateQueries({ queryKey: ['admin', 'videos'] });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Échec');
+      const message = err instanceof Error ? err.message : 'Échec';
+      setError(message);
     } finally {
       setCreating(false);
     }
@@ -2537,6 +2580,8 @@ function ProjectEditForm({ project, onClose }: { project: AdminProject; onClose:
   const [tab, setTab] = useState<'basic' | 'location' | 'commercial' | 'amenities' | 'seo' | 'publish'>('basic');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mutationSnapshot, setMutationSnapshot] = useState<AdminMutationSnapshot>({ state: 'idle' });
+  const [dirty, setDirty] = useState(false);
 
   // Local state for all editable fields — initialized from project (or fetched full data)
   const [form, setForm] = useState<Record<string, unknown>>({
@@ -2554,21 +2599,21 @@ function ProjectEditForm({ project, onClose }: { project: AdminProject; onClose:
     addressAr: '',
     latitude: undefined as number | undefined,
     longitude: undefined as number | undefined,
-    projectType: 'RESIDENTIAL',
+    projectType: undefined as string | undefined,
     status: project.status,
-    apartmentTypes: '[]',
+    apartmentTypes: '',
     minSurface: undefined as number | undefined,
     maxSurface: undefined as number | undefined,
     deliveryYear: undefined as number | undefined,
     deliveryQuarter: '',
-    hasParking: false,
-    hasElevator: false,
-    hasGarden: false,
-    hasPool: false,
-    hasSecurity: false,
-    hasClim: false,
+    hasParking: undefined as boolean | undefined,
+    hasElevator: undefined as boolean | undefined,
+    hasGarden: undefined as boolean | undefined,
+    hasPool: undefined as boolean | undefined,
+    hasSecurity: undefined as boolean | undefined,
+    hasClim: undefined as boolean | undefined,
     startingPrice: undefined as number | undefined,
-    priceOnRequest: false,
+    priceOnRequest: undefined as boolean | undefined,
     developerId: '',
     heroImage: '' as string,
     published: project.published,
@@ -2580,7 +2625,7 @@ function ProjectEditForm({ project, onClose }: { project: AdminProject; onClose:
     seoKeywords: '',
     canonicalUrl: '',
     ogImage: '',
-    robotsIndex: true,
+    robotsIndex: undefined as boolean | undefined,
   });
 
   // Fetch full project data (with description, location, etc.)
@@ -2641,10 +2686,12 @@ function ProjectEditForm({ project, onClose }: { project: AdminProject; onClose:
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm(prev => ({ ...prev, [key]: value }));
+    setDirty(true);
   }
 
   function toggleFlag(key: 'hasParking' | 'hasElevator' | 'hasGarden' | 'hasPool' | 'hasSecurity' | 'hasClim' | 'priceOnRequest' | 'published' | 'featured') {
     setForm(prev => ({ ...prev, [key]: !prev[key] }));
+    setDirty(true);
   }
 
   function toggleApartmentType(t: string) {
@@ -2654,9 +2701,13 @@ function ProjectEditForm({ project, onClose }: { project: AdminProject; onClose:
   }
 
   const save = async () => {
+    if (!canStartMutation(mutationSnapshot.state) || saving) return;
+    const requestId = createMutationRequestId('project-save');
+    setMutationSnapshot({ state: 'validating', requestId });
     setSaving(true);
     setError(null);
     try {
+      setMutationSnapshot({ state: 'submitting', requestId });
       // Build clean payload — convert empty strings to null for optional fields
       const payload: Record<string, unknown> = { ...form };
       // Numbers: send undefined as null
@@ -2681,9 +2732,13 @@ function ProjectEditForm({ project, onClose }: { project: AdminProject; onClose:
       }
       qc.invalidateQueries({ queryKey: ['admin', 'projects'] });
       qc.invalidateQueries({ queryKey: ['admin', 'project', project.slug] });
+      setMutationSnapshot(mutationSucceeded(requestId));
+      setDirty(false);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Échec');
+      const failure = mutationAfterFailure(err, requestId);
+      setMutationSnapshot(failure);
+      setError(failure.error ?? 'Échec');
     } finally {
       setSaving(false);
     }
@@ -3385,36 +3440,6 @@ function ApartmentEditForm({ apartment, onClose }: { apartment: AdminApartment; 
               <Label className="text-xs">Type</Label>
               <Select value={String(form.apartmentType)} onValueChange={(v) => {
                 update('apartmentType', v);
-                // Smart auto-fill: when type changes, auto-suggest bedrooms + typeName
-                const smartDefaults: Record<string, { bedrooms: number; typeName: string; typeNameAr: string; surface?: number }> = {
-                  'F2': { bedrooms: 2, typeName: 'F2 Confort', typeNameAr: 'شقة F2', surface: 65 },
-                  'F3': { bedrooms: 3, typeName: 'F3 Familial', typeNameAr: 'شقة F3', surface: 92 },
-                  'F4': { bedrooms: 4, typeName: 'F4 Standing', typeNameAr: 'شقة F4', surface: 120 },
-                  'F5': { bedrooms: 5, typeName: 'F5 Prestige', typeNameAr: 'شقة F5', surface: 150 },
-                  'Duplex': { bedrooms: 4, typeName: 'Duplex Panoramique', typeNameAr: 'دوبلكس', surface: 140 },
-                  'Studio': { bedrooms: 1, typeName: 'Studio Moderne', typeNameAr: 'استوديو', surface: 40 },
-                  'Villa': { bedrooms: 5, typeName: 'Villa', typeNameAr: 'فيلا', surface: 250 },
-                };
-                const defaults = smartDefaults[v];
-                if (defaults) {
-                  // Only auto-fill if the field is empty or matches a previous default (not user-customized)
-                  const currentTypeName = String(form.typeName);
-                  const wasPreviousDefault = Object.values(smartDefaults).some(d => d.typeName === currentTypeName) || !currentTypeName;
-                  if (wasPreviousDefault) {
-                    update('typeName', defaults.typeName);
-                    update('typeNameAr', defaults.typeNameAr);
-                  }
-                  // Auto-suggest bedrooms if 0 or matches a previous default
-                  const currentBedrooms = Number(form.bedrooms);
-                  if (currentBedrooms === 0 || Object.values(smartDefaults).some(d => d.bedrooms === currentBedrooms)) {
-                    update('bedrooms', defaults.bedrooms);
-                  }
-                  // Auto-suggest surface if empty or 0
-                  const currentSurface = Number(form.surface);
-                  if (currentSurface === 0 && defaults.surface) {
-                    update('surface', defaults.surface);
-                  }
-                }
               }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -4095,71 +4120,61 @@ function AdminLoginGate({ onSuccess }: { onSuccess: () => void }) {
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<TabId>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabId>(() => getAdminRoute().workspace as TabId);
+
+  // Route authority: the URL is the source of truth for workspace identity.
+  // Hash navigation is retained for backward compatibility with the current admin
+  // surface, while local activeTab becomes a derived/rendering concern.
+  useEffect(() => subscribeToAdminRoute((route) => setActiveTab(route.workspace as TabId)), []);
+
+  function navigateAdmin(workspace: TabId, patch: { search?: string; filters?: Record<string, string | undefined>; sort?: string; page?: number; cursor?: string; subview?: string; entity?: import('@/lib/admin-route').AdminEntity; entityId?: string } = {}) {
+    navigateAdminRoute({ workspace: workspace as AdminWorkspaceId, ...patch }, 'push');
+  }
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Filter state
-  const [projectFilter, setProjectFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [leadStatusFilter, setLeadStatusFilter] = useState<string>('all');
-
-  // Dialog state
-  const [editProject, setEditProject] = useState<AdminProject | null>(null);
-  const [editApartment, setEditApartment] = useState<AdminApartment | null>(null);
-  const [showCreateProject, setShowCreateProject] = useState(false);
-  const [showCreateApartment, setShowCreateApartment] = useState(false);
-
-  /* ─── Queries ─── */
-
-  const projectsQuery = useQuery({
-    queryKey: ['admin', 'projects'],
+  // Shell-owned bounded previews are used only by Dashboard/Media surfaces.
+  // Operational workspace data remains owned by its canonical Workspace.
+  const projectsPreviewQuery = useQuery({
+    queryKey: ['admin', 'shell-preview', 'projects'],
     queryFn: fetchAdminProjects,
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && (activeTab === 'dashboard' || activeTab === 'media'),
+    staleTime: 30_000,
+  });
+  const apartmentsPreviewQuery = useQuery({
+    queryKey: ['admin', 'shell-preview', 'apartments'],
+    queryFn: () => fetchAdminApartments({}),
+    enabled: isAuthenticated && (activeTab === 'dashboard' || activeTab === 'media'),
+    staleTime: 30_000,
+  });
+  const leadsPreviewQuery = useQuery({
+    queryKey: ['admin', 'shell-preview', 'leads'],
+    queryFn: () => fetchAdminLeads(),
+    enabled: isAuthenticated && activeTab === 'dashboard',
+    staleTime: 30_000,
   });
 
-  const apartmentsQuery = useQuery({
-    queryKey: ['admin', 'apartments', projectFilter, statusFilter, typeFilter],
-    queryFn: () => fetchAdminApartments({
-      projectSlug: projectFilter !== 'all' ? projectFilter : undefined,
-      status: statusFilter !== 'all' ? statusFilter : undefined,
-      type: typeFilter !== 'all' ? typeFilter : undefined,
-    }),
-    enabled: isAuthenticated,
+  const dashboardStatsQuery = useQuery({
+    queryKey: ['admin', 'dashboard-stats'],
+    queryFn: fetchAdminDashboardStats,
+    enabled: isAuthenticated && activeTab === 'dashboard',
+    staleTime: 30_000,
   });
 
-  const buildingsQuery = useQuery({
-    queryKey: ['admin', 'buildings'],
-    queryFn: fetchAdminBuildings,
-    enabled: isAuthenticated,
-  });
+  const projects = projectsPreviewQuery.data ?? [];
+  const apartments = apartmentsPreviewQuery.data ?? [];
+  const leads = leadsPreviewQuery.data ?? [];
 
-  const leadsQuery = useQuery({
-    queryKey: ['admin', 'leads', leadStatusFilter],
-    queryFn: () => fetchAdminLeads(leadStatusFilter !== 'all' ? leadStatusFilter : undefined),
-    enabled: isAuthenticated,
-  });
+  const stats: AdminDashboardStats = dashboardStatsQuery.data ?? {
+    totalProjects: 0,
+    totalApartments: 0,
+    availableCount: 0,
+    reservedCount: 0,
+    soldCount: 0,
+    totalLeads: 0,
+    newLeadsCount: 0,
+  };
 
-  // Stats derived from queries
-  const projects = projectsQuery.data ?? [];
-  const apartments = apartmentsQuery.data ?? [];
-  const leads = leadsQuery.data ?? [];
-
-  const stats = useMemo(() => ({
-    totalProjects: projects.length,
-    totalApartments: apartments.length,
-    availableCount: apartments.filter((a) => a.status === 'AVAILABLE').length,
-    reservedCount: apartments.filter((a) => a.status === 'RESERVED').length,
-    soldCount: apartments.filter((a) => a.status === 'SOLD').length,
-    totalLeads: leads.length,
-    newLeadsCount: leads.filter((l) => l.status === 'NEW').length,
-  }), [projects, apartments, leads]);
-
-  const activeLoading = activeTab === 'projects' ? projectsQuery.isLoading
-    : activeTab === 'apartments' ? apartmentsQuery.isLoading
-    : activeTab === 'buildings' ? buildingsQuery.isLoading
-    : activeTab === 'leads' ? leadsQuery.isLoading
-    : false;
+  const activeLoading = activeTab === 'dashboard' ? dashboardStatsQuery.isLoading : false;
 
   /* ─── Render ─── */
 
@@ -4201,7 +4216,7 @@ export default function AdminPage() {
               {group.items.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => navigateAdmin(item.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
                     activeTab === item.id
                       ? 'bg-forest text-white shadow-lg shadow-forest/20'
@@ -4244,85 +4259,25 @@ export default function AdminPage() {
             leads={leads}
             projects={projects}
             apartments={apartments}
-            onNavigate={(tab) => setActiveTab(tab)}
-            onCreateProject={() => setShowCreateProject(true)}
-            onCreateApartment={() => setShowCreateApartment(true)}
+            onNavigate={navigateAdmin}
+            onCreateProject={() => navigateAdmin('projects', { subview: 'create' })}
+            onCreateApartment={() => navigateAdmin('apartments', { subview: 'create' })}
           />
         )}
-        {activeTab === 'projects' && (
-          <ProjectsTab
-            projects={projects}
-            isLoading={projectsQuery.isLoading}
-            onEdit={setEditProject}
-            onCreate={() => setShowCreateProject(true)}
-          />
-        )}
+        {activeTab === 'projects' && <AdminProjectsWorkspace />}
         {activeTab === 'apartments' && (
-          <ApartmentsTab
-            apartments={apartments}
-            projects={projects}
-            isLoading={apartmentsQuery.isLoading}
-            projectFilter={projectFilter}
-            statusFilter={statusFilter}
-            typeFilter={typeFilter}
-            onProjectFilterChange={setProjectFilter}
-            onStatusFilterChange={setStatusFilter}
-            onTypeFilterChange={setTypeFilter}
-            onEdit={setEditApartment}
-            onCreate={() => setShowCreateApartment(true)}
-          />
+          <AdminApartmentsWorkspace />
         )}
-        {activeTab === 'buildings' && (
-          <BuildingsTab
-            buildings={buildingsQuery.data ?? []}
-            isLoading={buildingsQuery.isLoading}
-          />
-        )}
+        {activeTab === 'buildings' && <AdminBuildingsWorkspace />}
         {activeTab === 'media' && (
           <MediaTab projects={projects} apartments={apartments} />
         )}
-        {activeTab === 'leads' && (
-          <LeadsTab
-            leads={leads}
-            isLoading={leadsQuery.isLoading}
-            leadStatusFilter={leadStatusFilter}
-            onStatusFilterChange={setLeadStatusFilter}
-          />
-        )}
+        {activeTab === 'leads' && <AdminLeadsPremiumWorkspace />}
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'audit' && <AuditLogTab />}
         {activeTab === 'settings' && <SettingsTab />}
       </main>
 
-      {/* Dialogs */}
-      {editProject && (
-        <Dialog open={!!editProject} onOpenChange={() => setEditProject(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader><DialogTitle>Modifier: {editProject.name}</DialogTitle></DialogHeader>
-            <ProjectEditForm project={editProject} onClose={() => setEditProject(null)} />
-          </DialogContent>
-        </Dialog>
-      )}
-      <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Nouveau Projet</DialogTitle></DialogHeader>
-          <ProjectCreateForm onClose={() => setShowCreateProject(false)} />
-        </DialogContent>
-      </Dialog>
-      {editApartment && (
-        <Dialog open={!!editApartment} onOpenChange={() => setEditApartment(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader><DialogTitle>Modifier: {editApartment.unitNumber ?? editApartment.typeName}</DialogTitle></DialogHeader>
-            <ApartmentEditForm apartment={editApartment} onClose={() => setEditApartment(null)} />
-          </DialogContent>
-        </Dialog>
-      )}
-      <Dialog open={showCreateApartment} onOpenChange={setShowCreateApartment}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Nouvel Appartement</DialogTitle></DialogHeader>
-          <ApartmentCreateForm projects={projects} onClose={() => setShowCreateApartment(false)} />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

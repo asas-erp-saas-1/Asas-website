@@ -53,12 +53,12 @@ export async function GET(request: NextRequest) {
     const [projectImages, apartmentImages] = await Promise.all([
       db.projectImage.findMany({
         where: projectWhere,
-        orderBy: { order: 'asc' },
+        orderBy: [{ order: 'asc' }, { id: 'asc' }],
         include: { project: { select: { id: true, name: true, slug: true } } },
       }),
       db.apartmentImage.findMany({
         where: apartmentWhere,
-        orderBy: { order: 'asc' },
+        orderBy: [{ order: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
         include: {
           apartment: {
             select: {
