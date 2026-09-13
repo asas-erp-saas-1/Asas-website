@@ -54,15 +54,28 @@ export async function GET(request: NextRequest) {
       db.projectImage.findMany({
         where: projectWhere,
         orderBy: { order: 'asc' },
-        include: { project: { select: { id: true, name: true, slug: true } } },
+        include: {
+          project: { select: { id: true, name: true, slug: true } },
+        },
       }),
       db.apartmentImage.findMany({
         where: apartmentWhere,
         orderBy: { order: 'asc' },
-        include: {
+        select: {
+          id: true,
+          apartmentId: true,
+          url: true,
+          alt: true,
+          type: true,
+          order: true,
+          width: true,
+          height: true,
+          createdAt: true,
           apartment: {
             select: {
-              id: true, slug: true, typeName: true,
+              id: true,
+              slug: true,
+              typeName: true,
               project: { select: { id: true, name: true, slug: true } },
             },
           },
@@ -97,7 +110,7 @@ export async function GET(request: NextRequest) {
         entitySlug: img.apartment?.slug ?? null,
         url: img.url,
         alt: img.alt ?? '',
-        caption: img.caption ?? '',
+        caption: '',
         type: img.type,
         order: img.order,
         width: img.width,
