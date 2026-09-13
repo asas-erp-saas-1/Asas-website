@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Latest execution HEAD:** `ef93b4c14f0b76d240de0318d1eb8d9683876079`
+> **Latest execution HEAD:** `11e604c3875e53365a5ad42c1b716423de0808db`
 > **Rule:** This file records the execution contract, evidence, decisions, and blockers so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -49,7 +49,7 @@ Project as parent operational context. **Implemented; action-level permission pr
 Building as child operational entity with explicit Project context. **Implemented; action-level permission presentation added.**
 
 ### STEP 4 — Apartment operational vertical slice
-Complete the first high-value real-estate operational entity. **Permission convergence implemented; verification remains pending.**
+Complete the first high-value real-estate operational entity. **Permission convergence implemented; route-state regression hardening now added.**
 
 ### STEP 5 — Customer / Lead vertical slice
 Connect customer operations to real inventory without fabricating reservation state. **Lead mutation permission presentation implemented; deeper CRM capability coverage remains pending.**
@@ -58,7 +58,7 @@ Connect customer operations to real inventory without fabricating reservation st
 Only implement server-confirmed reservation behavior when backend support exists.
 
 ### STEP 7 — Navigation and URL state certification
-URL as authoritative recoverable navigation state.
+URL as authoritative recoverable navigation state. **Hash workspace/query parsing hardening implemented; full cross-entity certification remains pending.**
 
 ### STEP 8 — Server-state and request lifecycle
 One clear owner for server state and controlled network behavior.
@@ -104,28 +104,34 @@ Project, Building, Apartment and Lead API contracts were hardened across validat
 Inspection confirmed that Apartment already had action-level presentation: publication restricted to ADMIN/EDITOR, archive to ADMIN, and detail price/status/publication controls disabled for VIEWER. Existing publication-readiness checks and mutation lifecycle were preserved.
 
 ### 2026-09-14 — Apartment capability convergence
-`71f580c46760db344332b9009e61f66eb510203c` removed the duplicate Apartment `/api/admin/me` role fetch and made `AdminApartmentsWorkspace` consume the shared `AdminRoleProvider`. `canMutate` and `canAdminister` now drive presentation and are re-checked at mutation-handler level. Existing API endpoints, publication readiness, lifecycle transitions and server authorization were preserved.
+`ef93b4c14f0b76d240de0318d1eb8d9683876079` made `AdminApartmentsWorkspace` consume the shared role context. `canMutate` and `canAdminister` drive presentation and are re-checked at mutation-handler level. Existing API endpoints, publication readiness, lifecycle transitions and server authorization were preserved.
 
 ### 2026-09-14 — Lead action-level permission presentation
 `ef93b4c14f0b76d240de0318d1eb8d9683876079` made `AdminLeadsPremiumWorkspace` consume the shared role context. Lead status changes and internal note creation are treated as mutations and are disabled for `VIEWER`, with handler-level capability checks as defense in depth. Lead project/apartment navigation, contact links, filtering and operational context remain available read-only. `assignedTo` and `followUpDate` are currently displayed fields, not writable capabilities in this workspace; no unsupported assignment/follow-up API was invented.
 
+### 2026-09-14 — Admin URL parser contract hardening
+`1e833a68bccf7155ff106615ae152d103c6ee79c` fixed a concrete hash-route parsing defect. For URLs shaped like `#/admin/<workspace>?…`, the workspace parser previously captured the query string as part of the workspace token, causing valid filtered/deep-linked workspace URLs to normalize to `dashboard`. The parser now separates the hash path from its query before workspace normalization. No navigation format or server API contract was changed.
+
+### 2026-09-14 — Execution state synchronization
+`11e604c3875e53365a5ad42c1b716423de0808db` synchronized the durable UX and execution logs with the actual branch state and recorded the navigation hardening evidence.
+
 ## CI / deployment evidence
 
-- Prior exact-head CI `#993` on `f93df5263ea0d2f093c307cecd7129f7dbf8858a` — **SUCCESS**.
-- Current Apartment convergence commit `71f580c46760db344332b9009e61f66eb510203c` received Vercel **pending** status when checked.
-- Current Lead permission commit is `ef93b4c14f0b76d240de0318d1eb8d9683876079`; its CI/Vercel status must be checked after this commit before any pass is claimed.
+- Previous exact HEAD `27d28b73bda1a8680605bf288ff5901cac0def00` had Vercel **success**.
+- Commit `1e833a68bccf7155ff106615ae152d103c6ee79c` had no reported GitHub Actions workflow run or status when checked immediately after push.
+- Current documentation HEAD `11e604c3875e53365a5ad42c1b716423de0808db` has not yet been granted a CI pass claim.
 - No browser visual certification is claimed.
 
 ## Current execution state
 
-**Latest documented HEAD:** `ef93b4c14f0b76d240de0318d1eb8d9683876079`
+**Latest documented HEAD:** `11e604c3875e53365a5ad42c1b716423de0808db`
 
-**Active wave:** STEP 5 — Lead/customer-operations permission and capability convergence, followed by cross-entity navigation and responsive/accessibility certification.
+**Active wave:** STEP 7 — Navigation/state certification, with cross-entity contract audit next; then request lifecycle, error/loading, responsive and accessibility gates.
 
-**Completed in this gate:** Project, Building and Apartment action-level permission presentation/convergence; Lead status and internal-note mutation presentation/convergence.
+**Completed in this gate:** Project, Building and Apartment action-level permission presentation/convergence; Lead status and internal-note mutation presentation/convergence; concrete hash workspace/query parsing hardening.
 
 **Important capability boundary:** Lead `assignedTo` and `followUpDate` are currently read-only fields in the inspected workspace. There is no verified writable assignment/follow-up capability in the current implementation, so it remains out of mutation scope until server support is evidenced.
 
-**Immediate next gate:** Inspect exact Lead API authorization and tests, then audit cross-entity deep-link behavior and permission consistency across Project → Building → Apartment → Lead. After that proceed to responsive/error/accessibility gates before visual certification.
+**Immediate next gate:** Verify exact-head CI/Vercel state, then inspect cross-entity deep-link behavior and context isolation across Project → Building → Apartment → Lead, followed by mutation/error/loading consistency and responsive/accessibility review.
 
 **Browser/runtime certification:** `VISUAL VALIDATION BLOCKED — browser automation is not available in this execution context.`
