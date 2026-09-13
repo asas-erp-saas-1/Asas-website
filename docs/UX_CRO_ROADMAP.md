@@ -4,7 +4,7 @@
 **Date:** 2026-09-13
 **Current phase:** Phase 3 — Sales Experience & Conversion System
 **Current branch:** `fix/responsive-viewport-hardening`
-**Latest implementation checkpoint:** `cd8fcb0f3b535d791777db9669cd905daca917b7`
+**Latest implementation checkpoint:** `a21356aea7263189476470f43603581717c6a55f`
 
 ## Execution ledger
 
@@ -17,9 +17,9 @@
 
 ## Current state
 
-The public sales experience is implemented across Home, Projects/Catalogue, Project Detail, Apartment Detail, Services, About, Developers, Contact, Insights, Campaign Landing and legal/utility routes. Shared conversion infrastructure includes `SiteShell`, `NavbarV3`, `FooterV3`, `StickyMobileCTA`, `CompareBar`, `LeadForm`, `SearchCommandPalette` and property recommendation/comparison flows.
+Public sales UX is implemented across Home, Projects/Catalogue, Project Detail, Apartment Detail, Services, About, Developers, Contact, Insights, Campaign Landing and legal/utility routes. Shared conversion infrastructure includes `SiteShell`, `NavbarV3`, `FooterV3`, `StickyMobileCTA`, `CompareBar`, `LeadForm`, `SearchCommandPalette` and property recommendation/comparison flows.
 
-The remaining work is verification and evidence gathering, not speculative redesign.
+Remaining work is verification/evidence gathering, not speculative redesign.
 
 ## Completed implementation
 
@@ -42,7 +42,7 @@ The remaining work is verification and evidence gathering, not speculative redes
 ### Visual / Figma
 - [x] Repository-native visual reference is versioned under `docs/ui-ux-reference/`.
 - [x] Shared visual tokens and public component direction implemented in code.
-- [ ] Editable Figma design-system synchronization. Current Figma connection is View-only and no editable ASAS design-file key is available to this agent.
+- [ ] Editable Figma design-system synchronization. Current Figma connection is **View-only** and no editable ASAS design-file key is available to this agent.
 
 ### Property / business logic
 - [x] Project and apartment pages use real catalog data.
