@@ -1,23 +1,26 @@
 'use client';
 
-import { ArrowRight, BookOpen, Building2, CheckCircle2, Search, ShieldCheck } from 'lucide-react';
+import { ArrowRight, BookOpen, CheckCircle2, Search, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from '@/lib/router';
 import { Button } from '@/components/ui/button';
 
 const topics = [
-  { label: "Guide d'achat", title: "Choisir un logement avec méthode", text: "Les points à vérifier avant de comparer deux biens : emplacement, surface, plans, prestations et informations contractuelles." },
-  { label: 'Projet immobilier', title: 'Lire une fiche projet sans se perdre', text: "Comment passer rapidement des informations générales aux éléments qui comptent réellement pour votre décision." },
-  { label: 'Appartement', title: 'Comparer plusieurs logements objectivement', text: "Une grille simple pour mettre en regard typologie, surface, étage, prix et disponibilité lorsqu'ils sont publiés." },
-  { label: 'Accompagnement', title: 'Quand demander l’aide d’un conseiller', text: "Les bonnes questions à préparer avant une visite ou une demande d'information auprès d'ASAS." },
-  { label: 'Promoteurs', title: 'Préparer la commercialisation d’un programme', text: "Les informations qui rendent un programme plus lisible pour les futurs acquéreurs et facilitent le passage au contact." },
-  { label: 'Décision', title: 'Préparer une visite utile', text: "Les éléments à examiner sur place et les informations à demander avant de prendre une décision." },
+  { label: 'Guide d’achat', title: 'Choisir un logement avec méthode', text: 'Les points à vérifier avant de comparer deux biens : emplacement, surface, plans, prestations et informations contractuelles.' },
+  { label: 'Projet immobilier', title: 'Lire une fiche projet sans se perdre', text: 'Comment passer rapidement des informations générales aux éléments qui comptent réellement pour votre décision.' },
+  { label: 'Appartement', title: 'Comparer plusieurs logements objectivement', text: 'Une grille simple pour mettre en regard typologie, surface, étage, prix et disponibilité lorsqu’ils sont publiés.' },
+  { label: 'Accompagnement', title: 'Quand demander l’aide d’un conseiller', text: 'Les bonnes questions à préparer avant une visite ou une demande d’information auprès d’ASAS.' },
+  { label: 'Promoteurs', title: 'Préparer la commercialisation d’un programme', text: 'Les informations qui rendent un programme plus lisible pour les futurs acquéreurs et facilitent le passage au contact.' },
+  { label: 'Décision', title: 'Préparer une visite utile', text: 'Les éléments à examiner sur place et les informations à demander avant de prendre une décision.' },
 ];
 
 export default function InsightsPageV2() {
   const router = useRouter();
   const [query, setQuery] = useState('');
-  const visible = topics.filter((item) => `${item.label} ${item.title} ${item.text}`.toLowerCase().includes(query.toLowerCase()));
+  const normalizedQuery = query.trim().toLowerCase();
+  const visible = topics.filter((item) =>
+    `${item.label} ${item.title} ${item.text}`.toLowerCase().includes(normalizedQuery),
+  );
 
   return (
     <main className="bg-ivory text-charcoal">
@@ -28,8 +31,8 @@ export default function InsightsPageV2() {
             <h1 className="mt-5 max-w-4xl font-serif text-4xl leading-[1.05] tracking-[-0.03em] sm:text-5xl lg:text-7xl">Mieux comprendre avant de choisir.</h1>
             <p className="mt-7 max-w-2xl text-base leading-7 text-white/70 sm:text-lg">Des ressources pratiques pour lire un projet, comparer un logement et préparer un échange avec un conseiller immobilier.</p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Button onClick={() => router.goProjects()} className="min-h-12 bg-white px-6 text-charcoal hover:bg-white/90">Voir les projets <ArrowRight className="ml-2 h-4 w-4" /></Button>
-              <Button variant="outline" onClick={() => router.goContact()} className="min-h-12 border-white/20 bg-transparent px-6 text-white hover:bg-white/10 hover:text-white">Parler à un conseiller</Button>
+              <Button onClick={() => router.goProjects()} className="min-h-12 bg-white text-charcoal hover:bg-white/90">Voir les projets <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              <Button variant="outline" onClick={() => router.goContact()} className="min-h-12 border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white">Parler à un conseiller</Button>
             </div>
           </div>
           <div className="border border-white/10 bg-white/[0.04] p-6 sm:p-8">
@@ -46,7 +49,7 @@ export default function InsightsPageV2() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher une ressource" aria-label="Rechercher une ressource" className="h-11 w-full border border-border bg-ivory pl-10 pr-4 text-sm outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20" />
           </div>
-          <p className="text-sm text-muted-foreground">{visible.length} ressource{visible.length > 1 ? 's' : ''}</p>
+          <p className="text-sm text-muted-foreground" aria-live="polite">{visible.length} ressource{visible.length > 1 ? 's' : ''}</p>
         </div>
       </section>
 
@@ -58,14 +61,14 @@ export default function InsightsPageV2() {
           </div>
           <div className="mt-10 grid gap-px overflow-hidden border border-border bg-border md:grid-cols-2 lg:grid-cols-3">
             {visible.map((item, index) => (
-              <article key={item.title} className="group bg-white p-7 transition-colors hover:bg-sand/30 sm:p-8">
+              <article key={item.title} className="bg-white p-7 sm:p-8">
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-xs font-semibold uppercase tracking-[0.16em] text-forest">{item.label}</span>
-                  <span className="text-xs text-muted-foreground">0{index + 1}</span>
+                  <span className="text-xs text-muted-foreground">{String(index + 1).padStart(2, '0')}</span>
                 </div>
                 <h3 className="mt-6 font-serif text-2xl leading-tight">{item.title}</h3>
                 <p className="mt-4 text-sm leading-6 text-muted-foreground">{item.text}</p>
-                <div className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-charcoal">Explorer <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" /></div>
+                <p className="mt-7 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Conseil pratique ASAS</p>
               </article>
             ))}
           </div>
@@ -94,7 +97,7 @@ export default function InsightsPageV2() {
             <h2 className="mt-3 font-serif text-3xl sm:text-4xl">Vous avez déjà un projet en tête ?</h2>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70">Passez de l’information à une demande concrète : projet, appartement, visite ou question spécifique.</p>
           </div>
-          <Button onClick={() => router.goContact()} className="min-h-12 bg-white px-6 text-charcoal hover:bg-white/90">Parler à un conseiller <ArrowRight className="ml-2 h-4 w-4" /></Button>
+          <Button onClick={() => router.goContact()} className="min-h-12 bg-white text-charcoal hover:bg-white/90">Parler à un conseiller <ArrowRight className="ml-2 h-4 w-4" /></Button>
         </div>
       </section>
     </main>
