@@ -1,10 +1,10 @@
 # ASAS UX / CRO Roadmap
 
 **Version:** 1.6
-**Date:** 2026-09-12
+**Date:** 2026-09-13
 **Current phase:** Phase 3 — Sales Experience & Conversion System
 **Current branch:** `fix/responsive-viewport-hardening`
-**Latest implementation checkpoint:** `e10a2c3088337f2ab4e79bb7b9322ca838f5df5d`
+**Latest implementation checkpoint:** `a6153bbea226c46e47288781e756a93311adb7a`
 
 ## Execution ledger
 
@@ -12,191 +12,99 @@
 |---|---|---|---|
 | 1 | Deployment / type-contract stabilization | CLOSED | Original production blocker resolved |
 | 2 | Database engineering / schema contract | ACTIVE in parallel | All engineering gates in `ENGINEERING_SOURCE_OF_TRUTH.md` green |
-| 3 | Sales UX / UI / CRO | ACTIVE | All Phase 3 gates in `UX_CRO_SOURCE_OF_TRUTH.md` green |
+| 3 | Sales UX / UI / CRO | ACTIVE — final release audit | All Phase 3 gates in this document and `UX_CRO_SOURCE_OF_TRUTH.md` green |
 | 4 | Measurement / CRO optimization | NOT STARTED | Phase 3 released and instrumentation verified |
 
-## Page-by-page execution order
+## Current Phase 3 state
 
-The public interface is audited and improved one page at a time. A page is not considered finished because it looks better; it must pass structure, content hierarchy, interaction, responsive, accessibility, data-integrity and conversion checks before moving to the next page.
+The public sales experience has been implemented across Home, Projects/Catalogue, Project Detail, Apartment Detail, Services, About, Developers, Contact, Insights, Campaign Landing and legal/utility routes. Shared conversion infrastructure includes `SiteShell`, `NavbarV3`, `FooterV3`, `StickyMobileCTA`, `CompareBar`, `LeadForm`, `SearchCommandPalette` and property recommendation/comparison flows.
 
-1. **Home** — brand promise, first impression, real project proof, discovery route, trust, CTA hierarchy, loading/error states.
-2. **Projects / catalog** — discovery, search, filtering, sorting, map, apartment search, result comprehension and entry into project detail.
-3. **Project Detail / Sales Room** — desire, positioning, proof, inventory decision zone, reassurance, visit/lead conversion.
-4. **Apartment Detail / Decision Room** — real visual opening, exact facts, price clarity, gallery/floor plan, financial clarity, lead action, alternatives.
-5. **Services** — service positioning, proof, relevance and lead routing.
-6. **About** — credibility, differentiation, evidence and human trust without invented claims.
-7. **For Developers** — B2B value proposition, proof, process and qualified lead capture.
-8. **Contact** — intent matching, low-friction contact, expectations after submission and channel hierarchy.
-9. **Campaign Landing** — campaign-specific message match, single objective and conversion path.
-10. **Legal / utility pages** — readability, navigation, mobile accessibility and consistency without over-design.
+The implementation follows the active ASAS sales journey:
 
-Admin is treated separately from the public sales journey and must not inherit public-facing CRO patterns blindly.
+`Visitor → Interest → Understanding → Trust → Qualified Lead → Conversation → Visit → Decision`
 
-## Phase 3 work packages
+The remaining work is verification and evidence gathering, not speculative redesign.
 
-### 3.1 Responsive foundation
-**State:** substantially implemented.
+## Completed implementation work
 
-Completed areas include viewport configuration, overflow containment, mobile navigation, modal/sheet/drawer behaviour, safe-area handling, touch targets, typography, buttons, comparison bar and shared mobile CTA behaviour.
+- Responsive viewport, overflow, focus, safe-area and reduced-motion hardening.
+- Premium ASAS editorial visual system: ivory/white, charcoal, forest and restrained gold.
+- Public catalogue discovery, search, project filters, apartment search, sorting and map handling.
+- Explicit map handling for projects without usable coordinates.
+- Project Detail Sales Room with truthful inventory semantics, including `AVAILABLE` vs `COMING_SOON`.
+- Apartment Detail Decision Room with availability-aware CTA and lead-intent semantics.
+- Shared mobile CTA/comparison layering deduplication.
+- Homepage conversion hierarchy and truthful project proof.
+- Services, About, Developers, Contact, Insights and legal/utility refinements.
+- Campaign landing cleanup so commercial facts are not fabricated in static campaign definitions.
+- Comparison/floor-plan interaction hardening.
+- Bank-credit/mortgage simulation and obsolete public detail implementations removed from the active journey.
+- Repository-native UI reference, implementation contract and AI/Codex operating contract added.
 
-### 3.2 Visual identity system
-**State:** substantially implemented.
+## Final release gates
 
-Completed areas include ASAS semantic colors, status/availability treatments, button hierarchy, typography hierarchy, section headings and reduction of noisy legacy SaaS treatments.
+### Visual / Figma
+- [x] Repository-native visual reference exists and is versioned under `docs/ui-ux-reference/`.
+- [x] Shared visual tokens and public component direction implemented in code.
+- [ ] Editable Figma design-system synchronization.
+  - Current Figma connection has **View** access only and no editable ASAS design-file key is available to this agent.
+  - Do not treat the repository SVG/raster reference as a substitute for a real editable Figma source of truth.
 
-### 3.3 Discovery / catalog
-**State:** ACTIVE — final page-level audit pending.
+### Property / business logic
+- [x] Project detail uses real project/inventory data.
+- [x] Apartment detail uses real apartment/status data.
+- [x] `AVAILABLE` and `COMING_SOON` remain distinct.
+- [x] Missing media/evidence produces neutral states rather than fabricated content.
+- [x] Public mortgage/credit simulation is removed.
 
-Project discovery, search, filtering, sorting, map hierarchy and project/apartment entry points have been improved without changing catalog business logic.
+### Conversion
+- [x] Context-aware lead form.
+- [x] Availability-aware apartment actions.
+- [x] Mobile sticky-action deduplication.
+- [x] WhatsApp and phone escalation paths.
+- [x] Comparison remains a separate decision utility.
 
-### 3.4 Home
-**State:** FIRST PASS COMPLETED — final whole-site verification pending.
+### Trust / risk reduction
+- [x] No fabricated testimonials, reviews, statistics or scarcity introduced.
+- [x] Static campaign copy does not claim hardcoded price/availability/timing as live facts.
+- [x] Human assistance is available near major decision points.
+- [ ] Final independent page-by-page trust/proof review.
 
-Completed in this pass:
+### Responsive / accessibility
+- [x] Viewport and overflow foundation.
+- [x] Mobile navigation safe-area behavior.
+- [x] Key interactive controls use approximately 44px-class touch targets.
+- [x] Focus-visible baseline and semantic landmarks.
+- [ ] Full manual viewport matrix: 360/375/390/430/768/820/912/1024/1280/1366/1440/1536.
 
-- one dominant hero promise and primary project-discovery route
-- immediate real featured-project visual proof when project media exists
-- real catalogue counters without fabricated social proof
-- clearer project selection before contact
-- explicit three-step decision path: explore → verify → advance
-- final conversion block with one dominant advisor action and lower-friction contact alternatives
-- loading state no longer presents zero-valued catalogue counters as if they were real data
-- catalogue failure state now offers retry and a direct project route
-- project cards no longer use a generic brand image as a substitute for missing project media
+### Quality / deployment
+- [x] Commit `a6153bbea226c46e47288781e756a93311adb7a` has Vercel combined status `success`.
+- [x] Deployment `dpl_HJyM37zfXZ3zrHAcEq1ibCE83ZHY` is `READY`.
+- [x] Latest preview root returned HTTP 200.
+- [x] Latest deployment had no error/fatal preview runtime logs in the checked 24-hour window.
+- [ ] Independent lint/typecheck evidence recorded outside the Vercel build result.
+- [ ] Public journey smoke matrix completed for project, apartment, contact and campaign routes.
 
-Home remains subject to the final responsive/accessibility/performance pass after all public pages are aligned.
+## Known engineering issue
 
-### 3.5 Projects / Catalog
-**State:** ACTIVE — current page under audit.
-
-Target structure:
-
-1. Clear discovery proposition.
-2. Search and fast location/type shortcuts.
-3. Filters with visible active state and easy reset.
-4. Map as a supporting spatial decision tool, not the only discovery path.
-5. Project results with consistent card hierarchy and real media only.
-6. Apartment search as a secondary route that does not compete with project discovery.
-7. Clear empty/error states and accessible keyboard interactions.
-
-Current known technical/UX debt to verify:
-
-- compact controls must remain usable at 44px where interaction is primary
-- advanced filters must not dominate the first viewport
-- apartment search should remain visually secondary to project discovery
-- verify project map behaviour when projects exist without coordinates
-- verify query/filter/sort state remains understandable after interaction
-- remove unused icon imports or other lint debt discovered by verification
-
-### 3.6 Project Sales Room
-**State:** IMPLEMENTED — final verification pending.
-
-Current implementation uses the active Project Sales Room experience with:
-
-- editorial dark hero and verified project positioning
-- real price/availability/delivery states where data exists
-- real gallery/media only
-- inventory separated by actual availability versus coming-soon state
-- contextual primary actions and human-contact alternatives
-- real amenities/map/video/developer information only when sourced
-- final lead conversion block
-
-Important business-logic rule: `AVAILABLE` and `COMING_SOON` are distinct states. Coming-soon inventory must not be presented as immediately visitable or currently available.
-
-Remaining verification debt:
-
-- remove any page-level duplicate fullscreen gallery control where the gallery already exposes that control
-- verify hero → proof → visual story → inventory → reassurance → human action sequencing at all target widths
-- verify no duplicate global/page CTA creates competing primary actions
-
-### 3.7 Apartment Decision Room
-**State:** IMPLEMENTED — final verification pending.
-
-Current implementation uses the active Apartment Decision Room experience with:
-
-- editorial dark hero
-- exact property identity, status, type, surface, floor and location where available
-- explicit price or price-on-request treatment
-- real apartment imagery only; neutral fallback when no real apartment media exists
-- decision facts, gallery, floor plans and other detail sections only when sourced
-- contextual status-aware lead actions
-- relevant available-apartment alternatives
-
-Important business-logic rule: `AVAILABLE`, `COMING_SOON` and other statuses must not share the same visit CTA. The page-level action maps the lead intent to the real status; the global mobile action therefore uses a neutral information request rather than promising a visit for every apartment.
-
-**Bank-credit simulation is intentionally removed from the public sales journey.** No mortgage calculator/simulator should be reintroduced unless explicitly requested as a separate product decision.
-
-Remaining verification debt:
-
-- verify price/status clarity and action hierarchy at all target widths
-- verify gallery/floor-plan sequencing and action labels
-- verify financial/payment information is shown only when sourced from real data
-- verify no page-level CTA competes with the global mobile action
-
-### 3.8 Shared conversion system
-**State:** ACTIVE — final deduplication/verification pending.
-
-Shared mobile conversion follows contextual hierarchy:
-
-- project: primary action targets availability/inventory when the inventory section exists
-- apartment: primary action requests information rather than promising a visit regardless of status
-- general: primary action targets advisor contact
-- WhatsApp and phone remain secondary/utility actions
-- comparison controls remain a separate decision utility and must not be described as suppressing the sticky CTA unless that suppression is actually implemented
-- desktop floating contact action opens the actual page lead form when present rather than routing unnecessarily
-- continuous breathing animation was removed from the desktop contact FAB
-
-### 3.9 Trust and risk reduction
-**State:** PLANNED.
-
-Use only verified project/developer/inventory facts. No fabricated testimonials, counts, ratings, proximity claims or scarcity.
-
-### 3.10 Performance / accessibility
-**State:** PLANNED.
-
-Audit image loading, semantic headings, keyboard navigation, focus management, reduced motion, contrast, alt text, CLS/LCP and mobile interaction cost.
-
-### 3.11 Whole-site CRO audit
-**State:** PLANNED.
-
-Review Home, Projects, Project Detail, Apartments, Apartment Detail, Services, About, For Developers, Campaign Landing and Contact using the same sales-system criteria.
-
-## Definition of done per page
-
-A page can move to **VERIFIED** only when:
-
-- business logic and public data contracts are preserved
-- no fabricated data or media has been introduced
-- hierarchy and copy communicate one clear next action
-- loading, empty and error states are intentional
-- keyboard and touch interactions are usable
-- responsive layouts have no overflow or clipped controls
-- focus, labels and semantics are accessible
-- images have truthful alt text and appropriate loading priority
-- page-level CTAs do not compete with global sticky/floating actions
-- lint/typecheck/build pass after the implementation batch
-- deployment/runtime smoke testing has been completed when release verification is available
+Historical production runtime logs show an admin-only Prisma/schema mismatch involving `apartment_images.captionAr`. The active branch's `/api/admin/apartments` and `/api/admin/media` projections no longer request that absent legacy column. The underlying Supabase PostgreSQL schema still requires formal reconciliation before any migration is proposed. No blind `db push`, reset, or destructive migration is permitted.
 
 ## Release sequence
 
-1. Complete Projects / catalog page.
-2. Complete final verification of Project Detail / Sales Room.
-3. Complete final verification of Apartment Detail / Decision Room.
-4. Complete Services, About, For Developers and Contact.
-5. Complete Campaign Landing and legal/utility consistency.
-6. Finish shared trust/risk-reduction pass.
-7. Finish accessibility/performance pass.
-8. Run lint/typecheck/build.
-9. Verify Vercel deployment is READY.
-10. Run public journey smoke tests.
-11. Record evidence and remaining non-critical issues.
-12. Mark Phase 3 CLOSED only when all required gates are green.
+1. Finish final Projects/Catalogue audit.
+2. Finish Project Detail and Apartment Detail verification.
+3. Finish Services, About, Developers, Contact and Campaign audit.
+4. Finish trust/risk-reduction review.
+5. Finish responsive/accessibility/performance review.
+6. Run and record lint/typecheck/build.
+7. Verify Vercel `READY`.
+8. Run public smoke tests.
+9. Resolve any P0/P1 public defects.
+10. Mark Phase 3 CLOSED only when all required gates are green.
 
-## Phase 4 — after Phase 3
+## Phase 4
 
-Phase 4 is data-driven CRO, not another visual redesign.
-
-Required sequence:
+Phase 4 begins only after Phase 3 release. It is evidence-driven CRO rather than another broad visual rewrite:
 
 `Instrumentation → Baseline → Hypothesis → Experiment → Measurement → Decision → Iteration`
 
