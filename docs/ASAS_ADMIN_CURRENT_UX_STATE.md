@@ -2,7 +2,7 @@
 
 **Branch:** `feat/admin-ux-ui-foundation`
 
-**Current HEAD:** `cd71128591b22fbd6bbb849bdc8cf18ce0ae2f4c`
+**Current HEAD at this documentation update:** `cf3796af760ca27a36c2145d66ca9a10c5e22fa4`
 
 ## Completed in this UX/UI wave
 
@@ -25,16 +25,15 @@
 
 ## Verification
 
-The previous implementation HEAD `610333269c4e7ddf31e2678c97fbdf6b29259d3a` passed CI run `#975` with Prisma generation, baseline generation/verification/upload, Typecheck, Lint and Build all successful.
-
-The current HEAD contains additional UX CSS/documentation commits and requires a new exact-HEAD CI result before being considered statically certified.
+- Previous implementation HEAD `610333269c4e7ddf31e2678c97fbdf6b29259d3a`: CI `#975` passed Prisma generation, baseline generation/verification/upload, Typecheck, Lint and Build.
+- HEAD `cf3796af760ca27a36c2145d66ca9a10c5e22fa4`: Vercel status was observed as pending during deployment at the time of this update; exact-head CI had not yet completed.
 
 Browser certification remains blocked until browser automation is available. No visual runtime verification is claimed without it.
 
 ## Next coherent UX gate
 
-1. Apply the shared operational interaction classes to the highest-value workspace surfaces where markup already supports them.
-2. Complete permission-aware action presentation, especially Building create/edit controls.
-3. Finish responsive/RTL review across Project, Building, Apartment and Lead surfaces.
-4. Run exact-HEAD CI.
-5. Perform browser certification when the execution environment provides browser automation.
+1. Obtain exact-HEAD CI evidence after the UX CSS/documentation wave.
+2. Apply shared operational interaction classes to the highest-value workspace surfaces where markup already supports them.
+3. Complete permission-aware action presentation, especially Building create/edit controls.
+4. Finish responsive/RTL review across Project, Building, Apartment and Lead surfaces.
+5. Perform browser certification when browser automation is available.
