@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Latest execution HEAD:** `e31e23547b1f043bd3a071398992fe10a5845c0e`
+> **Latest execution HEAD:** `4b396d5cd070602404c95a5c91b6940e63a7415c`
 > **Rule:** This file records the execution contract, prompt system, evidence, decisions, and blockers so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -71,10 +71,10 @@ Establish exact HEAD, CI state and build gates before risky waves.
 One canonical action vocabulary shared by operational units, transitions, journeys and workspaces. **Implemented.**
 
 ### STEP 2 — Project operational vertical slice
-Project as parent operational context rather than isolated CRUD. **In progress — permission presentation now partially implemented.**
+Project as parent operational context rather than isolated CRUD. **In progress — permission presentation implemented.**
 
 ### STEP 3 — Building operational vertical slice
-Building as child operational entity with explicit Project context. **Implemented as first coherent slice; final regression remains.**
+Building as child operational entity with explicit Project context. **Implemented; permission presentation now added.**
 
 ### STEP 4 — Apartment operational vertical slice
 Complete the first high-value real-estate operational entity. **In progress.**
@@ -163,32 +163,37 @@ PR #7 head `f93df5263ea0d2f093c307cecd7129f7dbf8858a` completed CI run `#993` su
 
 `e31e23547b1f043bd3a071398992fe10a5845c0e` applied the capability contract to Project creation: read-only users retain contextual visibility but cannot edit the creation form or submit a create mutation.
 
+### 2026-09-14 — Action-level Building permission presentation
+`a53ad50cdd00f8a3f5f51d6df3aa799374e363d3` applied the shared `AdminRoleProvider.canMutate` contract to Building list/create and Building detail/edit. Read-only users retain search, filters, refresh, entity navigation and apartment navigation; mutation controls and editable fields are disabled. Create and save handlers independently re-check `canMutate` before POST/PATCH execution. A detail read-only notice explains the restriction without hiding the operational context.
+
 ### Engineering judgment
-The Project slice uses the shared role provider rather than duplicating `/api/admin/me` requests. This avoids a second role authority in the workspace and keeps server authorization as the security boundary. Navigation, filtering, refresh and recovery remain available to read-only users because they are non-mutating operations.
+The Project and Building slices use the shared role provider rather than duplicating `/api/admin/me` requests. This keeps one client-side capability authority and preserves server authorization as the security boundary. Read-only users retain non-mutating operational navigation and information discovery.
 
 ## CI evidence
 
 - Run `#899` — HEAD `ba23a170...` — **FAILURE at Typecheck**; undefined `INTENT_OPTIONS`.
 - Run `#948` — HEAD `58559326f18c38c62dfbeee9dcfed29e67451d84` — **SUCCESS**.
 - Run `#993` — HEAD `f93df5263ea0d2f093c307cecd7129f7dbf8858a` — **SUCCESS**.
-- Exact-head CI for the new Project permission commits is **pending / not yet returned by GitHub** at documentation time. No claim of pass is made.
+- Run `#1027` — HEAD `5161202651eb530594f284875d0c99ffa58e629c` — **IN PROGRESS** when inspected before the Building slice.
+- No workflow run has been returned for `a53ad50cdd00f8a3f5f51d6df3aa799374e363d3` yet; no exact-head pass is claimed.
 
 ## Current execution state
 
-**Latest HEAD:** `e31e23547b1f043bd3a071398992fe10a5845c0e`
+**Latest documented HEAD:** `4b396d5cd070602404c95a5c91b6940e63a7415c`
 
-**Active wave:** STEP 4 — Apartment operational vertical slice, with Project/Building regression closure and permission-aware UX hardening.
+**Implementation HEAD before documentation:** `a53ad50cdd00f8a3f5f51d6df3aa799374e363d3`
 
-**Completed in this execution slice:** Project list, Project detail and Project creation action presentation now consume `AdminRoleProvider.canMutate`.
+**Active wave:** STEP 4 — Apartment operational vertical slice, with Project/Building permission regression closure.
+
+**Completed in this execution slice:** Building list/create and Building detail/edit now consume `AdminRoleProvider.canMutate` without weakening server-side authorization or removing read-only navigation.
 
 **Remaining immediate gates:**
-1. Obtain exact-head CI evidence for `e31e23547b1f043bd3a071398992fe10a5845c0e`.
-2. Apply the same capability contract to Building mutation controls.
-3. Apply the same capability contract to Apartment list/detail/status/price/publication controls, reusing the existing mutation lifecycle and avoiding the workspace's duplicate role fetch.
-4. Apply the same capability contract to Lead status/follow-up/assignment mutation controls.
-5. Finish responsive/RTL review across Project, Building, Apartment and Lead surfaces.
-6. Regression-check Building → Apartment and Lead → Project/Apartment navigation and explicit entity-context clearing.
-7. Audit lifecycle semantics and unsupported Reservation/Contract/Payment boundaries.
-8. Browser/runtime certification only when browser automation is actually available.
+1. Obtain exact-head CI evidence for the current branch HEAD.
+2. Apply the same capability contract to Apartment list/detail/status/price/publication controls, reusing the existing mutation lifecycle and avoiding duplicate role fetches.
+3. Apply the same capability contract to Lead status/follow-up/assignment controls.
+4. Finish responsive/RTL review across Project, Building, Apartment and Lead surfaces.
+5. Regression-check Building → Apartment and Lead → Project/Apartment navigation and explicit entity-context clearing.
+6. Audit lifecycle semantics and unsupported Reservation/Contract/Payment boundaries.
+7. Browser/runtime certification only when browser automation is actually available.
 
 **Browser/runtime certification:** `VISUAL VALIDATION BLOCKED — browser automation is not available in this execution context.`
