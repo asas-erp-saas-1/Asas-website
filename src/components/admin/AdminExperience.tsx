@@ -6,6 +6,7 @@ import AdminErrorBoundary from '@/components/admin/AdminErrorBoundary';
 import AdminOperationStatus from '@/components/admin/AdminOperationStatus';
 import AdminWorkspaceAssist from '@/components/admin/AdminWorkspaceAssist';
 import AdminJourneyContext from '@/components/admin/AdminJourneyContext';
+import { AdminRoleProvider } from '@/components/admin/AdminRoleContext';
 
 interface AdminExperienceProps { children?: ReactNode; }
 
@@ -18,15 +19,17 @@ export function AdminExperience({ children }: AdminExperienceProps) {
   const content = children ?? <AdminPage />;
 
   return (
-    <div className="admin-workspace" data-admin-workspace="true">
-      <AdminWorkspaceAssist />
-      <AdminJourneyContext />
-      <AdminOperationStatus />
-      <a className="admin-skip-link" href="#admin-workspace-content">Aller directement au contenu d’administration</a>
-      <div id="admin-workspace-content" tabIndex={-1} role="region" aria-label="Espace d’administration ASAS">
-        <AdminErrorBoundary>{content}</AdminErrorBoundary>
+    <AdminRoleProvider>
+      <div className="admin-workspace" data-admin-workspace="true">
+        <AdminWorkspaceAssist />
+        <AdminJourneyContext />
+        <AdminOperationStatus />
+        <a className="admin-skip-link" href="#admin-workspace-content">Aller directement au contenu d’administration</a>
+        <div id="admin-workspace-content" tabIndex={-1} role="region" aria-label="Espace d’administration ASAS">
+          <AdminErrorBoundary>{content}</AdminErrorBoundary>
+        </div>
       </div>
-    </div>
+    </AdminRoleProvider>
   );
 }
 
