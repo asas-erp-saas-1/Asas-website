@@ -4,54 +4,26 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Latest execution HEAD:** `4b396d5cd070602404c95a5c91b6940e63a7415c`
-> **Rule:** This file records the execution contract, prompt system, evidence, decisions, and blockers so the long-running execution does not depend on conversation memory.
+> **Latest execution HEAD:** `fdfac75f7e27b57c6766ee36103954c427c1f4d1`
+> **Rule:** This file records the execution contract, evidence, decisions, and blockers so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
 
 1. Never reset, force-push, rewrite history, merge to main, delete valid commits, or perform destructive production DB changes.
 2. Never claim tested/deployed/verified without evidence.
-3. Treat the production PostgreSQL Prisma schema and existing API capabilities as the source of truth for data support.
-4. No fabrication: unavailable data remains `unknown`; UI state never implies a server-confirmed business state.
-5. Preserve the execution order: **Build integrity → Architecture convergence → Data correctness → Navigation/state → Responsive UX → Mutation/error/loading → Accessibility → Performance → Visual polish → Browser certification.**
+3. Treat PostgreSQL Prisma persistence and existing API capabilities as the source of truth.
+4. No fabrication: unavailable data remains `unknown`; UI state never implies unsupported server state.
+5. Preserve execution order: **Build integrity → Architecture convergence → Data correctness → Navigation/state → Responsive UX → Mutation/error/loading → Accessibility → Performance → Visual polish → Browser certification.**
 6. Every implementation wave follows: **Observe → Inspect evidence → Model → Root cause → Contract → Smallest coherent change → Typecheck → Lint → Build → Diff inspection → CI → Deploy when applicable → Runtime verify → Record limitations.**
 7. Do not introduce Redux/Zustand/virtualization/new backend architecture/new schema unless evidence proves necessity.
 8. Every material implementation change gets a commit and an entry in this file.
 
-## Professional AI-engineering workflow adopted
+## Professional AI-engineering workflow
 
-ASAS uses durable repository instructions plus scoped Admin instructions and a reusable execution prompt rather than relying on chat history alone.
+Repository instructions and scoped Admin instructions are the durable execution contract. Each material task must inspect exact HEAD, relevant files, domain helpers, API routes, Prisma persistence, route model, workspaces and tests before implementation.
 
-### Repository instruction layers
-- `AGENTS.md` — broad ASAS Admin engineering standard and operational architecture.
-- `.github/copilot-instructions.md` — repository-wide AI engineering rules.
-- `.github/instructions/admin.instructions.md` — path-specific Admin rules for APIs, workspaces, domain helpers and execution docs.
-- `.github/prompts/asas-admin-execution.prompt.md` — reusable principal-engineering execution prompt.
-
-## Canonical ASAS execution prompt
-
-For every future material Admin task:
-
-### 1. Reconnaissance
-Read repository/agent instructions and the authoritative execution plan. Inspect exact HEAD, CI state, relevant files, domain helpers, API routes, PostgreSQL Prisma schema, route model, workspaces and tests.
-
-### 2. Contract audit
-Trace **UI → URL/state → API → auth → validation → domain transition → relational integrity → persistence → audit → cache/invalidation → feedback/recovery**.
-
-### 3. Model
-Define the expected operational contract and acceptance criteria. Reuse canonical action IDs, transition graphs, route models and mutation lifecycle helpers.
-
-### 4. Implement
-Make the smallest coherent production-quality change. Never fabricate persistence or unsupported Reservation/Contract/Payment behavior.
-
-### 5. Verify
-Obtain evidence for typecheck, lint, build, relevant tests, diff inspection and CI on the exact resulting HEAD. Obtain deployment/browser/runtime evidence only when actually available.
-
-### 6. Document
-Update this plan with commit SHA, observed problem, root cause, implementation, evidence, limitations and next gate.
-
-### 7. Stop condition
-Stop at the end of the coherent slice. Do not expand into unrelated refactors.
+Contract tracing remains:
+`UI → URL/state → API → auth → validation → domain transition → relational integrity → persistence → audit → cache/invalidation → feedback/recovery`.
 
 ## Current domain source-of-truth
 
@@ -60,7 +32,7 @@ Runtime Admin persistence is PostgreSQL through `prisma/schema.postgres.prisma` 
 Canonical operational relationship:
 `Project → Building → Apartment → Availability → Lead Interest → Follow-up → Reservation → Contract → Payment`
 
-Only relationships/capabilities actually represented by the current application/backend may be executable.
+Only relationships/capabilities represented by the current application/backend may be executable.
 
 ## Execution waves
 
@@ -71,13 +43,13 @@ Establish exact HEAD, CI state and build gates before risky waves.
 One canonical action vocabulary shared by operational units, transitions, journeys and workspaces. **Implemented.**
 
 ### STEP 2 — Project operational vertical slice
-Project as parent operational context rather than isolated CRUD. **In progress — permission presentation implemented.**
+Project as parent operational context. **Implemented; action-level permission presentation added.**
 
 ### STEP 3 — Building operational vertical slice
-Building as child operational entity with explicit Project context. **Implemented; permission presentation now added.**
+Building as child operational entity with explicit Project context. **Implemented; action-level permission presentation added.**
 
 ### STEP 4 — Apartment operational vertical slice
-Complete the first high-value real-estate operational entity. **In progress.**
+Complete the first high-value real-estate operational entity. **In progress; action-level permission presentation exists, capability convergence remains.**
 
 ### STEP 5 — Customer / Lead vertical slice
 Connect customer operations to real inventory without fabricating reservation state. **In progress.**
@@ -114,86 +86,43 @@ Prove Admin is an operational workspace, not a collection of CRUD screens.
 
 ## Engineering log
 
-### 2026-09-12 — Project mutation authorization hardening
-`f1f1c102c0928dc4b69953d2181b7b977c61a4b7` added ADMIN/EDITOR authorization to `PUT /api/admin/projects/[slug]`.
-
-### 2026-09-12 — Building API contract hardening
-`860a1a316e3dc69cf5059dab1d37853932841a4e` added Zod query validation, bounded pagination, Project existence validation, positive floors validation, authorization and audit preservation.
-
-### 2026-09-12 — Apartment API contract hardening
-`7f914a99109f404758f050e6be500c2a18f1d115` added create validation, Project/Building integrity checks, bounded statuses, unpublished-by-default creation and pricing invariant protection.
-
-### 2026-09-12 — Lead mutation and lifecycle hardening
-`e7e4aa6dae5cf3963068e4e7977d8af5951ad608`, `502ed38cb64a3c1216807a03ae683d47e0b88318`, `6860501a58cffeffe55358656584da76567f7da1`, and `60c5cea830308fc482d79541eafcd684ba5a1247` hardened validation and centralized the Lead lifecycle graph for API/domain/UI reuse.
-
-### 2026-09-12 — Prisma JSON contract fix
-`b96a53f71d5a42dd57b71d3c05b09385dfc80f5c` corrected PostgreSQL JSON create typing using Prisma JSON-null/value types after CI Typecheck failure #863.
-
-### 2026-09-12 — Lead workspace contract correction
-`229bedf43aef5ba8b285a8b34e224464b9b83850` made Lead status selectors consume the shared transition graph and added contextual Project/Apartment navigation only when persisted IDs exist.
-
-### 2026-09-12 — Project detail mutation contract hardening
-`eff19fcc1e300bb466e3559c154a57fa6675928e` added strict update validation, unknown-field rejection, archive/publication guardrails, surface-range and pricing invariants, and distinct publication/price audit actions.
-
-### 2026-09-12 — Project creation contract hardening
-`025d3bab200450346866bb3f6c03367c2411ac10` added strict creation validation, slug/identity/location checks, numeric/range validation, pricing invariants, safe defaults and audit-preserving persistence.
-
-### 2026-09-12 — Professional AI operating system added
-`fb51a57a37ce1e56b5f65705a621cd2410795d22`, `4f4a41d11b6b5ebb93cd095f1004bf2059a02154`, and `00d1a071eaf08b976c6f8fdcf55f58e4df0f46b9` added the repository, Admin-path and reusable execution instructions.
-
-### 2026-09-12 — CI failure diagnosed and repaired
-CI run `#899` failed at Typecheck because `AdminLeadsPremiumWorkspace.tsx` referenced an undefined `INTENT_OPTIONS` symbol. `7632feb97c7b8fc223b654cdad50875e765c0239` restored the canonical intent-option contract.
-
-### 2026-09-12 — Building operational vertical slice
-`58559326f18c38c62dfbeee9dcfed29e67451d84` promoted Buildings from list-only management to a route-addressable operational slice with detail/edit, authorization, validation, audit logging, deep-link state and Building → Apartments navigation. Reservation, Contract and Payment behavior was not invented.
-
-### 2026-09-13 — Exact-head CI certification before UX hardening
-PR #7 head `f93df5263ea0d2f093c307cecd7129f7dbf8858a` completed CI run `#993` successfully through dependency installation, Prisma generation, baseline generation/verification/upload, Typecheck, Lint and Build.
-
-### 2026-09-13 — Responsive / RTL / localization UX hardening
-`b66f7ab537aaa76022b03e02991adcee1720d40c` extended the scoped Admin UX reference layer with 44px touch-safe controls, RTL behavior, long-string protection, keyboard focus treatment and mobile table integrity, scoped to `body.admin-mode`.
+### 2026-09-12 — API and lifecycle hardening
+Project, Building, Apartment and Lead API contracts were hardened across validation, authorization, persistence invariants, audit preservation and lifecycle transitions. Existing commits remain the source of truth; unsupported Reservation/Contract/Payment behavior was not invented.
 
 ### 2026-09-13 — Shared Admin role/capability context
-`ea9c6f149c1fe57cfc4bd6f700e1c91e0e6944a8` introduced `AdminRoleProvider`, resolving the role from `/api/admin/me` and exposing `role`, `canMutate` and `canAdminister`. The shell displays a read-only notice while server-side authorization remains authoritative. `6e74a57c4bfe453a79943bc220a692c62755c599` refined the scoped capability-state UX.
+`ea9c6f149c1fe57cfc4bd6f700e1c91e0e6944a8` introduced `AdminRoleProvider`, resolving the role from `/api/admin/me` and exposing `role`, `canMutate` and `canAdminister`. The shell displays a read-only notice while server authorization remains authoritative. `6e74a57c4bfe453a79943bc220a692c62755c599` refined capability-state UX.
 
-### 2026-09-14 — Action-level Project permission presentation
-`176121a7cf8bf6c02c22d0dd13c65dfdc6bca317` added the shared `canMutate` capability to the Project list workspace. Publish/archive controls are now disabled for read-only roles, expose an explicit read-only explanation, and the mutation handler re-checks capability before making a request.
+### 2026-09-14 — Project action-level permission presentation
+`176121a7cf8bf6c02c22d0dd13c65dfdc6bca317` applied shared `canMutate` to Project list publish/archive controls.
+`9d3ce886e32db5ed6e713ac0a41f440778d85a37` applied it to Project detail price/publication mutations.
+`e31e23547b1f043bd3a071398992fe10a5845c0e` applied it to Project creation.
 
-`9d3ce886e32db5ed6e713ac0a41f440778d85a37` applied the same capability contract to Project detail price/publication mutations. Inputs and mutation controls are disabled for read-only roles and the mutation function itself refuses execution without capability.
+### 2026-09-14 — Building action-level permission presentation
+`a53ad50cdd00f8a3f5f51d6df3aa799374e363d3` applied shared `AdminRoleProvider.canMutate` to Building list/create and detail/edit. Read-only users retain operational navigation and context; mutation controls/fields are disabled and handlers re-check capability.
 
-`e31e23547b1f043bd3a071398992fe10a5845c0e` applied the capability contract to Project creation: read-only users retain contextual visibility but cannot edit the creation form or submit a create mutation.
+### 2026-09-14 — Apartment permission-state audit
+Inspection of `AdminApartmentsWorkspace.tsx` at implementation HEAD `0b473ad3298a1e02a0a460b9a073f55a2c3b2f80` confirmed that Apartment already has action-level presentation: publication is restricted to ADMIN/EDITOR, archive to ADMIN, and detail price/status/publication controls are disabled for VIEWER. Existing publication-readiness checks and mutation lifecycle are preserved.
 
-### 2026-09-14 — Action-level Building permission presentation
-`a53ad50cdd00f8a3f5f51d6df3aa799374e363d3` applied the shared `AdminRoleProvider.canMutate` contract to Building list/create and Building detail/edit. Read-only users retain search, filters, refresh, entity navigation and apartment navigation; mutation controls and editable fields are disabled. Create and save handlers independently re-check `canMutate` before POST/PATCH execution. A detail read-only notice explains the restriction without hiding the operational context.
+The remaining Apartment engineering debt is architectural convergence: the workspace still fetches `/api/admin/me` locally rather than consuming `AdminRoleProvider`, and its mutation handlers do not independently re-check the shared capability. This is a client-side consistency issue; server-side authorization remains the security boundary.
 
-### Engineering judgment
-The Project and Building slices use the shared role provider rather than duplicating `/api/admin/me` requests. This keeps one client-side capability authority and preserves server authorization as the security boundary. Read-only users retain non-mutating operational navigation and information discovery.
+### 2026-09-14 — Documentation synchronization
+`fdfac75f7e27b57c6766ee36103954c427c1f4d1` records the audited Apartment state and the next capability-convergence gate. Vercel reports success for the preceding implementation HEAD `0b473ad3298a1e02a0a460b9a073f55a2c3b2f80`; no full workflow CI pass is claimed from that status alone.
 
-## CI evidence
+## CI / deployment evidence
 
-- Run `#899` — HEAD `ba23a170...` — **FAILURE at Typecheck**; undefined `INTENT_OPTIONS`.
-- Run `#948` — HEAD `58559326f18c38c62dfbeee9dcfed29e67451d84` — **SUCCESS**.
-- Run `#993` — HEAD `f93df5263ea0d2f093c307cecd7129f7dbf8858a` — **SUCCESS**.
-- Run `#1027` — HEAD `5161202651eb530594f284875d0c99ffa58e629c` — **IN PROGRESS** when inspected before the Building slice.
-- No workflow run has been returned for `a53ad50cdd00f8a3f5f51d6df3aa799374e363d3` yet; no exact-head pass is claimed.
+- Prior exact-head CI `#993` on `f93df5263ea0d2f093c307cecd7129f7dbf8858a` — **SUCCESS**.
+- Earlier CI `#1027` on `5161202651eb530594f284875d0c99ffa58e629c` was in progress when inspected.
+- Current implementation HEAD `0b473ad3298a1e02a0a460b9a073f55a2c3b2f80` has Vercel status **success**.
+- No full GitHub workflow CI pass is claimed for the current documentation HEAD `fdfac75f7e27b57c6766ee36103954c427c1f4d1`.
 
 ## Current execution state
 
-**Latest documented HEAD:** `4b396d5cd070602404c95a5c91b6940e63a7415c`
+**Latest documented HEAD:** `fdfac75f7e27b57c6766ee36103954c427c1f4d1`
 
-**Implementation HEAD before documentation:** `a53ad50cdd00f8a3f5f51d6df3aa799374e363d3`
+**Active wave:** STEP 4 — Apartment operational vertical slice, then STEP 5 Lead permission convergence.
 
-**Active wave:** STEP 4 — Apartment operational vertical slice, with Project/Building permission regression closure.
+**Completed:** Project and Building action-level permission presentation. Apartment action-level presentation is already present and has now been audited and recorded accurately.
 
-**Completed in this execution slice:** Building list/create and Building detail/edit now consume `AdminRoleProvider.canMutate` without weakening server-side authorization or removing read-only navigation.
-
-**Remaining immediate gates:**
-1. Obtain exact-head CI evidence for the current branch HEAD.
-2. Apply the same capability contract to Apartment list/detail/status/price/publication controls, reusing the existing mutation lifecycle and avoiding duplicate role fetches.
-3. Apply the same capability contract to Lead status/follow-up/assignment controls.
-4. Finish responsive/RTL review across Project, Building, Apartment and Lead surfaces.
-5. Regression-check Building → Apartment and Lead → Project/Apartment navigation and explicit entity-context clearing.
-6. Audit lifecycle semantics and unsupported Reservation/Contract/Payment boundaries.
-7. Browser/runtime certification only when browser automation is actually available.
+**Immediate next gate:** Refactor Apartment to consume `AdminRoleProvider.canMutate` without a duplicate `/api/admin/me` fetch; add handler-level capability checks while preserving all existing server/API contracts. Then apply the same contract to Lead status, follow-up and assignment mutations.
 
 **Browser/runtime certification:** `VISUAL VALIDATION BLOCKED — browser automation is not available in this execution context.`
