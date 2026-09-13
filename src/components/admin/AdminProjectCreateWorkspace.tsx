@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { navigateAdminRoute } from '@/lib/admin-route';
+import { useAdminRole } from '@/components/admin/AdminRoleContext';
 
 function slugify(value: string): string {
   return value
@@ -25,6 +26,7 @@ interface CreateProjectResponse {
 }
 
 export default function AdminProjectCreateWorkspace() {
+  const { canMutate } = useAdminRole();
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
@@ -41,7 +43,7 @@ export default function AdminProjectCreateWorkspace() {
   const effectiveSlug = slugTouched ? slug : normalizedSlug;
   const priceValue = startingPrice.trim() === '' ? null : Number(startingPrice);
   const priceValid = priceOnRequest || (priceValue !== null && Number.isFinite(priceValue) && priceValue >= 0);
-  const canSubmit = name.trim().length > 0 && effectiveSlug.length > 0 && city.trim().length > 0 && district.trim().length > 0 && priceValid && !submitting;
+  const canSubmit = canMutate && name.trim().length > 0 && effectiveSlug.length > 0 && city.trim().length > 0 && district.trim().length > 0 && priceValid && !submitting;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -94,7 +96,7 @@ export default function AdminProjectCreateWorkspace() {
           <div>
             <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-forest">Catalogue</p>
             <h1 id="project-create-title" className="text-2xl font-bold text-charcoal sm:text-3xl">Nouveau projet</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Création minimale et sécurisée. Le projet démarre en brouillon et pourra ensuite être complété.</p>
+            <p className="mt-1 text-sm text-muted-foreground">{canMutate ? 'Création minimale et sécurisée. Le projet démarre en brouillon et pourra ensuite être complété.' : 'Mode lecture seule — la création de projet est réservée aux rôles autorisés.'}</p>
           </div>
           <Button type="button" variant="outline" onClick={() => navigateAdminRoute({ workspace: 'projects' })} className="gap-2 self-start sm:self-auto">
             <ArrowLeft className="h-4 w-4" /> Retour aux projets
@@ -108,21 +110,21 @@ export default function AdminProjectCreateWorkspace() {
           </div>
         )}
 
-        <form onSubmit={submit} className="space-y-5">
+        <form onSubmit={submit} className="space-y-5" aria-disabled={!canMutate}>
           <Card>
             <CardHeader><CardTitle className="text-base">Identité du projet</CardTitle></CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="project-name">Nom *</Label>
-                <Input id="project-name" value={name} onChange={(event) => { setName(event.target.value); if (!slugTouched) setSlug(slugify(event.target.value)); }} placeholder="Nom du projet" autoComplete="off" required />
+                <Input id="project-name" value={name} onChange={(event) => { setName(event.target.value); if (!slugTouched) setSlug(slugify(event.target.value)); }} placeholder="Nom du projet" autoComplete="off" required disabled={!canMutate} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="project-slug">Slug *</Label>
-                <Input id="project-slug" value={effectiveSlug} onChange={(event) => { setSlugTouched(true); setSlug(slugify(event.target.value)); }} placeholder="nom-du-projet" autoComplete="off" required />
+                <Input id="project-slug" value={effectiveSlug} onChange={(event) => { setSlugTouched(true); setSlug(slugify(event.target.value)); }} placeholder="nom-du-projet" autoComplete="off" required disabled={!canMutate} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="project-type">Type</Label>
-                <Input id="project-type" value={projectType} onChange={(event) => setProjectType(event.target.value)} />
+                <Input id="project-type" value={projectType} onChange={(event) => setProjectType(event.target.value)} disabled={!canMutate} />
               </div>
             </CardContent>
           </Card>
@@ -130,9 +132,9 @@ export default function AdminProjectCreateWorkspace() {
           <Card>
             <CardHeader><CardTitle className="text-base">Localisation</CardTitle></CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2"><Label htmlFor="project-city">Ville *</Label><Input id="project-city" value={city} onChange={(event) => setCity(event.target.value)} required /></div>
-              <div className="space-y-2"><Label htmlFor="project-district">Quartier *</Label><Input id="project-district" value={district} onChange={(event) => setDistrict(event.target.value)} required /></div>
-              <div className="space-y-2 sm:col-span-2"><Label htmlFor="project-description">Description</Label><Textarea id="project-description" value={description} onChange={(event) => setDescription(event.target.value)} rows={5} /></div>
+              <div className="space-y-2"><Label htmlFor="project-city">Ville *</Label><Input id="project-city" value={city} onChange={(event) => setCity(event.target.value)} required disabled={!canMutate} /></div>
+              <div className="space-y-2"><Label htmlFor="project-district">Quartier *</Label><Input id="project-district" value={district} onChange={(event) => setDistrict(event.target.value)} required disabled={!canMutate} /></div>
+              <div className="space-y-2 sm:col-span-2"><Label htmlFor="project-description">Description</Label><Textarea id="project-description" value={description} onChange={(event) => setDescription(event.target.value)} rows={5} disabled={!canMutate} /></div>
             </CardContent>
           </Card>
 
@@ -140,17 +142,17 @@ export default function AdminProjectCreateWorkspace() {
             <CardHeader><CardTitle className="text-base">Commercial</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <label className="flex items-center gap-3 rounded-md border p-3 text-sm">
-                <input type="checkbox" checked={priceOnRequest} onChange={(event) => setPriceOnRequest(event.target.checked)} />
+                <input type="checkbox" checked={priceOnRequest} onChange={(event) => setPriceOnRequest(event.target.checked)} disabled={!canMutate} />
                 <span>Prix sur demande</span>
               </label>
-              {!priceOnRequest && <div className="max-w-sm space-y-2"><Label htmlFor="project-price">Prix de départ *</Label><Input id="project-price" type="number" min="0" step="any" value={startingPrice} onChange={(event) => setStartingPrice(event.target.value)} required={!priceOnRequest} /></div>}
+              {!priceOnRequest && <div className="max-w-sm space-y-2"><Label htmlFor="project-price">Prix de départ *</Label><Input id="project-price" type="number" min="0" step="any" value={startingPrice} onChange={(event) => setStartingPrice(event.target.value)} required={!priceOnRequest} disabled={!canMutate} /></div>}
               <p className="text-xs text-muted-foreground">Le serveur impose également l’invariant commercial avant création.</p>
             </CardContent>
           </Card>
 
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={() => navigateAdminRoute({ workspace: 'projects' })} disabled={submitting}>Annuler</Button>
-            <Button type="submit" disabled={!canSubmit} className="gap-2 bg-forest text-white hover:bg-forest/90">
+            <Button type="submit" disabled={!canSubmit} title={!canMutate ? 'Lecture seule : création non autorisée' : undefined} className="gap-2 bg-forest text-white hover:bg-forest/90">
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
               {submitting ? 'Création…' : 'Créer le projet'}
             </Button>
