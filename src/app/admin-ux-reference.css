@@ -1,0 +1,163 @@
+/* ASAS Admin — operational UX reference layer
+ * Loaded after admin-ux.css. Scoped to admin-mode so public surfaces are untouched.
+ * Visual intent: executive-grade operational console; calm surfaces, dense evidence,
+ * strong hierarchy, fast scanning, and predictable action affordances.
+ */
+
+body.admin-mode {
+  --admin-ink: #151917;
+  --admin-muted: #646963;
+  --admin-forest: #0d4733;
+  --admin-forest-soft: color-mix(in oklab, #0d4733 7%, white);
+  --admin-gold: #a47a32;
+  --admin-warm: #f6f2e9;
+  --admin-panel: #fffdf8;
+  --admin-line: #d9d5cb;
+}
+
+body.admin-mode .admin-page-shell > main {
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in oklab, var(--admin-forest) 4%, transparent), transparent 32rem),
+    var(--admin-warm);
+}
+
+body.admin-mode .admin-workspace {
+  color: var(--admin-ink);
+}
+
+body.admin-mode .admin-workspace > section,
+body.admin-mode .admin-projects-workspace,
+body.admin-mode .admin-buildings-workspace,
+body.admin-mode .admin-apartments-workspace,
+body.admin-mode .admin-leads-workspace {
+  animation: asas-admin-enter 180ms ease-out both;
+}
+
+@keyframes asas-admin-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+body.admin-mode [data-slot='card'] {
+  background: var(--admin-panel);
+  border-radius: 0.85rem;
+}
+
+body.admin-mode [data-slot='card'] > [data-slot='card-header'] {
+  padding-bottom: 0.75rem;
+}
+
+body.admin-mode [data-slot='card-title'] {
+  color: var(--admin-ink);
+  letter-spacing: -0.01em;
+}
+
+body.admin-mode h1 {
+  letter-spacing: -0.025em;
+}
+
+body.admin-mode h2,
+body.admin-mode h3 {
+  letter-spacing: -0.015em;
+}
+
+/* Operational table: make scanning faster without increasing density unnecessarily. */
+body.admin-mode table tbody tr {
+  border-bottom: 1px solid color-mix(in oklab, var(--admin-line) 72%, transparent);
+}
+
+body.admin-mode table tbody tr:last-child {
+  border-bottom: 0;
+}
+
+body.admin-mode table tbody td:first-child {
+  font-weight: 600;
+}
+
+body.admin-mode table button {
+  white-space: nowrap;
+}
+
+/* Status/readiness language should read as evidence, not decoration. */
+body.admin-mode [data-admin-status='ready'],
+body.admin-mode [data-admin-state='ready'] {
+  border-color: color-mix(in oklab, var(--admin-forest) 22%, var(--admin-line));
+  background: var(--admin-forest-soft);
+  color: var(--admin-forest);
+}
+
+body.admin-mode [data-admin-status='blocked'],
+body.admin-mode [data-admin-state='blocked'] {
+  border-color: color-mix(in oklab, #a33 24%, var(--admin-line));
+}
+
+/* Detail pages: keep identity, state and primary action visually grouped. */
+body.admin-mode [aria-labelledby$='-detail-title'] > div > header,
+body.admin-mode [aria-labelledby='apartment-detail-title'] > div > header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in oklab, var(--admin-warm) 94%, transparent);
+  backdrop-filter: blur(10px);
+  padding-top: 0.75rem;
+}
+
+body.admin-mode [aria-labelledby$='-detail-title'] [role='status'],
+body.admin-mode [aria-labelledby='apartment-detail-title'] [role='status'] {
+  min-height: 2.5rem;
+}
+
+/* Inputs: operational forms should feel stable and deliberate. */
+body.admin-mode label > span:first-child {
+  color: var(--admin-ink);
+}
+
+body.admin-mode input::placeholder,
+body.admin-mode textarea::placeholder {
+  color: var(--admin-muted);
+  opacity: 0.72;
+}
+
+/* Make destructive/recoverable feedback prominent without becoming alarming. */
+body.admin-mode [role='alert'] {
+  box-shadow: 0 1px 2px rgb(21 25 23 / 4%);
+}
+
+/* Mobile: prioritize the entity title and primary action, then filters/data. */
+@media (max-width: 767px) {
+  body.admin-mode .admin-page-shell > main {
+    padding: 0.75rem;
+  }
+
+  body.admin-mode .admin-workspace > section,
+  body.admin-mode .admin-projects-workspace,
+  body.admin-mode .admin-buildings-workspace,
+  body.admin-mode .admin-apartments-workspace,
+  body.admin-mode .admin-leads-workspace {
+    width: 100%;
+  }
+
+  body.admin-mode [aria-labelledby$='-detail-title'] > div > header,
+  body.admin-mode [aria-labelledby='apartment-detail-title'] > div > header {
+    position: static;
+    padding-top: 0;
+  }
+
+  body.admin-mode table {
+    font-size: 0.8125rem;
+  }
+
+  body.admin-mode [data-slot='card'] {
+    border-radius: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.admin-mode .admin-workspace > section,
+  body.admin-mode .admin-projects-workspace,
+  body.admin-mode .admin-buildings-workspace,
+  body.admin-mode .admin-apartments-workspace,
+  body.admin-mode .admin-leads-workspace {
+    animation: none;
+  }
+}
