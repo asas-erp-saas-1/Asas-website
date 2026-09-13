@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Latest execution HEAD:** `fdfac75f7e27b57c6766ee36103954c427c1f4d1`
+> **Latest execution HEAD:** `ef93b4c14f0b76d240de0318d1eb8d9683876079`
 > **Rule:** This file records the execution contract, evidence, decisions, and blockers so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -49,10 +49,10 @@ Project as parent operational context. **Implemented; action-level permission pr
 Building as child operational entity with explicit Project context. **Implemented; action-level permission presentation added.**
 
 ### STEP 4 — Apartment operational vertical slice
-Complete the first high-value real-estate operational entity. **In progress; action-level permission presentation exists, capability convergence remains.**
+Complete the first high-value real-estate operational entity. **Permission convergence implemented; verification remains pending.**
 
 ### STEP 5 — Customer / Lead vertical slice
-Connect customer operations to real inventory without fabricating reservation state. **In progress.**
+Connect customer operations to real inventory without fabricating reservation state. **Lead mutation permission presentation implemented; deeper CRM capability coverage remains pending.**
 
 ### STEP 6 — Reservation boundary
 Only implement server-confirmed reservation behavior when backend support exists.
@@ -101,28 +101,31 @@ Project, Building, Apartment and Lead API contracts were hardened across validat
 `a53ad50cdd00f8a3f5f51d6df3aa799374e363d3` applied shared `AdminRoleProvider.canMutate` to Building list/create and detail/edit. Read-only users retain operational navigation and context; mutation controls/fields are disabled and handlers re-check capability.
 
 ### 2026-09-14 — Apartment permission-state audit
-Inspection of `AdminApartmentsWorkspace.tsx` at implementation HEAD `0b473ad3298a1e02a0a460b9a073f55a2c3b2f80` confirmed that Apartment already has action-level presentation: publication is restricted to ADMIN/EDITOR, archive to ADMIN, and detail price/status/publication controls are disabled for VIEWER. Existing publication-readiness checks and mutation lifecycle are preserved.
+Inspection confirmed that Apartment already had action-level presentation: publication restricted to ADMIN/EDITOR, archive to ADMIN, and detail price/status/publication controls disabled for VIEWER. Existing publication-readiness checks and mutation lifecycle were preserved.
 
-The remaining Apartment engineering debt is architectural convergence: the workspace still fetches `/api/admin/me` locally rather than consuming `AdminRoleProvider`, and its mutation handlers do not independently re-check the shared capability. This is a client-side consistency issue; server-side authorization remains the security boundary.
+### 2026-09-14 — Apartment capability convergence
+`71f580c46760db344332b9009e61f66eb510203c` removed the duplicate Apartment `/api/admin/me` role fetch and made `AdminApartmentsWorkspace` consume the shared `AdminRoleProvider`. `canMutate` and `canAdminister` now drive presentation and are re-checked at mutation-handler level. Existing API endpoints, publication readiness, lifecycle transitions and server authorization were preserved.
 
-### 2026-09-14 — Documentation synchronization
-`fdfac75f7e27b57c6766ee36103954c427c1f4d1` records the audited Apartment state and the next capability-convergence gate. Vercel reports success for the preceding implementation HEAD `0b473ad3298a1e02a0a460b9a073f55a2c3b2f80`; no full workflow CI pass is claimed from that status alone.
+### 2026-09-14 — Lead action-level permission presentation
+`ef93b4c14f0b76d240de0318d1eb8d9683876079` made `AdminLeadsPremiumWorkspace` consume the shared role context. Lead status changes and internal note creation are treated as mutations and are disabled for `VIEWER`, with handler-level capability checks as defense in depth. Lead project/apartment navigation, contact links, filtering and operational context remain available read-only. `assignedTo` and `followUpDate` are currently displayed fields, not writable capabilities in this workspace; no unsupported assignment/follow-up API was invented.
 
 ## CI / deployment evidence
 
 - Prior exact-head CI `#993` on `f93df5263ea0d2f093c307cecd7129f7dbf8858a` — **SUCCESS**.
-- Earlier CI `#1027` on `5161202651eb530594f284875d0c99ffa58e629c` was in progress when inspected.
-- Current implementation HEAD `0b473ad3298a1e02a0a460b9a073f55a2c3b2f80` has Vercel status **success**.
-- No full GitHub workflow CI pass is claimed for the current documentation HEAD `fdfac75f7e27b57c6766ee36103954c427c1f4d1`.
+- Current Apartment convergence commit `71f580c46760db344332b9009e61f66eb510203c` received Vercel **pending** status when checked.
+- Current Lead permission commit is `ef93b4c14f0b76d240de0318d1eb8d9683876079`; its CI/Vercel status must be checked after this commit before any pass is claimed.
+- No browser visual certification is claimed.
 
 ## Current execution state
 
-**Latest documented HEAD:** `fdfac75f7e27b57c6766ee36103954c427c1f4d1`
+**Latest documented HEAD:** `ef93b4c14f0b76d240de0318d1eb8d9683876079`
 
-**Active wave:** STEP 4 — Apartment operational vertical slice, then STEP 5 Lead permission convergence.
+**Active wave:** STEP 5 — Lead/customer-operations permission and capability convergence, followed by cross-entity navigation and responsive/accessibility certification.
 
-**Completed:** Project and Building action-level permission presentation. Apartment action-level presentation is already present and has now been audited and recorded accurately.
+**Completed in this gate:** Project, Building and Apartment action-level permission presentation/convergence; Lead status and internal-note mutation presentation/convergence.
 
-**Immediate next gate:** Refactor Apartment to consume `AdminRoleProvider.canMutate` without a duplicate `/api/admin/me` fetch; add handler-level capability checks while preserving all existing server/API contracts. Then apply the same contract to Lead status, follow-up and assignment mutations.
+**Important capability boundary:** Lead `assignedTo` and `followUpDate` are currently read-only fields in the inspected workspace. There is no verified writable assignment/follow-up capability in the current implementation, so it remains out of mutation scope until server support is evidenced.
+
+**Immediate next gate:** Inspect exact Lead API authorization and tests, then audit cross-entity deep-link behavior and permission consistency across Project → Building → Apartment → Lead. After that proceed to responsive/error/accessibility gates before visual certification.
 
 **Browser/runtime certification:** `VISUAL VALIDATION BLOCKED — browser automation is not available in this execution context.`
