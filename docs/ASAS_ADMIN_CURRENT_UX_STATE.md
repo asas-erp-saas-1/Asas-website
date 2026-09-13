@@ -2,7 +2,7 @@
 
 **Branch:** `feat/admin-ux-ui-foundation`
 
-**Current HEAD at this documentation update:** `cf3796af760ca27a36c2145d66ca9a10c5e22fa4`
+**Current HEAD at this documentation update:** `ecaa1ad576dd9e64a13b38c330a068568a0906a6`
 
 ## Completed in this UX/UI wave
 
@@ -12,6 +12,9 @@
 - Repository UI reference layer added and loaded after the existing Admin UX foundation.
 - Operational visual language now covers hierarchy, table scanning, detail context, sticky toolbars, responsive data surfaces, focus behavior, async feedback space, skeleton treatment and reduced-motion behavior.
 - Apartment mutation hydration issue repaired so successful detail mutations do not collapse the entity context into a reduced response.
+- A shared `AdminRoleProvider` is mounted at the stable Admin shell and derives `role`, `canMutate` and `canAdminister` from `/api/admin/me`.
+- Role-aware UX presentation is now explicit: STAFF users receive a read-only notice while server-side authorization remains the security boundary.
+- Admin role/capability state is exposed on the workspace DOM (`data-admin-role`, `data-admin-can-mutate`, `data-admin-role-loading`) for future action-level presentation without coupling business authorization to CSS.
 - UX/UI execution method documented in `docs/ASAS_ADMIN_UX_UI_EXECUTION_METHOD.md`.
 
 ## Engineering constraints
@@ -22,18 +25,21 @@
 - Reservation, Contract and Payment UI must not imply unsupported backend capabilities.
 - URL/entity context remains authoritative for workspace navigation.
 - No destructive production database changes are part of UX work.
+- Client-side role presentation is advisory only; every mutation must continue to be protected by server-side authorization.
 
 ## Verification
 
 - Previous implementation HEAD `610333269c4e7ddf31e2678c97fbdf6b29259d3a`: CI `#975` passed Prisma generation, baseline generation/verification/upload, Typecheck, Lint and Build.
-- HEAD `cf3796af760ca27a36c2145d66ca9a10c5e22fa4`: Vercel status was observed as pending during deployment at the time of this update; exact-head CI had not yet completed.
+- HEAD `a251f0a287a82551ad17fe6d31fc07e797256065`: CI `#1001` completed successfully.
+- The latest CI evidence covers the complete current branch head immediately before this documentation commit; the documentation commit itself requires a new exact-head CI run.
 
 Browser certification remains blocked until browser automation is available. No visual runtime verification is claimed without it.
 
 ## Next coherent UX gate
 
-1. Obtain exact-HEAD CI evidence after the UX CSS/documentation wave.
-2. Apply shared operational interaction classes to the highest-value workspace surfaces where markup already supports them.
-3. Complete permission-aware action presentation, especially Building create/edit controls.
-4. Finish responsive/RTL review across Project, Building, Apartment and Lead surfaces.
-5. Perform browser certification when browser automation is available.
+1. Run exact-HEAD CI for `ecaa1ad576dd9e64a13b38c330a068568a0906a6`.
+2. Apply explicit action capability markers to the highest-value Project, Building, Apartment and Lead mutation controls so STAFF sees a consistent read-only surface rather than relying on button text or DOM position.
+3. Finish responsive/RTL review across Project, Building, Apartment and Lead surfaces.
+4. Regression-check Project → Building → Apartment and Lead → Project/Apartment entity navigation and context isolation.
+5. Audit lifecycle/publication semantics and unsupported Reservation boundary.
+6. Perform browser certification when browser automation is available.
