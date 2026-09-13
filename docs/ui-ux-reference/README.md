@@ -2,6 +2,12 @@
 
 ![ASAS platform master visual reference](./ASAS_UI_UX_MASTER.jpg)
 
+**2026 vector reference:** [`ASAS_UI_UX_MASTER_2026.svg`](./ASAS_UI_UX_MASTER_2026.svg)
+
+**2026 implementation contract:** [`ASAS_UI_UX_REFERENCE_2026.md`](./ASAS_UI_UX_REFERENCE_2026.md)
+
+The SVG is the preferred repository-native preview/reference because it is versionable, inspectable and reproducible in code. The raster board remains useful as a visual mood/reference artifact.
+
 ## Purpose
 
 This directory is the visual source of truth for the public ASAS Immobilier experience. The generated board is the visual baseline to compare against during implementation and QA.
