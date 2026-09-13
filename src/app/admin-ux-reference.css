@@ -187,6 +187,45 @@ body.admin-mode [aria-disabled='true'] {
   opacity: 0.58;
 }
 
+/* Operational controls need touch-safe hit areas without forcing large desktop controls. */
+body.admin-mode button,
+body.admin-mode select,
+body.admin-mode input[type='checkbox'],
+body.admin-mode input[type='radio'] {
+  min-height: 44px;
+}
+
+body.admin-mode input[type='checkbox'],
+body.admin-mode input[type='radio'] {
+  min-width: 44px;
+}
+
+/* Keep Arabic and other RTL values legible without changing the surrounding document direction. */
+body.admin-mode [dir='rtl'] {
+  text-align: right;
+  unicode-bidi: plaintext;
+}
+
+body.admin-mode [dir='rtl'] input,
+body.admin-mode [dir='rtl'] textarea,
+body.admin-mode [dir='rtl'] select {
+  text-align: right;
+}
+
+/* Do not let long localized labels or identifiers break the operational grid. */
+body.admin-mode td,
+body.admin-mode th,
+body.admin-mode label,
+body.admin-mode [role='status'],
+body.admin-mode [role='alert'] {
+  overflow-wrap: anywhere;
+}
+
+body.admin-mode :focus-visible {
+  outline: 2px solid var(--admin-gold);
+  outline-offset: 2px;
+}
+
 @media (max-width: 767px) {
   body.admin-mode .admin-page-shell > main {
     padding: 0.75rem;
@@ -220,6 +259,11 @@ body.admin-mode [aria-disabled='true'] {
 
   body.admin-mode .admin-table-scroll table {
     min-width: 700px;
+  }
+
+  body.admin-mode .admin-table-scroll {
+    margin-inline: -0.25rem;
+    width: calc(100% + 0.5rem);
   }
 }
 
