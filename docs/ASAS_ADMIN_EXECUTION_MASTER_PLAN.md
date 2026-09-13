@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Latest execution HEAD:** `11e604c3875e53365a5ad42c1b716423de0808db`
+> **Latest execution HEAD:** `efaa6a5510e331daff32dba9812bcc7ba7e9bf7c`
 > **Rule:** This file records the execution contract, evidence, decisions, and blockers so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -49,7 +49,7 @@ Project as parent operational context. **Implemented; action-level permission pr
 Building as child operational entity with explicit Project context. **Implemented; action-level permission presentation added.**
 
 ### STEP 4 — Apartment operational vertical slice
-Complete the first high-value real-estate operational entity. **Permission convergence implemented; route-state regression hardening now added.**
+Complete the first high-value real-estate operational entity. **Permission convergence implemented; route-state regression hardening added.**
 
 ### STEP 5 — Customer / Lead vertical slice
 Connect customer operations to real inventory without fabricating reservation state. **Lead mutation permission presentation implemented; deeper CRM capability coverage remains pending.**
@@ -58,7 +58,7 @@ Connect customer operations to real inventory without fabricating reservation st
 Only implement server-confirmed reservation behavior when backend support exists.
 
 ### STEP 7 — Navigation and URL state certification
-URL as authoritative recoverable navigation state. **Hash workspace/query parsing hardening implemented; full cross-entity certification remains pending.**
+URL as authoritative recoverable navigation state. **Hash workspace/query parsing hardening implemented; cross-entity state synchronization audit is active.**
 
 ### STEP 8 — Server-state and request lifecycle
 One clear owner for server state and controlled network behavior.
@@ -115,23 +115,29 @@ Inspection confirmed that Apartment already had action-level presentation: publi
 ### 2026-09-14 — Execution state synchronization
 `11e604c3875e53365a5ad42c1b716423de0808db` synchronized the durable UX and execution logs with the actual branch state and recorded the navigation hardening evidence.
 
+### 2026-09-14 — Exact-head verification and UX-state synchronization
+`fced3b9f981f988548ed9527e2765e6aebf955bf` is the exact application HEAD inspected for the current gate. Vercel reports **success** for that exact commit. The current UX state document was then synchronized in `efaa6a5510e331daff32dba9812bcc7ba7e9bf7c` so the durable log no longer points at stale implementation commits.
+
+### 2026-09-14 — Cross-entity route-state audit
+The route model was inspected together with Project and Building workspace navigation. `navigateAdminRoute` clears previous workspace filters/pagination/cursor/subview/entity context when changing workspaces and preserves same-workspace state unless explicitly replaced. Project → Building navigation uses a building workspace `projectId` filter; entity detail routes use explicit `entity`/`entityId`. No new navigation architecture was introduced. A deeper workspace-local synchronization audit remains required before STEP 7 can be closed.
+
 ## CI / deployment evidence
 
-- Previous exact HEAD `27d28b73bda1a8680605bf288ff5901cac0def00` had Vercel **success**.
-- Commit `1e833a68bccf7155ff106615ae152d103c6ee79c` had no reported GitHub Actions workflow run or status when checked immediately after push.
-- Current documentation HEAD `11e604c3875e53365a5ad42c1b716423de0808db` has not yet been granted a CI pass claim.
+- Current application HEAD before documentation synchronization: `fced3b9f981f988548ed9527e2765e6aebf955bf` — Vercel **success**.
+- No GitHub Actions CI pass is claimed for the current application HEAD because the available combined status reported only the Vercel check.
+- Documentation synchronization commit: `efaa6a5510e331daff32dba9812bcc7ba7e9bf7c`.
 - No browser visual certification is claimed.
 
 ## Current execution state
 
-**Latest documented HEAD:** `11e604c3875e53365a5ad42c1b716423de0808db`
+**Latest documented HEAD:** `efaa6a5510e331daff32dba9812bcc7ba7e9bf7c`
 
-**Active wave:** STEP 7 — Navigation/state certification, with cross-entity contract audit next; then request lifecycle, error/loading, responsive and accessibility gates.
+**Active wave:** STEP 7 — Navigation/state certification, with workspace-local synchronization and then mutation/error/loading consistency next.
 
-**Completed in this gate:** Project, Building and Apartment action-level permission presentation/convergence; Lead status and internal-note mutation presentation/convergence; concrete hash workspace/query parsing hardening.
+**Completed in this gate:** Project, Building and Apartment action-level permission presentation/convergence; Lead status and internal-note mutation presentation/convergence; concrete hash workspace/query parsing hardening; exact-head Vercel verification; durable UX-state synchronization.
 
 **Important capability boundary:** Lead `assignedTo` and `followUpDate` are currently read-only fields in the inspected workspace. There is no verified writable assignment/follow-up capability in the current implementation, so it remains out of mutation scope until server support is evidenced.
 
-**Immediate next gate:** Verify exact-head CI/Vercel state, then inspect cross-entity deep-link behavior and context isolation across Project → Building → Apartment → Lead, followed by mutation/error/loading consistency and responsive/accessibility review.
+**Immediate next gate:** Continue exact source inspection of Building/Apartments/Leads route synchronization, then audit mutation/error/loading consistency including retry/abort behavior. Only implement a code change when a concrete defect is established.
 
 **Browser/runtime certification:** `VISUAL VALIDATION BLOCKED — browser automation is not available in this execution context.`
