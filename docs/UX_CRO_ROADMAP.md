@@ -4,7 +4,7 @@
 **Date:** 2026-09-13
 **Current phase:** Phase 3 — Sales Experience & Conversion System
 **Current branch:** `fix/responsive-viewport-hardening`
-**Latest implementation checkpoint:** `66572df44b33187de87ab0781dac3d6a41ddf784`
+**Latest implementation checkpoint:** `cd8fcb0f3b535d791777db9669cd905daca917b7`
 
 ## Execution ledger
 
@@ -15,7 +15,7 @@
 | 3 | Sales UX / UI / CRO | ACTIVE — final release audit | All Phase 3 gates in this document and `UX_CRO_SOURCE_OF_TRUTH.md` green |
 | 4 | Measurement / CRO optimization | NOT STARTED | Phase 3 released and instrumentation verified |
 
-## Current Phase 3 state
+## Current state
 
 The public sales experience is implemented across Home, Projects/Catalogue, Project Detail, Apartment Detail, Services, About, Developers, Contact, Insights, Campaign Landing and legal/utility routes. Shared conversion infrastructure includes `SiteShell`, `NavbarV3`, `FooterV3`, `StickyMobileCTA`, `CompareBar`, `LeadForm`, `SearchCommandPalette` and property recommendation/comparison flows.
 
@@ -42,7 +42,7 @@ The remaining work is verification and evidence gathering, not speculative redes
 ### Visual / Figma
 - [x] Repository-native visual reference is versioned under `docs/ui-ux-reference/`.
 - [x] Shared visual tokens and public component direction implemented in code.
-- [ ] Editable Figma design-system synchronization. Current Figma connection is **View-only** and no editable ASAS design-file key is available to this agent.
+- [ ] Editable Figma design-system synchronization. Current Figma connection is View-only and no editable ASAS design-file key is available to this agent.
 
 ### Property / business logic
 - [x] Project and apartment pages use real catalog data.
@@ -71,7 +71,7 @@ The remaining work is verification and evidence gathering, not speculative redes
 - [ ] Full manual viewport matrix: 360/375/390/430/768/820/912/1024/1280/1366/1440/1536.
 
 ### Quality / deployment
-- [x] Commit `a6153bbea226c46e47288781e756a93311adb7a` reached Vercel `READY`.
+- [x] Commit `a6153bbea226c46e47288781e756a93311adb7a1` reached Vercel `READY`.
 - [x] Vercel combined status for that commit is `success`.
 - [x] Latest preview root returned HTTP 200.
 - [x] Latest deployment had no error/fatal preview runtime logs in the checked 24-hour window.
