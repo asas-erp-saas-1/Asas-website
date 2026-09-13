@@ -4,7 +4,7 @@
 > **Branch:** `feat/admin-ux-ui-foundation`
 > **PR:** #7
 > **Repository:** `asas-erp-saas-1/Asas-website`
-> **Latest execution HEAD:** `58559326f18c38c62dfbeee9dcfed29e67451d84`
+> **Latest execution HEAD:** `b66f7ab537aaa76022b03e02991adcee1720d40c`
 > **Rule:** This file records the execution contract, prompt system, evidence, decisions, and blockers so the long-running execution does not depend on conversation memory.
 
 ## Non-negotiable execution rules
@@ -159,24 +159,39 @@ CI run `#899` on `ba23a1701c2da25df4f898cd76a7fbe075793e2b` failed at Typecheck 
 
 The implementation deliberately does not invent Reservation, Contract or Payment behavior.
 
+### 2026-09-13 — Exact-head CI certification before UX hardening
+PR #7 head `f93df5263ea0d2f093c307cecd7129f7dbf8858a` completed CI run `#993` successfully. This certified the prior UX/UI documentation/reference wave through dependency installation, Prisma generation, baseline generation/verification/upload, Typecheck, Lint and Build.
+
+### 2026-09-13 — Responsive / RTL / localization UX hardening
+`b66f7ab537aaa76022b03e02991adcee1720d40c` extended the scoped Admin UX reference layer without touching public-site styling or backend contracts. The change:
+- establishes a minimum 44px touch-safe interaction floor for Admin buttons/selects and checkbox/radio controls;
+- adds explicit RTL text direction behavior for localized Admin values without forcing global document direction;
+- protects table cells, headers, labels and operational feedback from long localized strings;
+- strengthens visible keyboard focus treatment using the existing Admin gold accent;
+- preserves horizontal data-table integrity on mobile and prevents dense operational columns from collapsing;
+- keeps the implementation scoped to `body.admin-mode`.
+
+No database, API, authentication or authorization behavior was changed.
+
 ## CI evidence
 
 - Run `#899` — HEAD `ba23a170...` — **FAILURE at Typecheck**; root cause: undefined `INTENT_OPTIONS` in `AdminLeadsPremiumWorkspace.tsx`.
 - Run `#902` — HEAD `7632feb...` — previously tracked after repair.
 - Run `#948` — HEAD `58559326f18c38c62dfbeee9dcfed29e67451d84` — **SUCCESS**. All steps completed successfully: dependency installation, Prisma client generation, baseline generation/verification/upload, Typecheck, Lint and Build.
+- Run `#993` — HEAD `f93df5263ea0d2f093c307cecd7129f7dbf8858a` — **SUCCESS**. All CI gates completed successfully.
 
 ## Current execution state
 
-**Latest HEAD:** `58559326f18c38c62dfbeee9dcfed29e67451d84`
+**Latest HEAD:** `b66f7ab537aaa76022b03e02991adcee1720d40c`
 
-**Active wave:** STEP 4 — Apartment operational vertical slice, with Project/Building regression closure.
+**Active wave:** STEP 4 — Apartment operational vertical slice, with Project/Building regression closure and UX behavior hardening.
 
 **Immediate gates:**
-1. Reconcile the Apartment detail mutation response with its richer detail state so a successful mutation cannot discard nested project/building/media context.
-2. Audit Apartment create/detail/status/publication/media contract end-to-end against the real API.
-3. Regression-check Building → Apartment and Lead → Project/Apartment navigation.
-4. Audit status/publication semantics and unsupported Reservation boundary.
-5. Run exact-HEAD CI after the next coherent implementation slice.
-6. Perform browser/runtime certification only when browser automation is actually available.
+1. Obtain exact-HEAD CI evidence for `b66f7ab...`.
+2. Complete permission-aware action presentation, especially Building create/edit controls, using the existing `/api/admin/me` role contract where appropriate.
+3. Finish responsive/RTL review across Project, Building, Apartment and Lead surfaces, including mobile action hierarchy and dense tables.
+4. Regression-check Building → Apartment and Lead → Project/Apartment navigation and explicit entity-context clearing.
+5. Audit status/publication semantics and unsupported Reservation boundary end-to-end.
+6. Browser/runtime certification only when browser automation is actually available.
 
 **Browser/runtime certification:** `VISUAL VALIDATION BLOCKED — browser automation is not available in this execution context.`
