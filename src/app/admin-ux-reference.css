@@ -15,6 +15,25 @@ body.admin-mode {
   --admin-line: #d9d5cb;
 }
 
+body.admin-mode .admin-readonly-notice {
+  margin: 0.5rem 1rem 0;
+  border: 1px solid color-mix(in oklab, var(--admin-gold) 30%, var(--admin-line));
+  border-radius: 0.65rem;
+  background: color-mix(in oklab, var(--admin-gold) 8%, var(--admin-panel));
+  color: var(--admin-ink);
+  padding: 0.65rem 0.85rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+body.admin-mode [data-admin-role-loading='true'] .admin-readonly-notice {
+  display: none;
+}
+
+body.admin-mode [data-admin-can-mutate='false'] .admin-mutation-action {
+  cursor: not-allowed;
+}
+
 body.admin-mode .admin-page-shell > main {
   background:
     radial-gradient(circle at 100% 0%, color-mix(in oklab, var(--admin-forest) 4%, transparent), transparent 32rem),
@@ -29,25 +48,6 @@ body.admin-mode .admin-apartments-workspace,
 body.admin-mode .admin-leads-workspace { animation: asas-admin-enter 180ms ease-out both; }
 
 @keyframes asas-admin-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Role-aware presentation: authorization remains server-enforced; this is UX guidance only. */
-body.admin-mode .admin-role-scope { min-width: 0; }
-body.admin-mode .admin-readonly-notice {
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  display: flex;
-  min-height: 2.5rem;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid color-mix(in oklab, var(--admin-gold) 28%, var(--admin-line));
-  background: color-mix(in oklab, var(--admin-gold) 9%, var(--admin-panel));
-  color: var(--admin-ink);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  text-align: center;
-}
 
 body.admin-mode [data-slot='card'] { background: var(--admin-panel); border-radius: 0.85rem; }
 body.admin-mode [data-slot='card'] > [data-slot='card-header'] { padding-bottom: 0.75rem; }
@@ -93,7 +93,7 @@ body.admin-mode :focus-visible { outline: 2px solid var(--admin-gold); outline-o
   body.admin-mode .admin-sticky-toolbar { top: 0.25rem; }
   body.admin-mode .admin-table-scroll table { min-width: 700px; }
   body.admin-mode .admin-table-scroll { margin-inline: -0.25rem; width: calc(100% + 0.5rem); }
-  body.admin-mode .admin-readonly-notice { position: static; }
+  body.admin-mode .admin-readonly-notice { margin-inline: 0.75rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
