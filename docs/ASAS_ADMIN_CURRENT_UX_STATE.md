@@ -2,7 +2,7 @@
 
 **Branch:** `feat/admin-ux-ui-foundation`
 **PR:** #7
-**Current implementation HEAD:** `0b473ad3298a1e02a0a460b9a073f55a2c3b2f80`
+**Current implementation HEAD:** `1e833a68bccf7155ff106615ae152d103c6ee79c`
 
 ## Completed in this UX/UI wave
 
@@ -30,19 +30,26 @@
 - Detail mode explains the read-only restriction without removing context.
 
 ### Apartment
-The current Apartment workspace already presents action-level mutation restrictions in the implementation:
+- Apartment now consumes the shared `AdminRoleProvider` rather than maintaining a duplicate client role fetch.
 - List publication control is enabled only for `ADMIN`/`EDITOR`.
 - List archive control is enabled only for `ADMIN`.
 - Detail price editing, status selection/application and publication are disabled for `VIEWER`.
-- Publication readiness is checked before exposing a publish mutation path.
-- Existing apartment mutation lifecycle (`validating → submitting → success/recoverable-error`) remains in use.
+- Mutation handlers re-check `canMutate` / `canAdminister` before requests.
+- Publication readiness and the existing apartment mutation lifecycle remain preserved.
 - Read-only users retain apartment identity, project/building context, navigation and operational information.
 
-### Important Apartment engineering debt
-`AdminApartmentsWorkspace.tsx` still performs its own `/api/admin/me` role fetch instead of consuming `AdminRoleProvider`. This is a client-side capability duplication, not a server authorization gap. The next refinement should converge Apartment on the shared provider and add explicit capability re-checks inside detail/list mutation handlers without changing the server contract.
-
 ### Lead
-Lead status, follow-up and assignment mutation presentation remains the next permission gate. Do not fabricate reservation/contract/payment behavior.
+- Lead now consumes the shared role context.
+- Lead status changes and internal-note creation are treated as mutations and are disabled for `VIEWER`.
+- Lead mutation handlers re-check the shared capability before requests.
+- Project/apartment navigation, contact links, filtering and operational context remain available read-only.
+- `assignedTo` and `followUpDate` are currently displayed fields rather than verified writable capabilities in this workspace; no unsupported assignment/follow-up API was invented.
+
+## URL/navigation contract
+
+- Admin workspace, filters, pagination and entity context are URL-derived and recoverable.
+- A defect was identified in hash-route parsing: a query string on `#/admin/<workspace>?…` was previously included in the workspace capture, causing valid filtered workspace URLs to fall back to `dashboard`.
+- Commit `1e833a68bccf7155ff106615ae152d103c6ee79c` separates the hash path from its query before workspace normalization, preserving the existing URL contract while making filtered/deep-linked hash routes parse correctly.
 
 ## Role model
 
@@ -59,15 +66,14 @@ The supported Admin roles are `ADMIN`, `EDITOR`, `VIEWER`. Do not introduce `STA
 
 ## Verification
 
-- Vercel status for implementation HEAD `0b473ad3298a1e02a0a460b9a073f55a2c3b2f80`: **success**.
-- No claim of full workflow CI success is made from this status alone.
+- Vercel status for previous exact HEAD `27d28b73bda1a8680605bf288ff5901cac0def00`: **success**.
+- New route-parser commit `1e833a68bccf7155ff106615ae152d103c6ee79c` currently has no reported GitHub status/workflow run; no CI pass is claimed yet.
 - Browser certification remains blocked: `VISUAL VALIDATION BLOCKED — browser automation is not available in this execution context.`
 
 ## Next coherent UX gate
 
-1. Converge Apartment role consumption on `AdminRoleProvider` and harden handler-level capability checks.
-2. Apply the same capability contract to Lead status/follow-up/assignment controls.
-3. Finish responsive/RTL review across Project, Building, Apartment and Lead surfaces.
-4. Regression-check cross-entity navigation and context isolation.
-5. Audit lifecycle/publication semantics and unsupported Reservation boundary.
-6. Browser certification when browser automation is available.
+1. Verify exact-head CI/Vercel for `1e833a68bccf7155ff106615ae152d103c6ee79c`.
+2. Audit cross-entity deep-link behavior and context isolation across Project → Building → Apartment → Lead.
+3. Audit mutation/error/loading lifecycle consistency across the four operational workspaces.
+4. Continue responsive/RTL/accessibility review and preserve evidence-backed lifecycle semantics.
+5. Browser certification when browser automation is available.
