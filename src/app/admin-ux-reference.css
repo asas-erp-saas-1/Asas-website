@@ -61,7 +61,6 @@ body.admin-mode h3 {
   letter-spacing: -0.015em;
 }
 
-/* Operational table: make scanning faster without increasing density unnecessarily. */
 body.admin-mode table tbody tr {
   border-bottom: 1px solid color-mix(in oklab, var(--admin-line) 72%, transparent);
 }
@@ -78,7 +77,6 @@ body.admin-mode table button {
   white-space: nowrap;
 }
 
-/* Status/readiness language should read as evidence, not decoration. */
 body.admin-mode [data-admin-status='ready'],
 body.admin-mode [data-admin-state='ready'] {
   border-color: color-mix(in oklab, var(--admin-forest) 22%, var(--admin-line));
@@ -91,7 +89,6 @@ body.admin-mode [data-admin-state='blocked'] {
   border-color: color-mix(in oklab, #a33 24%, var(--admin-line));
 }
 
-/* Detail pages: keep identity, state and primary action visually grouped. */
 body.admin-mode [aria-labelledby$='-detail-title'] > div > header,
 body.admin-mode [aria-labelledby='apartment-detail-title'] > div > header {
   position: sticky;
@@ -107,7 +104,6 @@ body.admin-mode [aria-labelledby='apartment-detail-title'] [role='status'] {
   min-height: 2.5rem;
 }
 
-/* Inputs: operational forms should feel stable and deliberate. */
 body.admin-mode label > span:first-child {
   color: var(--admin-ink);
 }
@@ -118,12 +114,79 @@ body.admin-mode textarea::placeholder {
   opacity: 0.72;
 }
 
-/* Make destructive/recoverable feedback prominent without becoming alarming. */
 body.admin-mode [role='alert'] {
   box-shadow: 0 1px 2px rgb(21 25 23 / 4%);
 }
 
-/* Mobile: prioritize the entity title and primary action, then filters/data. */
+/* Dense data surfaces: preserve horizontal integrity instead of collapsing columns. */
+body.admin-mode .admin-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+body.admin-mode .admin-table-scroll table {
+  min-width: 760px;
+}
+
+body.admin-mode .admin-table-scroll [data-sticky-column='true'] {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 2;
+  background: var(--admin-panel);
+  box-shadow: 8px 0 14px -14px rgb(21 25 23 / 35%);
+}
+
+/* Workspace toolbars remain available while scanning long operational lists. */
+body.admin-mode .admin-sticky-toolbar {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 15;
+  background: color-mix(in oklab, var(--admin-panel) 94%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--admin-line);
+  box-shadow: 0 8px 24px rgb(21 25 23 / 5%);
+}
+
+/* Consistent action hierarchy: primary > secondary > quiet. */
+body.admin-mode .admin-primary-action {
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--admin-forest) 18%, transparent);
+}
+
+body.admin-mode .admin-quiet-action {
+  color: var(--admin-muted);
+}
+
+body.admin-mode .admin-quiet-action:hover {
+  color: var(--admin-forest);
+  background: var(--admin-forest-soft);
+}
+
+/* Async states should reserve layout space and never cause action rows to jump. */
+body.admin-mode .admin-operation-feedback {
+  min-height: 2.5rem;
+}
+
+body.admin-mode .admin-skeleton {
+  border-radius: 0.5rem;
+  background: linear-gradient(90deg, var(--admin-line), color-mix(in oklab, var(--admin-line) 45%, white), var(--admin-line));
+  background-size: 200% 100%;
+  animation: asas-admin-skeleton 1.25s ease-in-out infinite;
+}
+
+@keyframes asas-admin-skeleton {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* Make disabled actions communicate state rather than looking broken. */
+body.admin-mode button:disabled,
+body.admin-mode [aria-disabled='true'] {
+  opacity: 0.58;
+}
+
 @media (max-width: 767px) {
   body.admin-mode .admin-page-shell > main {
     padding: 0.75rem;
@@ -150,6 +213,14 @@ body.admin-mode [role='alert'] {
   body.admin-mode [data-slot='card'] {
     border-radius: 0.75rem;
   }
+
+  body.admin-mode .admin-sticky-toolbar {
+    top: 0.25rem;
+  }
+
+  body.admin-mode .admin-table-scroll table {
+    min-width: 700px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -157,7 +228,8 @@ body.admin-mode [role='alert'] {
   body.admin-mode .admin-projects-workspace,
   body.admin-mode .admin-buildings-workspace,
   body.admin-mode .admin-apartments-workspace,
-  body.admin-mode .admin-leads-workspace {
+  body.admin-mode .admin-leads-workspace,
+  body.admin-mode .admin-skeleton {
     animation: none;
   }
 }
