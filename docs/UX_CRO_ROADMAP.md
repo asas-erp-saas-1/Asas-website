@@ -4,11 +4,11 @@
 **Date:** 2026-09-13
 **Current phase:** Phase 3 — Sales Experience & Conversion System
 **Current branch:** `fix/responsive-viewport-hardening`
-**Latest implementation checkpoint:** `af322d39d44fdf60a74869412beb63de6b33be5a`
+**Latest implementation checkpoint:** `e17d26635a4c4dd09d2dd14edafc2f5e0bb94bf8`
 
 ## Release state
 
-Phase 3 public UX/UI/CRO implementation is substantially complete. The remaining release work is verification and evidence gathering, not speculative redesign.
+Phase 3 public UX/UI/CRO implementation is substantially complete. Remaining work is verification and evidence gathering, not speculative redesign.
 
 Implemented: premium editorial visual system; responsive and safe-area hardening; catalogue search/filter/sort/apartment search/map; Project Detail Sales Room; Apartment Detail Decision Room; shared CTA/comparison architecture; Home; Services; About; Developers; Contact; Insights; Campaign; legal/utility pages; comparison/floor-plan hardening; removal of public mortgage/credit simulation; repository-native UI reference and AI operating contract.
 
