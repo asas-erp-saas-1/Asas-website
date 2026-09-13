@@ -47,25 +47,21 @@ export function SearchCommandPalette() {
 
   const shortcutLabel = isClient && navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? '⌘K' : 'Ctrl+K';
 
-  // Memoize recent searches, re-compute when palette opens or version bumps
   const recentSearches = useMemo(() => {
     if (!searchPaletteOpen) return [];
     return getRecentSearches();
   }, [searchPaletteOpen, recentSearchesVersion]);
 
-  // Focus management when palette opens
   useEffect(() => {
     if (searchPaletteOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [searchPaletteOpen]);
 
-  // Global Cmd+K / Ctrl+K keyboard shortcut
   useEffect(() => {
     if (!isClient) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd+K on Mac, Ctrl+K on Windows/Linux
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setSearchPaletteOpen(!searchPaletteOpen);
@@ -76,7 +72,6 @@ export function SearchCommandPalette() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isClient, searchPaletteOpen, setSearchPaletteOpen]);
 
-  // Close on ESC
   const handleOverlayClick = useCallback(
     (e: React.MouseEvent) => {
       if (e.target === e.currentTarget) {
@@ -100,7 +95,6 @@ export function SearchCommandPalette() {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [searchPaletteOpen, setSearchPaletteOpen]);
 
-  // Prevent body scroll when open
   useEffect(() => {
     if (searchPaletteOpen) {
       document.body.style.overflow = 'hidden';
@@ -136,8 +130,9 @@ export function SearchCommandPalette() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] backdrop-blur-xl bg-black/40"
+          className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto overscroll-contain px-2 pt-[max(1rem,12dvh)] pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-xl bg-black/40 sm:px-4 sm:pt-[15vh]"
           onClick={handleOverlayClick}
+          role="presentation"
         >
           <motion.div
             key="search-palette-container"
@@ -145,52 +140,51 @@ export function SearchCommandPalette() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 400, damping: 32, mass: 0.8 }}
-            className="relative w-full max-w-2xl mx-4 rounded-2xl border-2 border-forest/30 bg-background shadow-2xl overflow-hidden"
+            className="relative w-full max-w-2xl min-w-0 max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain rounded-2xl border-2 border-forest/30 bg-background shadow-2xl sm:max-h-[calc(100dvh-3rem)]"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Recherche IA"
           >
-            {/* Forest green gradient accent at top */}
             <div
               aria-hidden
               className="pointer-events-none absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-forest to-transparent"
             />
 
-            {/* Header with sparkle icon and shortcut hint */}
-            <div className="flex items-center gap-2 px-5 pt-5 pb-2">
-              <div className="flex items-center gap-2 text-forest">
-                <Sparkles className="h-5 w-5" />
+            <div className="flex min-w-0 flex-wrap items-center gap-2 px-3 pt-4 pb-2 sm:px-5 sm:pt-5">
+              <div className="flex min-w-0 items-center gap-2 text-forest">
+                <Sparkles className="h-5 w-5 shrink-0" />
                 <span className="text-sm font-semibold">Recherche IA</span>
               </div>
               <div className="ml-auto flex items-center gap-1.5">
                 <kbd className="pointer-events-none inline-flex h-5 items-center gap-1 rounded-md border border-forest/30 bg-forest/5 px-1.5 font-mono text-[10px] font-semibold text-forest shadow-sm">
                   {shortcutLabel}
                 </kbd>
-                <span className="text-xs text-muted-foreground">pour ouvrir</span>
+                <span className="hidden text-xs text-muted-foreground sm:inline">pour ouvrir</span>
               </div>
             </div>
 
-            {/* AI Search Component */}
-            <div className="px-5 pb-2">
+            <div className="min-w-0 px-3 pb-2 sm:px-5">
               <AISearch variant="compact" />
             </div>
 
-            {/* Recent searches section */}
             {recentSearches.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.2 }}
-                className="border-t border-border/40 px-5 py-3"
+                className="border-t border-border/40 px-3 py-3 sm:px-5"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span className="text-xs font-medium">Recherches récentes</span>
+                <div className="mb-2 flex min-w-0 items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-1.5 text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate text-xs font-medium">Recherches récentes</span>
                   </div>
                   <button
                     type="button"
                     onClick={handleClearRecent}
-                    className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                    className="min-h-11 shrink-0 px-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Effacer
                   </button>
@@ -204,45 +198,43 @@ export function SearchCommandPalette() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
                       onClick={() => handleRecentClick(query)}
-                      className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-sm text-foreground/80 hover:bg-forest/5 hover:text-foreground transition-colors group text-left"
+                      className="flex min-w-0 min-h-11 items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm text-foreground/80 hover:bg-forest/5 hover:text-foreground transition-colors group"
                     >
-                      <Search className="w-3.5 h-3.5 text-muted-foreground group-hover:text-forest transition-colors" />
-                      <span className="flex-1 truncate">{query}</span>
-                      <ArrowRight className="w-3 h-3 text-muted-foreground/0 group-hover:text-muted-foreground transition-all" />
+                      <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-forest transition-colors" />
+                      <span className="min-w-0 flex-1 truncate">{query}</span>
+                      <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground/0 group-hover:text-muted-foreground transition-all" />
                     </motion.button>
                   ))}
                 </div>
               </motion.div>
             )}
 
-            {/* Search result type hints */}
-            <div className="border-t border-border/40 px-5 py-2.5 flex items-center gap-4">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 border-t border-border/40 px-3 py-2.5 sm:px-5">
               <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Building2 className="w-3.5 h-3.5 text-forest/60" />
+                <Building2 className="h-3.5 w-3.5 text-forest/60" />
                 <span className="text-[10px]">Projets</span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Home className="w-3.5 h-3.5 text-forest/60" />
+                <Home className="h-3.5 w-3.5 text-forest/60" />
                 <span className="text-[10px]">Appartements</span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
-                <FileText className="w-3.5 h-3.5 text-forest/60" />
+                <FileText className="h-3.5 w-3.5 text-forest/60" />
                 <span className="text-[10px]">Pages</span>
               </div>
             </div>
 
-            {/* Footer hint with proper kbd styling */}
-            <div className="border-t border-border/50 bg-muted/30 px-5 py-2.5 flex items-center justify-center gap-3">
-              <span className="text-xs text-muted-foreground">
+            <div className="flex min-w-0 flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-border/50 bg-muted/30 px-3 py-2.5 sm:px-5">
+              <span className="text-center text-xs text-muted-foreground">
                 Appuyez sur{' '}
-                <kbd className="inline-flex h-5 items-center rounded-md border border-forest/20 bg-forest/5 px-1.5 font-mono text-[10px] font-semibold text-forest/80 shadow-sm mx-0.5">
+                <kbd className="mx-0.5 inline-flex h-5 items-center rounded-md border border-forest/20 bg-forest/5 px-1.5 font-mono text-[10px] font-semibold text-forest/80 shadow-sm">
                   Entrée
                 </kbd>{' '}
                 pour rechercher
               </span>
-              <span className="text-xs text-muted-foreground">•</span>
-              <span className="text-xs text-muted-foreground">
-                <kbd className="inline-flex h-5 items-center rounded-md border border-forest/20 bg-forest/5 px-1.5 font-mono text-[10px] font-semibold text-forest/80 shadow-sm mx-0.5">
+              <span className="hidden text-xs text-muted-foreground sm:inline">•</span>
+              <span className="text-center text-xs text-muted-foreground">
+                <kbd className="mx-0.5 inline-flex h-5 items-center rounded-md border border-forest/20 bg-forest/5 px-1.5 font-mono text-[10px] font-semibold text-forest/80 shadow-sm">
                   Échap
                 </kbd>{' '}
                 pour fermer

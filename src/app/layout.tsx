@@ -1,6 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "@/styles/asas-experience.css";
+import "@/styles/asas-public-overrides.css";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationSchema, websiteSchema } from "@/lib/seo";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
@@ -9,6 +11,14 @@ import { LocaleSync } from "@/components/shared/LocaleSync";
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://asas-dz.vercel.app").replace(/\/$/, "");
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
+  themeColor: "#F8F7F2",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -19,15 +29,7 @@ export const metadata: Metadata = {
   creator: "ASAS",
   publisher: "ASAS",
   alternates: { canonical: "/", languages: { "fr-DZ": "/", "fr": "/", "ar-DZ": "/", "x-default": "/" } },
-  openGraph: {
-    title: "ASAS — Agence de Commercialisation Immobilière",
-    description: "L'immobilier de qualité, commercialisé avec excellence. Projets neufs à Alger.",
-    type: "website",
-    locale: "fr_DZ",
-    siteName: "ASAS",
-    url: siteUrl,
-    images: [{ url: "/images/brand/hero.jpg", width: 1344, height: 768, alt: "ASAS — Immobilier en Algérie" }],
-  },
+  openGraph: { title: "ASAS — Agence de Commercialisation Immobilière", description: "L'immobilier de qualité, commercialisé avec excellence. Projets neufs à Alger.", type: "website", locale: "fr_DZ", siteName: "ASAS", url: siteUrl, images: [{ url: "/images/brand/hero.jpg", width: 1344, height: 768, alt: "ASAS — Immobilier en Algérie" }] },
   twitter: { card: "summary_large_image", title: "ASAS — Agence de Commercialisation Immobilière", description: "Projets immobiliers neufs à Alger.", images: ["/images/brand/hero.jpg"], creator: "@asas" },
   robots: { index: true, follow: true, nocache: false, googleBot: { index: true, follow: true, noimageindex: false, "max-video-preview": -1, "max-image-preview": "large", "max-snippet": -1 } },
   icons: { icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/favicon.svg", type: "image/svg+xml" }], shortcut: "/favicon.ico", apple: "/favicon.svg" },

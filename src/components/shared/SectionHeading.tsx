@@ -28,10 +28,10 @@ export function SectionHeading({
     <div
       ref={ref}
       className={cn(
-        'space-y-3',
+        'min-w-0 space-y-3',
         align === 'center' && 'text-center',
         align === 'left' && 'text-left',
-        className
+        className,
       )}
     >
       <motion.div
@@ -39,58 +39,63 @@ export function SectionHeading({
         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0 }}
       >
-        <div className={cn('flex items-center gap-3', align === 'center' && 'justify-center')}>
-          {/* Decorative dot accent */}
+        <div
+          className={cn(
+            'flex min-w-0 flex-wrap items-center gap-2 sm:gap-3',
+            align === 'center' && 'justify-center',
+          )}
+        >
           <motion.span
             initial={{ scale: 0 }}
             animate={isInView ? { scale: 1 } : { scale: 0 }}
             transition={{ type: 'spring', stiffness: 500, damping: 20, delay: 0.1 }}
-            className="flex items-center gap-2"
+            className="flex shrink-0 items-center gap-2"
+            aria-hidden="true"
           >
-            <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
-            <span className="w-8 h-0.5 rounded-full bg-primary/40 shrink-0" />
+            <span className="size-2 rounded-full bg-primary" />
+            <span className="h-0.5 w-6 rounded-full bg-primary/40 sm:w-8" />
           </motion.span>
 
-          {/* Optional icon */}
           {Icon && (
             <motion.span
               initial={{ scale: 0, rotate: -30 }}
               animate={isInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -30 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.05 }}
-              className="text-primary shrink-0"
+              className="shrink-0 text-primary"
+              aria-hidden="true"
             >
-              <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+              <Icon className="size-5 sm:size-6" />
             </motion.span>
           )}
 
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-foreground tracking-tight">
+          <h2 className="min-w-0 max-w-full break-words text-balance text-2xl font-semibold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
             {title}
           </h2>
 
-          {/* Decorative dot accent on right (only for center) */}
           {align === 'center' && (
             <motion.span
               initial={{ scale: 0 }}
               animate={isInView ? { scale: 1 } : { scale: 0 }}
               transition={{ type: 'spring', stiffness: 500, damping: 20, delay: 0.1 }}
-              className="flex items-center gap-2"
+              className="flex shrink-0 items-center gap-2"
+              aria-hidden="true"
             >
-              <span className="w-8 h-0.5 rounded-full bg-primary/40 shrink-0" />
-              <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+              <span className="h-0.5 w-6 rounded-full bg-primary/40 sm:w-8" />
+              <span className="size-2 rounded-full bg-primary" />
             </motion.span>
           )}
         </div>
       </motion.div>
 
-      {/* Decorative line */}
       <motion.div
         initial={{ scaleX: 0 }}
         animate={isInView ? { scaleX: 1 } : { scaleX: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.15 }}
         className={cn(
-          'h-0.5 w-16 rounded-full bg-primary origin-left',
-          align === 'center' && 'mx-auto'
+          'h-0.5 w-16 origin-left rounded-full bg-primary',
+          align === 'center' && 'mx-auto origin-center',
         )}
+        aria-hidden="true"
       />
 
       {subtitle && (
@@ -98,7 +103,7 @@ export function SectionHeading({
           initial={{ opacity: 0, y: 8 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.2 }}
-          className="text-muted-foreground text-base sm:text-lg max-w-2xl leading-relaxed mx-auto"
+          className="mx-auto max-w-2xl break-words text-base leading-relaxed text-muted-foreground sm:text-lg"
         >
           {subtitle}
         </motion.p>

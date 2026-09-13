@@ -1,9 +1,9 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { APARTMENT_STATUS_LABELS, PROJECT_STATUS_LABELS } from '@/lib/constants';
-import { motion } from 'framer-motion';
-import { CheckCircle2, Clock, Lock, Sparkles } from 'lucide-react';
+import { CheckCircle2, Clock3, EyeOff, LockKeyhole, Sparkles } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 interface StatusBadgeProps {
@@ -11,99 +11,56 @@ interface StatusBadgeProps {
   type: 'project' | 'apartment';
 }
 
-/* Contextual icon mapping for apartment statuses */
 const APARTMENT_ICONS: Record<string, LucideIcon> = {
   AVAILABLE: CheckCircle2,
-  RESERVED: Clock,
-  SOLD: Lock,
+  RESERVED: Clock3,
+  SOLD: LockKeyhole,
   COMING_SOON: Sparkles,
+  OFF_MARKET: EyeOff,
 };
 
-/* Contextual icon mapping for project statuses */
 const PROJECT_ICONS: Record<string, LucideIcon> = {
   AVAILABLE: CheckCircle2,
   COMING_SOON: Sparkles,
-  SOLD_OUT: Lock,
+  SOLD_OUT: LockKeyhole,
 };
 
-/* Icon color classes */
-const APARTMENT_ICON_COLORS: Record<string, string> = {
-  AVAILABLE: 'text-emerald-500',
-  RESERVED: 'text-amber-500',
-  SOLD: 'text-slate-400',
-  COMING_SOON: 'text-blue-500',
+const ICON_COLORS: Record<string, string> = {
+  AVAILABLE: 'text-primary-foreground/90',
+  RESERVED: 'text-foreground/70',
+  SOLD: 'text-primary-foreground/80',
+  COMING_SOON: 'text-primary-foreground/90',
+  OFF_MARKET: 'text-foreground/60',
+  SOLD_OUT: 'text-primary-foreground/80',
 };
 
-const PROJECT_ICON_COLORS: Record<string, string> = {
-  AVAILABLE: 'text-emerald-500',
-  COMING_SOON: 'text-blue-500',
-  SOLD_OUT: 'text-slate-400',
-};
-
-/* Enhanced dot color mapping */
-const APARTMENT_DOT_COLORS: Record<string, string> = {
-  AVAILABLE: 'bg-emerald-400',
-  RESERVED: 'bg-amber-400',
-  SOLD: 'bg-slate-400',
-  COMING_SOON: 'bg-blue-400',
-};
-
-const PROJECT_DOT_COLORS: Record<string, string> = {
-  AVAILABLE: 'bg-emerald-400',
-  COMING_SOON: 'bg-blue-400',
-  SOLD_OUT: 'bg-slate-400',
+const STATUS_CLASSES: Record<string, string> = {
+  AVAILABLE: 'border-transparent bg-primary text-primary-foreground',
+  RESERVED: 'border-gold/30 bg-gold/15 text-foreground',
+  SOLD: 'border-transparent bg-foreground/55 text-background',
+  COMING_SOON: 'border-transparent bg-forest-light text-primary-foreground',
+  OFF_MARKET: 'border-border bg-muted text-muted-foreground',
+  SOLD_OUT: 'border-transparent bg-foreground/55 text-background',
 };
 
 export function StatusBadge({ status, type }: StatusBadgeProps) {
-  if (type === 'project') {
-    const label = PROJECT_STATUS_LABELS[status];
-    if (!label) return null;
-
-    const colorClass =
-      status === 'AVAILABLE'
-        ? 'status-available'
-        : status === 'COMING_SOON'
-        ? 'status-coming-soon'
-        : 'status-sold';
-
-    const dotColor = PROJECT_DOT_COLORS[status] ?? 'bg-slate-400';
-    const Icon = PROJECT_ICONS[status] ?? Lock;
-    const iconColor = PROJECT_ICON_COLORS[status] ?? 'text-slate-400';
-    const shouldPulse = status === 'AVAILABLE';
-
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.85 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-        className="inline-flex"
-      >
-        <Badge className={`${colorClass} text-xs font-medium gap-1.5`}>
-          <Icon className={`w-3.5 h-3.5 ${iconColor} ${shouldPulse ? 'animate-status-pulse' : ''}`} />
-          {label.fr}
-        </Badge>
-      </motion.div>
-    );
-  }
-
-  const label = APARTMENT_STATUS_LABELS[status];
+  const labels = type === 'project' ? PROJECT_STATUS_LABELS : APARTMENT_STATUS_LABELS;
+  const label = labels[status];
   if (!label) return null;
 
-  const dotColor = APARTMENT_DOT_COLORS[status] ?? 'bg-slate-400';
-  const Icon = APARTMENT_ICONS[status] ?? Lock;
-  const iconColor = APARTMENT_ICON_COLORS[status] ?? 'text-slate-400';
-  const shouldPulse = status === 'AVAILABLE' || status === 'EN_VENTE';
+  const Icon = (type === 'project' ? PROJECT_ICONS : APARTMENT_ICONS)[status] ?? EyeOff;
+  const className = STATUS_CLASSES[status] ?? 'border-border bg-muted text-muted-foreground';
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.85 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-      className="inline-flex"
+      initial={{ opacity: 0, y: 2 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
+      className="inline-flex min-w-0"
     >
-      <Badge className={`${label.color} text-xs font-medium gap-1.5`}>
-        <Icon className={`w-3.5 h-3.5 ${iconColor} ${shouldPulse ? 'animate-status-pulse' : ''}`} />
-        {label.fr}
+      <Badge className={`${className} max-w-full gap-1.5 text-xs font-semibold`}>
+        <Icon className={`size-3.5 shrink-0 ${ICON_COLORS[status] ?? 'text-current'}`} aria-hidden="true" />
+        <span className="min-w-0 truncate">{label.fr}</span>
       </Badge>
     </motion.div>
   );

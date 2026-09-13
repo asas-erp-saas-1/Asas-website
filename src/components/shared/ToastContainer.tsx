@@ -16,7 +16,7 @@ export function ToastContainer() {
       aria-live="assertive"
       role="status"
       aria-label="Notifications"
-      className="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-6 sm:right-6 z-[100] flex flex-col gap-2 sm:gap-3 pointer-events-none"
+      className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] left-[max(1rem,env(safe-area-inset-left))] sm:left-auto sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))] sm:right-[max(1.5rem,env(safe-area-inset-right))] z-[100] flex flex-col gap-2 sm:gap-3 pointer-events-none"
     >
       <AnimatePresence mode="popLayout">
         {visibleToasts.map((toast) => {
@@ -31,13 +31,10 @@ export function ToastContainer() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              className={`pointer-events-auto flex items-start gap-3 rounded-xl shadow-lg border-l-4 p-4 bg-white min-w-[280px] sm:max-w-sm ${
-                isError
-                  ? 'border-l-red-500'
-                  : 'border-l-forest'
+              className={`pointer-events-auto flex w-full max-w-full items-start gap-3 rounded-xl shadow-lg border-l-4 p-4 bg-background min-w-0 sm:max-w-sm ${
+                isError ? 'border-l-red-500' : 'border-l-forest'
               }`}
             >
-              {/* Icon */}
               <div className="flex-shrink-0 mt-0.5">
                 {isSuccess && <CheckCircle2 className="size-5 text-forest" />}
                 {isError && <AlertCircle className="size-5 text-red-500" />}
@@ -48,26 +45,24 @@ export function ToastContainer() {
                 )}
               </div>
 
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-charcoal leading-tight">
+              <div className="flex-1 min-w-0 break-words">
+                <p className="text-sm font-semibold text-foreground leading-tight">
                   {toast.title}
                 </p>
                 {toast.description && (
-                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed break-words">
                     {toast.description}
                   </p>
                 )}
               </div>
 
-              {/* Dismiss */}
               <button
                 type="button"
                 onClick={() => removeToast(toast.id)}
-                className="flex-shrink-0 rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="flex-shrink-0 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors -m-1"
                 aria-label="Fermer"
               >
-                <X className="size-3.5" />
+                <X className="size-4" />
               </button>
             </motion.div>
           );

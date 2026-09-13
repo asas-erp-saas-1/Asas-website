@@ -8,12 +8,13 @@
 
 - **Phase 1 — deployment/type-contract stabilization:** closed for the original production blocker.
 - **Phase 2 — Database Engineering & Schema Contract:** active.
+- **Phase 3 — Sales Experience & Conversion System:** active; tracked separately in the UX/CRO source-of-truth documents.
 - **Production database:** existing Supabase PostgreSQL is the source of truth until the schema contract is fully reconciled.
 - **Prisma Migrate baseline:** **not yet applied to production**. Do not run `prisma db push`, reset production, or apply the old `prisma/migrations/postgres/0001_init` migration blindly.
 - **Current Vercel deployment:** the latest commit is being validated in production CI/CD; check Vercel before declaring a release green.
 - **Live database:** 20 public tables were observed during the current audit; ownership is being classified before migration baselining.
 
-The authoritative current state is maintained in [`docs/ENGINEERING_SOURCE_OF_TRUTH.md`](docs/ENGINEERING_SOURCE_OF_TRUTH.md) and [`docs/PHASE2_SCHEMA_CONTRACT.md`](docs/PHASE2_SCHEMA_CONTRACT.md).
+The authoritative current state is maintained in [`docs/ENGINEERING_SOURCE_OF_TRUTH.md`](docs/ENGINEERING_SOURCE_OF_TRUTH.md) and [`docs/PHASE2_SCHEMA_CONTRACT.md`](docs/PHASE2_SCHEMA_CONTRACT.md). Public sales UX/CRO state is maintained in [`docs/UX_CRO_SOURCE_OF_TRUTH.md`](docs/UX_CRO_SOURCE_OF_TRUTH.md) and [`docs/UX_CRO_ROADMAP.md`](docs/UX_CRO_ROADMAP.md).
 
 ## Stack
 
@@ -94,6 +95,8 @@ When documents disagree, use this order:
 4. **Current engineering baseline documents** for decisions and migration strategy.
 5. Older audit/phase documents are historical evidence only and must not override verified current state.
 
+For public sales UX/CRO, use the active branch implementation together with `docs/UX_CRO_SOURCE_OF_TRUTH.md` and `docs/UX_CRO_ROADMAP.md`. Do not use conversational memory as a project ledger.
+
 ## Documentation
 
 - [`docs/ENGINEERING_SOURCE_OF_TRUTH.md`](docs/ENGINEERING_SOURCE_OF_TRUTH.md) — current architecture, scope, verified facts, decisions and next gates.
@@ -101,6 +104,8 @@ When documents disagree, use this order:
 - [`docs/PHASE2_TABLE_OWNERSHIP.md`](docs/PHASE2_TABLE_OWNERSHIP.md) — live table ownership classification.
 - [`docs/DATABASE_INDEX_STRATEGY.md`](docs/DATABASE_INDEX_STRATEGY.md) — reconciled PostgreSQL index strategy.
 - [`docs/PRODUCTION_RUNBOOK.md`](docs/PRODUCTION_RUNBOOK.md) — production operational procedures; verify against the source-of-truth before executing.
+- [`docs/UX_CRO_SOURCE_OF_TRUTH.md`](docs/UX_CRO_SOURCE_OF_TRUTH.md) — active public UX/UI/CRO principles, gates and definition of done.
+- [`docs/UX_CRO_ROADMAP.md`](docs/UX_CRO_ROADMAP.md) — phased UX/CRO execution ledger and next-phase sequence.
 
 Historical documents remain in Git for auditability. If a historical document conflicts with the current source of truth, it must be treated as superseded rather than as an instruction.
 

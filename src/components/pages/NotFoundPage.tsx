@@ -1,109 +1,36 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { ScrollRevealSection } from '@/components/shared/ScrollRevealSection';
+import { ArrowLeft, ArrowRight, Building2, Home, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from '@/lib/router';
-import { Home, Building2, Construction, ArrowLeft, Search } from 'lucide-react';
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-};
 
 export default function NotFoundPage() {
   const router = useRouter();
-
   return (
-    <main className="min-h-screen bg-ivory flex items-center justify-center">
-      <ScrollRevealSection
-        className="w-full max-w-2xl mx-auto px-4 py-20 text-center"
-        direction="up"
-        accent
-      >
-        {/* Decorative 404 number */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.1 }}
-          className="mb-8"
-        >
-          <span className="text-[8rem] md:text-[10rem] font-black text-forest/10 leading-none block select-none">
-            404
-          </span>
-        </motion.div>
-
-        {/* Icon */}
-        <motion.div
-          initial={{ scale: 0, rotate: -30 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.2 }}
-          className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-forest/10 mb-6"
-        >
-          <Construction className="h-8 w-8 text-forest" />
-        </motion.div>
-
-        {/* Title */}
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="text-3xl md:text-4xl font-bold text-forest-dark mb-4"
-        >
-          404 — Page introuvable
-        </motion.h1>
-
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="text-base md:text-lg text-muted-foreground max-w-md mx-auto mb-10"
-        >
-          La page que vous recherchez n&apos;existe pas ou a été déplacée.
-        </motion.p>
-
-        {/* CTA Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
-          <Button
-            size="lg"
-            onClick={() => router.goHome()}
-            className="bg-forest hover:bg-forest-dark text-white gap-2 min-w-[200px]"
-          >
-            <Home className="h-4 w-4" />
-            Retour à l&apos;accueil
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => router.goProjects()}
-            className="border-forest/30 text-forest hover:bg-forest/5 hover:border-forest/50 gap-2 min-w-[200px]"
-          >
-            <Building2 className="h-4 w-4" />
-            Voir nos projets
-          </Button>
-        </motion.div>
-
-        {/* Decorative bottom hint */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="mt-12 pt-8 border-t border-border/40"
-        >
-          <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
-            <Search className="h-3.5 w-3.5" />
-            <span>
-              Astuce : Utilisez <kbd className="mx-1 inline-flex h-5 items-center rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">Ctrl+K</kbd> pour rechercher rapidement
-            </span>
+    <main className="min-h-[72vh] bg-ivory text-charcoal">
+      <section className="mx-auto grid min-h-[72vh] max-w-7xl items-center gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[.9fr_1.1fr] lg:px-10 lg:py-24">
+        <div>
+          <button type="button" onClick={() => router.goHome()} className="inline-flex min-h-10 items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-muted-foreground hover:text-charcoal"><ArrowLeft className="size-4" /> Accueil</button>
+          <p className="mt-12 text-[11px] font-semibold uppercase tracking-[.2em] text-forest">ASAS Immobilier</p>
+          <h1 className="mt-4 font-semibold text-5xl leading-[.95] tracking-[-.05em] sm:text-6xl lg:text-8xl">404</h1>
+          <h2 className="mt-6 max-w-xl text-2xl font-semibold tracking-[-.03em] sm:text-3xl">Cette page n&apos;est plus à l&apos;adresse attendue.</h2>
+          <p className="mt-4 max-w-lg text-sm leading-7 text-muted-foreground sm:text-base">Revenez à l&apos;accueil ou explorez directement les projets immobiliers actuellement publiés.</p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button onClick={() => router.goHome()} className="min-h-12 bg-charcoal px-6 text-white hover:bg-charcoal/90"><Home className="mr-2 size-4" /> Retour à l&apos;accueil</Button>
+            <Button variant="outline" onClick={() => router.goProjects()} className="min-h-12 border-border bg-white px-6"><Building2 className="mr-2 size-4" /> Voir les projets <ArrowRight className="ml-2 size-4" /></Button>
           </div>
-        </motion.div>
-      </ScrollRevealSection>
+        </div>
+        <div className="relative overflow-hidden border border-border bg-charcoal p-6 text-white sm:p-10 lg:min-h-[420px]">
+          <div className="flex h-full min-h-[320px] flex-col justify-between">
+            <div className="flex size-11 items-center justify-center border border-white/10 bg-white/5"><Search className="size-5 text-gold" /></div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[.18em] text-gold">Reprendre la recherche</p>
+              <p className="mt-3 max-w-md text-2xl font-semibold leading-tight sm:text-3xl">Trouvez un projet, vérifiez une disponibilité, puis passez à la visite.</p>
+              <button type="button" onClick={() => router.goProjects()} className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-white underline decoration-white/25 underline-offset-8 hover:decoration-white">Explorer le catalogue <ArrowRight className="size-4" /></button>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import ProjectDetailPage from '@/components/pages/ProjectDetailPage';
+import ProjectDetailPage from '@/components/pages/ProjectDetailPageV6';
 import { getPublicProject } from '@/lib/catalog-server';
 import { absoluteUrl } from '@/lib/site-config';
 

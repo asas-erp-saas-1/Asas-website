@@ -7,116 +7,75 @@ import {
   ShoppingCart,
   Bus,
   TreePine,
+  MessageCircle,
+  MapPin,
 } from 'lucide-react';
+import { getWhatsAppUrl } from '@/lib/constants';
 
 interface NeighborhoodInfoProps {
   city: string;
   district: string;
 }
 
-interface POI {
-  label: string;
-  count: number;
-  icon: React.ElementType;
-}
-
-const DISTRICT_POI: Record<string, POI[]> = {
-  'Chéraga': [
-    { label: 'Écoles', count: 3, icon: GraduationCap },
-    { label: 'Hôpitaux', count: 1, icon: Hospital },
-    { label: 'Commerces', count: 5, icon: ShoppingCart },
-    { label: 'Transport', count: 2, icon: Bus },
-    { label: 'Parcs', count: 1, icon: TreePine },
-  ],
-  'Bordj El Bahri': [
-    { label: 'Écoles', count: 2, icon: GraduationCap },
-    { label: 'Hôpitaux', count: 1, icon: Hospital },
-    { label: 'Commerces', count: 3, icon: ShoppingCart },
-    { label: 'Transport', count: 1, icon: Bus },
-    { label: 'Parcs', count: 2, icon: TreePine },
-  ],
-  'Dar El Beïda': [
-    { label: 'Écoles', count: 4, icon: GraduationCap },
-    { label: 'Hôpitaux', count: 2, icon: Hospital },
-    { label: 'Commerces', count: 4, icon: ShoppingCart },
-    { label: 'Transport', count: 3, icon: Bus },
-    { label: 'Parcs', count: 1, icon: TreePine },
-  ],
-  'Hussein Dey': [
-    { label: 'Écoles', count: 3, icon: GraduationCap },
-    { label: 'Hôpitaux', count: 1, icon: Hospital },
-    { label: 'Commerces', count: 6, icon: ShoppingCart },
-    { label: 'Transport', count: 2, icon: Bus },
-    { label: 'Parcs', count: 1, icon: TreePine },
-  ],
-};
-
-const DEFAULT_POI: POI[] = [
-  { label: 'Écoles', count: 2, icon: GraduationCap },
-  { label: 'Hôpitaux', count: 1, icon: Hospital },
-  { label: 'Commerces', count: 3, icon: ShoppingCart },
-  { label: 'Transport', count: 1, icon: Bus },
-  { label: 'Parcs', count: 1, icon: TreePine },
+const TOPICS = [
+  { label: 'Éducation', icon: GraduationCap },
+  { label: 'Santé', icon: Hospital },
+  { label: 'Commerces', icon: ShoppingCart },
+  { label: 'Mobilité', icon: Bus },
+  { label: 'Cadre de vie', icon: TreePine },
 ];
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
 const stagger = {
-  visible: { transition: { staggerChildren: 0.1 } },
+  visible: { transition: { staggerChildren: 0.06 } },
 };
 
 export default function NeighborhoodInfo({ city, district }: NeighborhoodInfoProps) {
-  const pois = DISTRICT_POI[district] ?? DEFAULT_POI;
+  const message = `Bonjour, je souhaite connaître les informations pratiques concernant le quartier ${district}, ${city}, notamment les accès, commerces, écoles et services à proximité.`;
 
   return (
-    <section className="py-10 px-4 bg-background">
-      <div className="max-w-6xl mx-auto">
-        <motion.h2
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          className="text-2xl font-bold text-foreground mb-2"
-        >
-          Points d&apos;intérêt à proximité
-        </motion.h2>
-        <motion.p
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          className="text-muted-foreground mb-6"
-        >
-          {district}, {city}
-        </motion.p>
+    <section className="border-y border-border bg-background py-12 px-4">
+      <div className="mx-auto max-w-6xl">
+        <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+          <div>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-forest">
+              <MapPin className="size-4" aria-hidden="true" />
+              Localisation
+            </motion.div>
+            <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-balance text-2xl font-bold text-foreground sm:text-3xl">
+              Vivre à {district}, {city}
+            </motion.h2>
+            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+              La localisation compte autant que le logement. ASAS peut vous renseigner sur les accès, les services et les points d&apos;intérêt pertinents pour votre projet d&apos;achat.
+            </motion.p>
+          </div>
 
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={stagger}
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"
-        >
-          {pois.map((poi) => {
-            const IconComp = poi.icon;
-            return (
-              <motion.div
-                key={poi.label}
-                variants={fadeUp}
-                className="flex flex-col items-center p-5 rounded-xl border border-border bg-card hover:shadow-md hover:border-forest/30 transition-all duration-200"
-              >
-                <div className="w-12 h-12 rounded-xl bg-forest/10 flex items-center justify-center mb-3">
-                  <IconComp className="h-6 w-6 text-forest" />
-                </div>
-                <p className="text-2xl font-bold text-foreground mb-0.5">{poi.count}</p>
-                <p className="text-xs text-muted-foreground">{poi.label}</p>
-              </motion.div>
-            );
-          })}
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="rounded-2xl border border-forest/15 bg-forest/[0.035] p-5">
+            <p className="text-sm font-semibold text-foreground">Vous voulez valider le quartier avant de décider ?</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Demandez à notre équipe les informations dont vous avez besoin pour comparer sereinement le projet.</p>
+            <a href={getWhatsAppUrl(message)} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-forest px-4 text-sm font-semibold text-white transition-colors hover:bg-forest-dark sm:w-auto">
+              <MessageCircle className="size-4" aria-hidden="true" />
+              Demander les informations
+            </a>
+          </motion.div>
+        </div>
+
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {TOPICS.map(({ label, icon: Icon }) => (
+            <motion.div key={label} variants={fadeUp} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-forest/10 text-forest">
+                <Icon className="size-5" aria-hidden="true" />
+              </div>
+              <span className="text-sm font-medium text-foreground">{label}</span>
+            </motion.div>
+          ))}
         </motion.div>
+
+        <p className="mt-4 text-xs text-muted-foreground">Les disponibilités, distances et temps de trajet précis doivent être confirmés selon l&apos;emplacement exact du projet.</p>
       </div>
     </section>
   );

@@ -1,5 +1,6 @@
-// ASAS Campaign Landing Pages — data and types
-// Each campaign is a high-converting landing page reachable at #/lp/[campaign-slug]
+// ASAS Campaign Landing Pages — editorial campaign definitions.
+// Commercial facts such as price, availability and timing must come from the live catalog/API,
+// not from hardcoded campaign copy.
 
 export interface Campaign {
   slug: string;
@@ -7,90 +8,71 @@ export interface Campaign {
   subtitle: string;
   headline: string;
   subheadline: string;
-  projectName?: string; // optional: link to a specific project
-  apartmentSlug?: string; // optional: link to a specific apartment
-  offer?: string; // e.g. "Prix spécial lancement"
-  urgencyText?: string;
+  projectName?: string;
+  apartmentSlug?: string;
   ctaPrimary: string;
   ctaSecondary?: string;
   features: string[];
   image: string;
-  gradient: string; // tailwind gradient classes
 }
 
 export const CAMPAIGNS: Campaign[] = [
   {
     slug: 'f3-cheraga-special',
     title: 'F3 à Chéraga',
-    subtitle: 'Offre de lancement',
-    headline: 'F3 92m² à Chéraga',
-    subheadline:
-      "Appartement familial avec parking, balcon et prestations de qualité. Livraison Q4 2026.",
+    subtitle: 'Sélection ASAS',
+    headline: 'Découvrez les logements disponibles à Chéraga',
+    subheadline: 'Consultez les informations publiées par ASAS et demandez les détails correspondant à votre recherche.',
     projectName: 'Les Oliviers',
     apartmentSlug: 'f3-familial-95m2',
-    offer: 'À partir de 12 500 000 DA',
-    urgencyText: "Plus que 3 appartements disponibles à ce prix",
     ctaPrimary: 'Recevoir les informations',
-    ctaSecondary: 'Voir le plan',
+    ctaSecondary: 'Voir le logement',
     features: [
-      '92 à 95 m² de surface habitable',
-      '2 chambres + salon spacieux',
-      'Balcon de 12 m² orienté Sud',
-      'Parking souterrain inclus',
-      'Ascenseur et sécurité 24h/24',
-      'Livraison Q4 2026',
+      'Informations du logement publiées par ASAS',
+      'Caractéristiques et surface selon les données disponibles',
+      'Plans et visuels lorsqu’ils sont publiés',
+      'Disponibilité à confirmer auprès d’ASAS',
+      'Accompagnement par un conseiller',
     ],
     image: '/images/projects/les-oliviers-hero.jpg',
-    gradient: 'from-forest to-forest-dark',
   },
   {
     slug: 'investissement-el-borj',
     title: 'Investissement El Borj',
-    subtitle: "Opportunité d'investissement",
-    headline: 'Investissez à Bordj El Bahri',
-    subheadline:
-      'Résidence moderne vue mer, idéale pour investissement ou résidence principale.',
+    subtitle: 'Sélection immobilière',
+    headline: 'Découvrez le projet El Borj',
+    subheadline: 'Explorez les informations publiées sur le programme et échangez avec ASAS pour évaluer votre projet.',
     projectName: 'El Borj',
-    offer: 'Rendement locatif estimé 6-8%',
-    urgencyText: 'Phase de pré-commercialisation - prix avantageux',
-    ctaPrimary: 'Demander une visite',
-    ctaSecondary: 'Parler à un conseiller',
+    ctaPrimary: 'Demander des informations',
+    ctaSecondary: 'Voir le projet',
     features: [
-      '110 à 195 m² de surface',
-      'Vue mer pour les étages élevés',
-      'F3, F4 et Duplex disponibles',
-      'Quartier en forte valorisation',
-      'Livraison Q2 2027',
-      'Plan de paiement échelonné',
+      'Présentation du programme',
+      'Typologies et caractéristiques publiées',
+      'Disponibilités à vérifier selon l’inventaire actuel',
+      'Informations de commercialisation disponibles auprès d’ASAS',
     ],
     image: '/images/projects/el-borj-hero.jpg',
-    gradient: 'from-charcoal to-forest-dark',
   },
   {
     slug: 'premiere-accueil-dar-saida',
-    title: 'Premier achat - Dar Saïda',
-    subtitle: 'Spécial premier achat',
-    headline: 'Premier appartement à Dar El Beïda',
-    subheadline:
-      'F2 et F3 accessibles, parfaits pour les jeunes familles et primo-accédants.',
+    title: 'Premier achat — Dar Saïda',
+    subtitle: 'Sélection ASAS',
+    headline: 'Découvrez les logements disponibles à Dar El Beïda',
+    subheadline: 'Consultez les informations du programme et demandez à ASAS les éléments nécessaires à votre décision.',
     projectName: 'Dar Saïda',
-    offer: 'À partir de 5 500 000 DA',
-    urgencyText: 'Pré-commercialisation - réservez votre lot',
-    ctaPrimary: 'Réserver une visite',
-    ctaSecondary: 'Recevoir le brochure',
+    ctaPrimary: 'Recevoir les informations',
+    ctaSecondary: 'Voir le projet',
     features: [
-      '55 à 85 m² - idéal premier achat',
-      'F2 et F3 disponibles',
-      'Quartier familial et bien desservi',
-      'Plan de paiement adapté',
-      'Livraison Q2 2026',
-      'Accompagnement complet ASAS',
+      'Informations du programme publiées par ASAS',
+      'Typologies et surfaces selon les données disponibles',
+      'Plans et visuels lorsqu’ils sont publiés',
+      'Disponibilités à confirmer auprès d’ASAS',
+      'Accompagnement commercial ASAS',
     ],
     image: '/images/projects/dar-saida-hero.jpg',
-    gradient: 'from-forest-dark to-charcoal',
   },
 ];
 
 export function getCampaign(slug: string): Campaign | undefined {
-  return CAMPAIGNS.find((c) => c.slug === slug);
+  return CAMPAIGNS.find((campaign) => campaign.slug === slug);
 }

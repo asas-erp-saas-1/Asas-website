@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1600" viewBox="0 0 2400 1600">
+  <defs>
+    <style>
+      .bg{fill:#F8F7F2}.panel{fill:#FFF;stroke:#E5E1D7;stroke-width:2}.dark{fill:#17232A}.forest{fill:#183C31}.gold{fill:#B9975B}.ink{fill:#17232A}.muted{fill:#777A72}.line{stroke:#E5E1D7;stroke-width:2}.white{fill:#FFF}.serif{font-family:Georgia,serif}.sans{font-family:Arial,Helvetica,sans-serif}.tiny{font:600 16px Arial;letter-spacing:2px}.label{font:700 18px Arial;letter-spacing:1px}.body{font:400 18px Arial}.h2{font:700 34px Georgia}.h1{font:700 52px Georgia}.small{font:400 14px Arial}.cta{fill:#183C31}.goldText{fill:#B9975B}.mutedText{fill:#777A72}
+    </style>
+  </defs>
+  <rect class="bg" width="2400" height="1600"/>
+  <text x="100" y="90" class="tiny goldText">ASAS IMMOBILIER — UI / UX SOURCE OF TRUTH</text>
+  <text x="100" y="145" class="h1 ink">Premium editorial sales experience</text>
+  <text x="100" y="185" class="body mutedText">Desktop 1440 · Tablet 1024 · Mobile 390 · Ivory / Charcoal / Forest / Gold · one primary decision per viewport</text>
+
+  <!-- Home -->
+  <g transform="translate(80,230)"><rect class="panel" width="700" height="500" rx="22"/><rect class="dark" x="0" y="0" width="700" height="220" rx="22"/><rect fill="#17232A" x="0" y="190" width="700" height="30"/>
+    <text x="30" y="38" class="tiny white">01 · ACCUEIL</text><text x="30" y="95" class="h1 white">Trouver un lieu</text><text x="30" y="138" class="body" fill="#C9CECA">Une entrée émotionnelle, puis une recherche claire.</text><rect x="30" y="165" width="190" height="38" rx="19" fill="#FFF"/><text x="55" y="190" class="small ink">Voir les projets →</text>
+    <rect x="30" y="255" width="640" height="88" rx="16" fill="#F1EFE9"/><text x="55" y="285" class="label ink">Rechercher un projet</text><rect x="55" y="300" width="250" height="25" rx="5" fill="#FFF"/><rect x="320" y="300" width="140" height="25" rx="5" fill="#FFF"/><rect x="475" y="300" width="165" height="25" rx="5" fill="#183C31"/>
+    <text x="30" y="385" class="h2 ink">Projets sélectionnés</text><rect x="30" y="410" width="200" height="65" rx="12" fill="#E9E4D8"/><rect x="245" y="410" width="200" height="65" rx="12" fill="#E9E4D8"/><rect x="460" y="410" width="180" height="65" rx="12" fill="#E9E4D8"/>
+  </g>
+
+  <!-- Catalog -->
+  <g transform="translate(850,230)"><rect class="panel" width="700" height="500" rx="22"/><rect class="dark" width="700" height="155" rx="22"/><text x="30" y="38" class="tiny goldText">02 · PROJETS / CATALOGUE</text><text x="30" y="88" class="h2 white">Une sélection à comparer.</text><rect x="30" y="110" width="640" height="26" rx="13" fill="#FFF"/><text x="48" y="128" class="small mutedText">Ville, quartier, typologie, surface…</text>
+    <rect x="30" y="185" width="640" height="62" rx="14" fill="#FFF" stroke="#E5E1D7"/><text x="50" y="211" class="label ink">Filtres</text><text x="160" y="211" class="small mutedText">Quartier</text><text x="300" y="211" class="small mutedText">Type</text><text x="410" y="211" class="small mutedText">Budget</text><rect x="535" y="198" width="110" height="28" rx="14" fill="#183C31"/>
+    <rect x="30" y="270" width="305" height="190" rx="14" fill="#E9E4D8"/><rect x="365" y="270" width="305" height="190" rx="14" fill="#E9E4D8"/><text x="45" y="490" class="label ink">2–3 projets par ligne</text><text x="45" y="515" class="small mutedText">Image réelle → statut → localisation → prix → action.</text>
+  </g>
+
+  <!-- Project detail -->
+  <g transform="translate(1620,230)"><rect class="panel" width="700" height="500" rx="22"/><rect class="dark" width="700" height="230" rx="22"/><rect x="390" y="38" width="270" height="165" rx="16" fill="#FFF" opacity=".96"/><text x="420" y="70" class="tiny goldText">03 · DÉTAIL PROJET</text><text x="420" y="110" class="h2 ink">Résidence</text><text x="420" y="148" class="h2 ink">El Yasmine</text><text x="420" y="176" class="small mutedText">À partir de 00 000 000 DA</text><rect x="420" y="188" width="170" height="8" rx="4" fill="#183C31"/>
+    <text x="30" y="42" class="tiny white">IMAGE HERO + IDENTITÉ DU PROJET</text><text x="30" y="110" class="h2 white">Désir → preuve → inventaire</text><text x="30" y="145" class="small" fill="#C9CECA">Une seule action dominante : Voir les disponibilités.</text>
+    <rect x="30" y="260" width="640" height="54" rx="10" fill="#FFF"/><rect x="30" y="332" width="200" height="120" rx="12" fill="#E9E4D8"/><rect x="245" y="332" width="200" height="120" rx="12" fill="#E9E4D8"/><rect x="460" y="332" width="210" height="120" rx="12" fill="#E9E4D8"/>
+  </g>
+
+  <!-- Apartment -->
+  <g transform="translate(80,780)"><rect class="panel" width="700" height="500" rx="22"/><rect class="forest" width="700" height="205" rx="22"/><text x="30" y="38" class="tiny goldText">04 · DÉTAIL APPARTEMENT</text><text x="30" y="88" class="h2 white">F3 · 82 m² · 4e étage</text><text x="30" y="122" class="body" fill="#D7DDD8">Les faits importants avant la prise de décision.</text><text x="30" y="175" class="h2 white">00 000 000 DA</text><rect x="430" y="150" width="210" height="42" rx="21" fill="#FFF"/><text x="470" y="176" class="label ink">Demander une visite</text>
+    <rect x="30" y="235" width="310" height="205" rx="14" fill="#E9E4D8"/><rect x="360" y="235" width="310" height="205" rx="14" fill="#E9E4D8"/><text x="30" y="470" class="label ink">6 faits de décision</text><text x="30" y="498" class="small mutedText">Surface · étage · pièces · prix · statut · localisation</text>
+  </g>
+
+  <!-- Services -->
+  <g transform="translate(850,780)"><rect class="panel" width="700" height="500" rx="22"/><rect class="dark" width="700" height="170" rx="22"/><text x="30" y="38" class="tiny goldText">05 · SERVICES</text><text x="30" y="88" class="h2 white">Une commercialisation</text><text x="30" y="125" class="h2 white">pensée comme un parcours.</text><rect x="30" y="200" width="640" height="55" rx="10" fill="#FFF" stroke="#E5E1D7"/><text x="50" y="234" class="label ink">01  Positionnement commercial</text><rect x="30" y="265" width="640" height="55" rx="10" fill="#FFF" stroke="#E5E1D7"/><text x="50" y="299" class="label ink">02  Marketing immobilier</text><rect x="30" y="330" width="640" height="55" rx="10" fill="#FFF" stroke="#E5E1D7"/><text x="50" y="364" class="label ink">03  Acquisition & leads</text><rect x="30" y="405" width="640" height="55" rx="10" fill="#183C31"/><text x="50" y="439" class="label white">Parler de votre projet →</text><text x="30" y="490" class="small mutedText">Editorial, factuel, sans promesses non mesurées.</text>
+  </g>
+
+  <!-- About -->
+  <g transform="translate(1620,780)"><rect class="panel" width="700" height="500" rx="22"/><rect class="forest" width="700" height="190" rx="22"/><text x="30" y="38" class="tiny goldText">06 · À PROPOS</text><text x="30" y="90" class="h2 white">Commercialiser avec</text><text x="30" y="126" class="h2 white">plus de clarté.</text><rect x="390" y="30" width="270" height="130" rx="14" fill="#E9E4D8"/><text x="30" y="160" class="small" fill="#D7DDD8">Vision · méthode · accompagnement humain</text>
+    <text x="30" y="235" class="h2 ink">4 principes</text><rect x="30" y="265" width="145" height="95" rx="12" fill="#FFF" stroke="#E5E1D7"/><rect x="190" y="265" width="145" height="95" rx="12" fill="#FFF" stroke="#E5E1D7"/><rect x="350" y="265" width="145" height="95" rx="12" fill="#FFF" stroke="#E5E1D7"/><rect x="510" y="265" width="145" height="95" rx="12" fill="#FFF" stroke="#E5E1D7"/><text x="30" y="410" class="label ink">Découvrir les projets →</text><text x="30" y="438" class="small mutedText">Le récit sert la confiance, pas l’auto-promotion.</text>
+  </g>
+
+  <!-- Responsive strip -->
+  <g transform="translate(80,1330)"><rect class="panel" width="2240" height="210" rx="22"/><text x="30" y="42" class="tiny goldText">RESPONSIVE CONTRACT</text>
+    <rect x="30" y="70" width="180" height="115" rx="18" fill="#17232A"/><rect x="48" y="84" width="144" height="78" rx="8" fill="#F8F7F2"/><text x="65" y="105" class="small ink">390 px</text><rect x="62" y="118" width="116" height="12" rx="6" fill="#183C31"/><rect x="62" y="138" width="82" height="8" rx="4" fill="#E9E4D8"/>
+    <rect x="260" y="70" width="220" height="115" rx="12" fill="#17232A"/><rect x="275" y="83" width="190" height="86" rx="6" fill="#F8F7F2"/><text x="292" y="106" class="small ink">768–1024 px</text><rect x="292" y="120" width="80" height="12" rx="6" fill="#183C31"/><rect x="380" y="120" width="60" height="12" rx="6" fill="#E9E4D8"/>
+    <rect x="530" y="70" width="310" height="115" rx="10" fill="#17232A"/><rect x="545" y="83" width="280" height="86" rx="6" fill="#F8F7F2"/><text x="565" y="106" class="small ink">1280–1536 px</text><rect x="565" y="120" width="125" height="12" rx="6" fill="#183C31"/><rect x="705" y="120" width="90" height="12" rx="6" fill="#E9E4D8"/>
+    <text x="900" y="95" class="label ink">Rules</text><text x="900" y="122" class="small mutedText">Touch targets ≥ 44 px · no horizontal overflow · sticky mobile CTA · readable type · reduced motion respected.</text><text x="900" y="150" class="small mutedText">No fake inventory · no fake testimonials · no fake scarcity · no mortgage / bank credit simulator.</text>
+  </g>
+</svg>
