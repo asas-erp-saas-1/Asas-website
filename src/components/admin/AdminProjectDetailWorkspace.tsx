@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { navigateAdminRoute } from '@/lib/admin-route';
 import { canStartMutation, createMutationRequestId, mutationAfterFailure, mutationSuccess, type AdminMutationSnapshot } from '@/lib/admin-mutation';
+import { useAdminRole } from '@/components/admin/AdminRoleContext';
 
 interface ProjectDetail {
   id: string;
@@ -67,6 +68,7 @@ async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export function AdminProjectDetailWorkspace({ projectId }: { projectId: string }) {
+  const { canMutate } = useAdminRole();
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +98,7 @@ export function AdminProjectDetailWorkspace({ projectId }: { projectId: string }
   }), [project]);
 
   async function mutate(patch: Record<string, unknown>) {
-    if (!project || mutationBusyRef.current || !canStartMutation(mutation.state)) return;
+    if (!canMutate || !project || mutationBusyRef.current || !canStartMutation(mutation.state)) return;
     mutationBusyRef.current = true;
     const requestId = createMutationRequestId('project-detail');
     setMutation({ state: 'validating', requestId });
@@ -137,7 +139,7 @@ export function AdminProjectDetailWorkspace({ projectId }: { projectId: string }
 
         <div className="grid gap-5 lg:grid-cols-2">
           <Card><CardHeader><CardTitle className="text-base">Identité & localisation</CardTitle></CardHeader><CardContent className="grid gap-4 sm:grid-cols-2 text-sm"><div><span className="text-muted-foreground">Nom</span><p className="font-medium">{project.name}</p></div><div><span className="text-muted-foreground">Type</span><p className="font-medium">{project.projectType}</p></div><div><span className="text-muted-foreground">Ville</span><p className="font-medium">{project.city ?? '—'}</p></div><div><span className="text-muted-foreground">Quartier</span><p className="font-medium">{project.district ?? '—'}</p></div><div className="sm:col-span-2"><span className="text-muted-foreground">Adresse</span><p className="font-medium">{project.address ?? '—'}</p></div><div><span className="text-muted-foreground">Promoteur</span><p className="font-medium">{project.developer?.name ?? 'Non renseigné'}</p></div><div><span className="text-muted-foreground">Statut</span><p className="font-medium">{project.status}</p></div></CardContent></Card>
-          <Card><CardHeader><CardTitle className="text-base">Commercial & publication</CardTitle></CardHeader><CardContent className="space-y-4 text-sm"><div className="flex flex-wrap items-end gap-2"><div className="min-w-[220px] flex-1"><span className="text-muted-foreground">Prix de départ (DZD)</span><Input className="mt-1" type="number" min="0" step="1000" value={priceDraft || (project.startingPrice != null ? String(project.startingPrice) : '')} onChange={(e) => setPriceDraft(e.target.value)} /></div><Button size="sm" disabled={mutationBusy || !priceDraft} onClick={() => mutate({ startingPrice: Number(priceDraft), priceOnRequest: false })}>Enregistrer</Button></div><div className="flex flex-wrap gap-2"><Button disabled={mutationBusy || project.published} onClick={() => mutate({ published: true })}><Eye className="mr-2 h-4 w-4" /> Publier</Button><Button variant="outline" disabled={mutationBusy || !project.published} onClick={() => mutate({ published: false })}><EyeOff className="mr-2 h-4 w-4" /> Dépublier</Button></div><div className="flex flex-wrap gap-2"><Badge variant={project.priceOnRequest ? 'outline' : 'secondary'}>{project.priceOnRequest ? 'Prix sur demande' : 'Prix renseigné'}</Badge><Badge variant="outline">{project.archived ? 'Archivé' : 'Actif'}</Badge><Badge variant="outline">{project.featured ? 'Mis en avant' : 'Standard'}</Badge></div></CardContent></Card>
+          <Card><CardHeader><CardTitle className="text-base">Commercial & publication</CardTitle></CardHeader><CardContent className="space-y-4 text-sm"><div className="flex flex-wrap items-end gap-2"><div className="min-w-[220px] flex-1"><span className="text-muted-foreground">Prix de départ (DZD)</span><Input className="mt-1" type="number" min="0" step="1000" value={priceDraft || (project.startingPrice != null ? String(project.startingPrice) : '')} onChange={(e) => setPriceDraft(e.target.value)} disabled={!canMutate || mutationBusy} /></div><Button size="sm" disabled={!canMutate || mutationBusy || !priceDraft} onClick={() => mutate({ startingPrice: Number(priceDraft), priceOnRequest: false })} title={!canMutate ? 'Lecture seule : modification non autorisée' : undefined}>Enregistrer</Button></div><div className="flex flex-wrap gap-2"><Button disabled={!canMutate || mutationBusy || project.published} onClick={() => mutate({ published: true })} title={!canMutate ? 'Lecture seule : modification non autorisée' : undefined}><Eye className="mr-2 h-4 w-4" /> Publier</Button><Button variant="outline" disabled={!canMutate || mutationBusy || !project.published} onClick={() => mutate({ published: false })} title={!canMutate ? 'Lecture seule : modification non autorisée' : undefined}><EyeOff className="mr-2 h-4 w-4" /> Dépublier</Button></div><div className="flex flex-wrap gap-2"><Badge variant={project.priceOnRequest ? 'outline' : 'secondary'}>{project.priceOnRequest ? 'Prix sur demande' : 'Prix renseigné'}</Badge><Badge variant="outline">{project.archived ? 'Archivé' : 'Actif'}</Badge><Badge variant="outline">{project.featured ? 'Mis en avant' : 'Standard'}</Badge></div></CardContent></Card>
         </div>
 
         <Card><CardHeader><CardTitle className="text-base">Structure & inventaire</CardTitle></CardHeader><CardContent><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{project.buildings?.map((building) => <button key={building.id} type="button" onClick={() => navigateAdminRoute({ workspace: 'apartments', filters: { buildingId: building.id, projectSlug: project.slug }, page: 1 })} className="rounded-md border p-3 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest"><p className="font-medium">{building.name}</p><p className="text-xs text-muted-foreground">{building.code} · {building._count?.apartments ?? 0} lots</p></button>)}</div>{!project.buildings?.length && <p className="text-sm text-muted-foreground">Aucun bâtiment associé.</p>}</CardContent></Card>
