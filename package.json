@@ -8,12 +8,12 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "db:migrate:deploy:postgres": "tsx scripts/migrations/prisma-production-deploy-blocked.ts",
+    "db:migrate:deploy:postgres": "bun scripts/migrations/prisma-production-deploy-blocked.ts",
     "postinstall": "prisma generate --schema=prisma/schema.postgres.prisma",
     "prebuild": "prisma generate --schema=prisma/schema.postgres.prisma",
     "db:generate": "prisma generate --schema=prisma/schema.postgres.prisma",
-    "db:migrate:deploy": "tsx scripts/migrations/prisma-production-deploy-blocked.ts",
-    "db:bootstrap-admin": "tsx scripts/bootstrap-admin.ts"
+    "db:migrate:deploy": "bun scripts/migrations/prisma-production-deploy-blocked.ts",
+    "db:bootstrap-admin": "bun scripts/bootstrap-admin.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -86,7 +86,6 @@
     "prisma": "^6.11.1",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.5",
-    "typescript": "^5",
-    "tsx": "^4.20.3"
+    "typescript": "^5"
   }
 }
